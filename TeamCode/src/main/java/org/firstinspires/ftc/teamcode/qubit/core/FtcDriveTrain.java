@@ -486,7 +486,7 @@ public class FtcDriveTrain extends FtcSubSystem {
     }
 
     /**
-     * Display motor power and position. Helps with debugging.
+     * Display driveTrain information. Helps with debugging.
      */
     public void showTelemetry() {
         FtcLogger.enter();
@@ -508,6 +508,9 @@ public class FtcDriveTrain extends FtcSubSystem {
                 telemetry.addData("Right Rear Motor", "power %.2f distance %d",
                         rightRearMotor.getPower(), rightRearMotor.getCurrentPosition());
             }
+
+            telemetry.addData(">", "%s, %s", driveTrainEnum.name(),
+                    driveTypeEnum.name());
         }
 
         FtcLogger.exit();

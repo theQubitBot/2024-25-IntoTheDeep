@@ -41,6 +41,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 public class FtcBot extends FtcSubSystem {
     private static final String TAG = "FtcBot";
     private boolean telemetryEnabled = true;
+    public FtcBulkRead bulkRead = null;
     public FtcDriveTrain driveTrain = null;
 
     // robot sub systems
@@ -80,6 +81,8 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
 
+        bulkRead = new FtcBulkRead();
+        bulkRead.init(hardwareMap, telemetry);
         driveTrain = new FtcDriveTrain(this);
         driveTrain.setDriveTypeAndMode(DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
         driveTrain.init(hardwareMap, telemetry);
@@ -98,6 +101,8 @@ public class FtcBot extends FtcSubSystem {
      */
     public void operate(Gamepad gamePad1, Gamepad gamePad2, double loopTime, ElapsedTime runtime) {
         FtcLogger.enter();
+
+        bulkRead.clearBulkCache();
 
         // Drive operation
         driveTrain.operate(gamePad1, gamePad2, loopTime);
@@ -135,6 +140,9 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.exit();
     }
 
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
     public void stop() {
         FtcLogger.enter();
         if (imu != null) {

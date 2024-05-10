@@ -106,6 +106,10 @@ public class FtcBno055Imu extends FtcSubSystem {
             isGood = imuIsGood;
         }
 
+        if(telemetryEnabled && !isGood){
+            telemetry.addData(TAG, "IMU is in a bad state.");
+        }
+
         return isGood;
     }
 

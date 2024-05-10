@@ -261,6 +261,9 @@ public class FtcImu extends FtcSubSystem {
         } else {
             // Both IMUs are bad or not enabled
             // Fallback to the third IMU?!!
+            if (telemetryEnabled) {
+                telemetry.addData(TAG, "Both IMUs are dead.");
+            }
         }
     }
 
@@ -286,12 +289,14 @@ public class FtcImu extends FtcSubSystem {
      */
     public void showTelemetry() {
         FtcLogger.enter();
-        if (telemetryEnabled &&
-                ((useBhi260apImu && bhi260apImu != null) || bno055Imu != null)) {
-            telemetry.addData("Heading", "%.2f, offset: %.2f",
-                    getHeading(), initialTeleOpHeading);
-            telemetry.addData("Pitch", "%.2f", getPitch());
-            telemetry.addData("Roll", "%.2f", getRoll());
+        if (telemetryEnabled) {
+            if (useBhi260apImu && bhi260apImu != null) {
+                bhi260apImu.showTelemetry();
+            }
+
+            if (useBno055Imu && bno055Imu != null) {
+                bno055Imu.showTelemetry();
+            }
         }
 
         FtcLogger.exit();
