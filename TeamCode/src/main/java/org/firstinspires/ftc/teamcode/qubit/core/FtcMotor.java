@@ -178,6 +178,7 @@ public class FtcMotor implements DcMotorEx {
         return motor.getZeroPowerBehavior();
     }
 
+    @Deprecated
     @Override
     public void setPowerFloat() {
         motor.setPowerFloat();

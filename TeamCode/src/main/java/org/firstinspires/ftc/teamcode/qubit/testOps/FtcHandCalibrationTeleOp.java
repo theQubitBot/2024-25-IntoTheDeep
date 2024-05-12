@@ -26,23 +26,28 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBno055Imu;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcHand;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.roadRunner.util.AxisDirection;
 
-//@Disabled
+@Disabled
 @TeleOp(group = "TestOp")
-public class FtcBno055ImuTeleOp extends OpMode {
+public class FtcHandCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcBno055Imu imu = null;
-    double targetHeading = 0;
+
+    FtcHand ftcHand = null;
+    double handServoPosition;
+    double deliveryServoPosition;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -52,11 +57,11 @@ public class FtcBno055ImuTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        imu = new FtcBno055Imu();
-        imu.init(hardwareMap, telemetry);
-        imu.telemetryEnabled = FtcUtils.DEBUG;
+        ftcHand = new FtcHand();
+        ftcHand.init(hardwareMap, telemetry, null);
 
-        // Inform the driver that initialization is complete.
+        handServoPosition = FtcServo.MID_POSITION;
+        deliveryServoPosition = FtcServo.MID_POSITION;
         telemetry.update();
         FtcLogger.exit();
     }
@@ -67,8 +72,6 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
-        imu.read();
-        imu.showTelemetry();
         telemetry.update();
         FtcUtils.sleep(50);
     }
@@ -92,41 +95,33 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void loop() {
         FtcLogger.enter();
+        // Show the elapsed game time and wheel power.
         loopTime.reset();
+        telemetry.addData(">", "Use left/right stick to small adjust left/right servo position");
 
-        telemetry.addData(">", "Up +Y, Down -Y, Left -X, Right +X");
-        telemetry.addData(">", "Left trigger -Z, Left bumper +Z");
-
-        if (gamepad1.dpad_left) {
-            imu.remapZAxis(AxisDirection.NEG_X);
-        } else if (gamepad1.dpad_right) {
-            imu.remapZAxis(AxisDirection.POS_X);
-        } else if (gamepad1.dpad_up) {
-            imu.remapZAxis(AxisDirection.POS_Y);
-        } else if (gamepad1.dpad_down) {
-            imu.remapZAxis(AxisDirection.NEG_Y);
-        } else if (gamepad1.left_trigger > 0.5) {
-            imu.remapZAxis(AxisDirection.NEG_Z);
-        } else if (gamepad1.left_bumper) {
-            imu.remapZAxis(AxisDirection.POS_Z);
+        if (gamepad1.left_stick_x > 0.5) {
+            handServoPosition += FtcServo.SMALL_INCREMENT;
+        } else if (gamepad1.left_stick_x < -0.5) {
+            handServoPosition -= FtcServo.SMALL_INCREMENT;
         }
 
-        imu.read();
-        imu.showTelemetry();
+        handServoPosition = Range.clip(handServoPosition, Servo.MIN_POSITION, Servo.MAX_POSITION);
+        ftcHand.handServo.setPosition(handServoPosition);
 
-        if (gamepad1.y)
-            targetHeading = 0;
-        else if (gamepad1.b)
-            targetHeading = -90;
-        else if (gamepad1.x)
-            targetHeading = 90;
-        else if (gamepad1.a)
-            targetHeading = -180;
-        telemetry.addData(">", "Target %.1f, Heading %.1f",
-                targetHeading, imu.getHeading());
+        if (gamepad1.right_stick_x > 0.5) {
+            deliveryServoPosition += FtcServo.SMALL_INCREMENT;
+        } else if (gamepad1.right_stick_x < -0.5) {
+            deliveryServoPosition -= FtcServo.SMALL_INCREMENT;
+        }
+
+        deliveryServoPosition = Range.clip(deliveryServoPosition, Servo.MIN_POSITION, Servo.MAX_POSITION);
+        ftcHand.deliveryServo.setPosition(deliveryServoPosition);
+
+        ftcHand.showTelemetry();
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
+        FtcUtils.sleep(10);
         FtcLogger.exit();
     }
 
@@ -136,6 +131,7 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
+        ftcHand.stop();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

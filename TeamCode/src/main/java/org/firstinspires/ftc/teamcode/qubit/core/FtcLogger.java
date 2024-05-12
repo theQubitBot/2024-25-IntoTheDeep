@@ -104,7 +104,7 @@ public final class FtcLogger {
         Assert.assertNotNull(fullClassName, "getClassNameOnly>fullClassName");
         String classNameOnly;
         String[] dataArray = fullClassName.split("\\.");
-        if (dataArray != null && dataArray.length > 0) {
+        if (dataArray.length > 0) {
             classNameOnly = dataArray[dataArray.length - 1];
         } else {
             classNameOnly = fullClassName;
@@ -119,4 +119,3 @@ public final class FtcLogger {
         }
     }
 }
-

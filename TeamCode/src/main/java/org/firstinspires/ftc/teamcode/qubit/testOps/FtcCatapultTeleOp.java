@@ -30,19 +30,16 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBno055Imu;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcCatapult;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.roadRunner.util.AxisDirection;
 
-//@Disabled
 @TeleOp(group = "TestOp")
-public class FtcBno055ImuTeleOp extends OpMode {
-    // Declare OpMode members
+public class FtcCatapultTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcBno055Imu imu = null;
-    double targetHeading = 0;
+
+    FtcCatapult ftcCatapult;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -52,12 +49,8 @@ public class FtcBno055ImuTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        imu = new FtcBno055Imu();
-        imu.init(hardwareMap, telemetry);
-        imu.telemetryEnabled = FtcUtils.DEBUG;
-
-        // Inform the driver that initialization is complete.
-        telemetry.update();
+        ftcCatapult = new FtcCatapult();
+        ftcCatapult.init(hardwareMap, telemetry, null);
         FtcLogger.exit();
     }
 
@@ -67,8 +60,6 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
-        imu.read();
-        imu.showTelemetry();
         telemetry.update();
         FtcUtils.sleep(50);
     }
@@ -83,6 +74,7 @@ public class FtcBno055ImuTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+        ftcCatapult.start();
         FtcLogger.exit();
     }
 
@@ -92,42 +84,19 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void loop() {
         FtcLogger.enter();
+
+        // Show the elapsed game time .
         loopTime.reset();
-
-        telemetry.addData(">", "Up +Y, Down -Y, Left -X, Right +X");
-        telemetry.addData(">", "Left trigger -Z, Left bumper +Z");
-
-        if (gamepad1.dpad_left) {
-            imu.remapZAxis(AxisDirection.NEG_X);
-        } else if (gamepad1.dpad_right) {
-            imu.remapZAxis(AxisDirection.POS_X);
-        } else if (gamepad1.dpad_up) {
-            imu.remapZAxis(AxisDirection.POS_Y);
-        } else if (gamepad1.dpad_down) {
-            imu.remapZAxis(AxisDirection.NEG_Y);
-        } else if (gamepad1.left_trigger > 0.5) {
-            imu.remapZAxis(AxisDirection.NEG_Z);
-        } else if (gamepad1.left_bumper) {
-            imu.remapZAxis(AxisDirection.POS_Z);
+        if (gamepad1.start || gamepad2.start) {
+            ftcCatapult.catapultServo.setPosition(FtcCatapult.RELEASE_POSITION);
+            FtcUtils.sleep(FtcCatapult.CATAPULT_RELEASE_TIME_MS);
+            ftcCatapult.set(true);
         }
 
-        imu.read();
-        imu.showTelemetry();
-
-        if (gamepad1.y)
-            targetHeading = 0;
-        else if (gamepad1.b)
-            targetHeading = -90;
-        else if (gamepad1.x)
-            targetHeading = 90;
-        else if (gamepad1.a)
-            targetHeading = -180;
-        telemetry.addData(">", "Target %.1f, Heading %.1f",
-                targetHeading, imu.getHeading());
+        telemetry.addData(">", "Use gamePad to operate catapult.");
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        FtcLogger.exit();
     }
 
     /*
@@ -136,6 +105,7 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
+        ftcCatapult.stop();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

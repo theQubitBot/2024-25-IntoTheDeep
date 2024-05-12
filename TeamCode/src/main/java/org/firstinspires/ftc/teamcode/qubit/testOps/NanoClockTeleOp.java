@@ -26,23 +26,22 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBno055Imu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.roadRunner.util.AxisDirection;
 
-//@Disabled
+@Disabled
 @TeleOp(group = "TestOp")
-public class FtcBno055ImuTeleOp extends OpMode {
+public class NanoClockTeleOp extends OpMode {
+    private static final String TAG = "NanoClock";
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcBno055Imu imu = null;
-    double targetHeading = 0;
+    long initMs = 0;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -50,14 +49,10 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
+        initMs = System.currentTimeMillis();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        imu = new FtcBno055Imu();
-        imu.init(hardwareMap, telemetry);
-        imu.telemetryEnabled = FtcUtils.DEBUG;
-
-        // Inform the driver that initialization is complete.
-        telemetry.update();
+        initMs = System.currentTimeMillis() - initMs;
         FtcLogger.exit();
     }
 
@@ -66,9 +61,9 @@ public class FtcBno055ImuTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
-        imu.read();
-        imu.showTelemetry();
+        telemetry.addData(">", "Initialization time: %d ms. " +
+                        "Waiting for driver to press play.",
+                initMs);
         telemetry.update();
         FtcUtils.sleep(50);
     }
@@ -92,42 +87,15 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void loop() {
         FtcLogger.enter();
+        initMs = System.currentTimeMillis();
         loopTime.reset();
 
-        telemetry.addData(">", "Up +Y, Down -Y, Left -X, Right +X");
-        telemetry.addData(">", "Left trigger -Z, Left bumper +Z");
-
-        if (gamepad1.dpad_left) {
-            imu.remapZAxis(AxisDirection.NEG_X);
-        } else if (gamepad1.dpad_right) {
-            imu.remapZAxis(AxisDirection.POS_X);
-        } else if (gamepad1.dpad_up) {
-            imu.remapZAxis(AxisDirection.POS_Y);
-        } else if (gamepad1.dpad_down) {
-            imu.remapZAxis(AxisDirection.NEG_Y);
-        } else if (gamepad1.left_trigger > 0.5) {
-            imu.remapZAxis(AxisDirection.NEG_Z);
-        } else if (gamepad1.left_bumper) {
-            imu.remapZAxis(AxisDirection.POS_Z);
-        }
-
-        imu.read();
-        imu.showTelemetry();
-
-        if (gamepad1.y)
-            targetHeading = 0;
-        else if (gamepad1.b)
-            targetHeading = -90;
-        else if (gamepad1.x)
-            targetHeading = 90;
-        else if (gamepad1.a)
-            targetHeading = -180;
-        telemetry.addData(">", "Target %.1f, Heading %.1f",
-                targetHeading, imu.getHeading());
+        FtcUtils.sleep(17);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
+        telemetry.addData(">", "Loop per system %d ms",
+                System.currentTimeMillis() - initMs);
         telemetry.update();
-        FtcLogger.exit();
     }
 
     /*

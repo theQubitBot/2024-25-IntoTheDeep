@@ -168,7 +168,7 @@ public class FtcImu extends FtcSubSystem {
             bhi260apImu.init(hardwareMap, telemetry);
         }
 
-        if (useBno055Imu){
+        if (useBno055Imu) {
             bno055Imu = new FtcBno055Imu();
             bno055Imu.init(hardwareMap, telemetry);
         }

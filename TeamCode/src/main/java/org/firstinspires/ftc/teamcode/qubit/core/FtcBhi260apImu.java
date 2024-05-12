@@ -94,13 +94,13 @@ public class FtcBhi260apImu extends FtcSubSystem {
         return currentRoll;
     }
 
-    public boolean imuIsGood(){
+    public boolean imuIsGood() {
         boolean isGood;
         synchronized (directionLock) {
             isGood = imuIsGood;
         }
 
-        if(telemetryEnabled && !isGood){
+        if (!isGood) {
             telemetry.addData(TAG, "IMU is in a bad state.");
         }
 

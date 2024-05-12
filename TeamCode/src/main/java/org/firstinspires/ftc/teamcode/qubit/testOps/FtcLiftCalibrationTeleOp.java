@@ -26,23 +26,32 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBno055Imu;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcMotor;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.roadRunner.util.AxisDirection;
 
-//@Disabled
+import java.util.Locale;
+
+@Disabled
 @TeleOp(group = "TestOp")
-public class FtcBno055ImuTeleOp extends OpMode {
+public class FtcLiftCalibrationTeleOp extends OpMode {
+    private static final String TAG = "Lift";
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcBno055Imu imu = null;
-    double targetHeading = 0;
+    public FtcMotor liftMotor = null;
+
+    // Start point for the lift
+    int currentPosition = FtcLift.LIFT_POSITION_LOW;
+    int targetPosition = FtcLift.LIFT_POSITION_LOW;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -52,12 +61,11 @@ public class FtcBno055ImuTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        imu = new FtcBno055Imu();
-        imu.init(hardwareMap, telemetry);
-        imu.telemetryEnabled = FtcUtils.DEBUG;
-
-        // Inform the driver that initialization is complete.
-        telemetry.update();
+        liftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LIFT_MOTOR_NAME));
+        liftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        liftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        liftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        liftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         FtcLogger.exit();
     }
 
@@ -67,8 +75,6 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
-        imu.read();
-        imu.showTelemetry();
         telemetry.update();
         FtcUtils.sleep(50);
     }
@@ -92,42 +98,41 @@ public class FtcBno055ImuTeleOp extends OpMode {
     @Override
     public void loop() {
         FtcLogger.enter();
+        // Show the elapsed game time and wheel power.
         loopTime.reset();
+        telemetry.addData(">", "Use DPad up/down to move lift");
 
-        telemetry.addData(">", "Up +Y, Down -Y, Left -X, Right +X");
-        telemetry.addData(">", "Left trigger -Z, Left bumper +Z");
-
-        if (gamepad1.dpad_left) {
-            imu.remapZAxis(AxisDirection.NEG_X);
-        } else if (gamepad1.dpad_right) {
-            imu.remapZAxis(AxisDirection.POS_X);
-        } else if (gamepad1.dpad_up) {
-            imu.remapZAxis(AxisDirection.POS_Y);
+        // Lift operation
+        currentPosition = liftMotor.getCurrentPosition();
+        if (gamepad1.dpad_up) {
+            targetPosition++;
         } else if (gamepad1.dpad_down) {
-            imu.remapZAxis(AxisDirection.NEG_Y);
-        } else if (gamepad1.left_trigger > 0.5) {
-            imu.remapZAxis(AxisDirection.NEG_Z);
-        } else if (gamepad1.left_bumper) {
-            imu.remapZAxis(AxisDirection.POS_Z);
+            targetPosition--;
         }
 
-        imu.read();
-        imu.showTelemetry();
+        targetPosition = Range.clip(
+                targetPosition, FtcLift.LIFT_POSITION_LOW, FtcLift.LIFT_POSITION_HIGH);
+        telemetry.addData("targetPosition", "%d", targetPosition);
 
-        if (gamepad1.y)
-            targetHeading = 0;
-        else if (gamepad1.b)
-            targetHeading = -90;
-        else if (gamepad1.x)
-            targetHeading = 90;
-        else if (gamepad1.a)
-            targetHeading = -180;
-        telemetry.addData(">", "Target %.1f, Heading %.1f",
-                targetHeading, imu.getHeading());
+        if (targetPosition != currentPosition) {
+            // Must set motor position before setting motor mode.
+            liftMotor.setTargetPosition(targetPosition);
+            liftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        }
+
+        double liftPower = FtcLift.LIFT_ZERO_POWER;
+        if (targetPosition > currentPosition) {
+            liftPower = FtcLift.LIFT_UP_POWER;
+        } else if (targetPosition < currentPosition) {
+            liftPower = FtcLift.LIFT_DOWN_POWER;
+        }
+
+        liftMotor.setPower(liftPower);
+        telemetry.addData(TAG, String.format(Locale.US, "Power %.2f, distance %d",
+                liftPower, currentPosition));
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        FtcLogger.exit();
     }
 
     /*
