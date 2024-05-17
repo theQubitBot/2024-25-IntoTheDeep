@@ -26,25 +26,33 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcHook;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcMotor;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 
-//@Disabled
+@Disabled
 @TeleOp(group = "TestOp")
-public class DriveTrainTeleOp extends OpMode {
+public class MotorTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private double lastLoopTime = 0.0;
-    FtcBot robot = null;
+
+    static final int DELTA_SMALL = 1;
+    static final int DELTA_LARGE = 10;
+    static final String MOTOR_NAME = FtcHook.HOOK_MOTOR_NAME;
+
+    DcMotorEx motor;
+    int position;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -54,9 +62,11 @@ public class DriveTrainTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        robot = new FtcBot();
-        robot.init(hardwareMap, telemetry, false);
-        robot.driveTrain.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        motor = hardwareMap.get(DcMotorEx.class, MOTOR_NAME);
+        motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        motor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         FtcLogger.exit();
     }
 
@@ -65,9 +75,16 @@ public class DriveTrainTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(">", "Initialization complete, Waiting for start.");
+        telemetry.addData(">", "Manufacturer: %s, DeviceName: %s",
+                motor.getManufacturer(), motor.getDeviceName());
+        telemetry.addData(">", "%s, Port: %d",
+                MOTOR_NAME, motor.getPortNumber());
+        telemetry.addData(">", "Direction: %s, Position: %d",
+                motor.getDirection() == DcMotor.Direction.FORWARD ? "Forward" : "Reverse",
+                motor.getCurrentPosition());
         telemetry.update();
-        FtcUtils.sleep(10);
+        FtcUtils.sleep(250);
     }
 
     /*
@@ -80,12 +97,6 @@ public class DriveTrainTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        if (FtcUtils.DEBUG) {
-            robot.enableTelemetry();
-        } else {
-            robot.disableTelemetry();
-        }
-
         FtcLogger.exit();
     }
 
@@ -98,31 +109,28 @@ public class DriveTrainTeleOp extends OpMode {
         // Show the elapsed game time and wheel power.
         loopTime.reset();
 
-        telemetry.addData(">", "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
-        if (gamepad1.a) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.FRONT_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.b) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.REAR_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.x) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.FIELD_ORIENTED_DRIVE);
-        } else if (gamepad1.y) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
+        double power = 0;
+        if (gamepad1.dpad_up) {
+            power = 0.2;
+            position = FtcHook.HOOK_MOTOR_HIGH_POSITION;
+        } else if (gamepad1.dpad_down) {
+            power = -0.2;
+            position = FtcHook.HOOK_MOTOR_LOW_POSITION;
         }
 
-        robot.bulkRead.clearBulkCache();
-        robot.driveTrain.operate(gamepad1, gamepad2, lastLoopTime);
-        robot.driveTrain.showTelemetry();
-        robot.imu.showTelemetry();
-        robot.showGamePadTelemetry(gamepad1);
+        position = Range.clip(position, FtcHook.HOOK_MOTOR_LOW_POSITION, FtcHook.HOOK_MOTOR_HIGH_POSITION);
+        power = Range.clip(power, FtcMotor.MIN_POWER, FtcMotor.MAX_POWER);
+
+        motor.setTargetPosition(position);
+        motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        motor.setPower(power);
+
+        telemetry.addData(">", "Use dPad up/down to positive/negative motor power");
+        telemetry.addData("Motor", "Position %d, power %.2f",
+                motor.getCurrentPosition(), power);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        lastLoopTime = loopTime.milliseconds();
-        FtcLogger.exit();
     }
 
     /*
@@ -131,7 +139,6 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        robot.stop();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

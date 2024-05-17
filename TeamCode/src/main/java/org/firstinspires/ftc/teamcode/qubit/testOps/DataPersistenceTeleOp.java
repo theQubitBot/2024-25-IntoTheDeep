@@ -26,25 +26,21 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 
-//@Disabled
+@Disabled
 @TeleOp(group = "TestOp")
-public class DriveTrainTeleOp extends OpMode {
+public class DataPersistenceTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private double lastLoopTime = 0.0;
-    FtcBot robot = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -52,11 +48,10 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+
+        // Inform the driver that initialization is complete.
+        telemetry.addData("TeleOp", "Initialized");
         telemetry.update();
-        robot = new FtcBot();
-        robot.init(hardwareMap, telemetry, false);
-        robot.driveTrain.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         FtcLogger.exit();
     }
 
@@ -67,7 +62,7 @@ public class DriveTrainTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(10);
+        FtcUtils.sleep(50);
     }
 
     /*
@@ -80,12 +75,6 @@ public class DriveTrainTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        if (FtcUtils.DEBUG) {
-            robot.enableTelemetry();
-        } else {
-            robot.disableTelemetry();
-        }
-
         FtcLogger.exit();
     }
 
@@ -98,30 +87,18 @@ public class DriveTrainTeleOp extends OpMode {
         // Show the elapsed game time and wheel power.
         loopTime.reset();
 
-        telemetry.addData(">", "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
         if (gamepad1.a) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.FRONT_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.b) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.REAR_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.x) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.FIELD_ORIENTED_DRIVE);
-        } else if (gamepad1.y) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
+            FtcImu.endAutoOpHeading++;
+            telemetry.addData("Settings", "Update successful");
+        } else {
+            telemetry.addData("config", "endAutoOpHeading=%.1f",
+                    FtcImu.endAutoOpHeading);
+            telemetry.addData("Settings", "Read successful");
         }
 
-        robot.bulkRead.clearBulkCache();
-        robot.driveTrain.operate(gamepad1, gamepad2, lastLoopTime);
-        robot.driveTrain.showTelemetry();
-        robot.imu.showTelemetry();
-        robot.showGamePadTelemetry(gamepad1);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        lastLoopTime = loopTime.milliseconds();
         FtcLogger.exit();
     }
 
@@ -131,7 +108,6 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        robot.stop();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

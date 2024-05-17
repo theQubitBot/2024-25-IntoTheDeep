@@ -26,37 +26,41 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import android.annotation.SuppressLint;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcOpenCvCam;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
+import org.firstinspires.ftc.teamcode.qubit.core.GameElement;
+import org.firstinspires.ftc.teamcode.qubit.core.enumerations.GeometricShapeEnum;
+import org.opencv.core.Point;
 
-//@Disabled
 @TeleOp(group = "TestOp")
-public class DriveTrainTeleOp extends OpMode {
-    // Declare OpMode members
+public class TgeDetectionTeleOp extends OpMode {
+    private FtcOpenCvCam openCvCam = null;
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private double lastLoopTime = 0.0;
-    FtcBot robot = null;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
     @Override
     public void init() {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        robot = new FtcBot();
-        robot.init(hardwareMap, telemetry, false);
-        robot.driveTrain.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        openCvCam = new FtcOpenCvCam();
+        openCvCam.init(hardwareMap, telemetry);
+        openCvCam.modPipeline.enableAnnotations();
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        dashboard.startCameraStream(openCvCam.openCvWebcam, 0);
+
         FtcLogger.exit();
     }
 
@@ -67,7 +71,7 @@ public class DriveTrainTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(10);
+        FtcUtils.sleep(50);
     }
 
     /*
@@ -80,48 +84,43 @@ public class DriveTrainTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        if (FtcUtils.DEBUG) {
-            robot.enableTelemetry();
-        } else {
-            robot.disableTelemetry();
-        }
-
         FtcLogger.exit();
     }
 
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
+    @SuppressLint("DefaultLocale")
     @Override
     public void loop() {
         FtcLogger.enter();
-        // Show the elapsed game time and wheel power.
         loopTime.reset();
 
-        telemetry.addData(">", "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
-        if (gamepad1.a) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.FRONT_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.b) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.REAR_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.x) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.FIELD_ORIENTED_DRIVE);
-        } else if (gamepad1.y) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
+        if (openCvCam.modPipeline.error) {
+            telemetry.addData("Exception: ", openCvCam.modPipeline.lastException);
+        } else {
+            for (GameElement ge : openCvCam.modPipeline.gameElements) {
+                String data = String.format("%d ", ge.attendanceCount());
+                Point midPoint = FtcUtils.getMidpoint(ge.boundingRect);
+                synchronized (ge) {
+                    if (ge.elementFound() && ge.elementConsistentlyPresent()) {
+                        data += String.format("Mid (%.0f, %.0f) A %.0f AR %.2f",
+                                midPoint.x, midPoint.y,
+                                ge.area, ge.aspectRatio);
+                        if (ge.geometricShapeEnum != GeometricShapeEnum.UNKNOWN) {
+                            data += String.format(" %s", ge.geometricShapeEnum.name);
+                        }
+                    }
+                }
+
+                telemetry.addData(ge.tag, data);
+            }
         }
 
-        robot.bulkRead.clearBulkCache();
-        robot.driveTrain.operate(gamepad1, gamepad2, lastLoopTime);
-        robot.driveTrain.showTelemetry();
-        robot.imu.showTelemetry();
-        robot.showGamePadTelemetry(gamepad1);
+        // Show the elapsed game time.
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        lastLoopTime = loopTime.milliseconds();
         FtcLogger.exit();
     }
 
@@ -131,7 +130,10 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        robot.stop();
+        if (openCvCam != null) {
+            openCvCam.stop();
+        }
+
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

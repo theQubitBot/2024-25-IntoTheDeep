@@ -26,37 +26,58 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.AprilTagDetectionPipeline;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcOpenCvCam;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
-//@Disabled
+import java.util.ArrayList;
+
+@Disabled
 @TeleOp(group = "TestOp")
-public class DriveTrainTeleOp extends OpMode {
-    // Declare OpMode members
+public class AprilTagPipelineTeleOp extends OpMode {
+    private OpenCvWebcam openCvWebcam;
+    private AprilTagDetectionPipeline atdPipeline;
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private double lastLoopTime = 0.0;
-    FtcBot robot = null;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
     @Override
     public void init() {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        robot = new FtcBot();
-        robot.init(hardwareMap, telemetry, false);
-        robot.driveTrain.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        openCvWebcam = FtcOpenCvCam.createWebcam(hardwareMap, FtcOpenCvCam.WEBCAM_1_NAME);
+        atdPipeline = new AprilTagDetectionPipeline();
+        openCvWebcam.setPipeline(atdPipeline);
+        openCvWebcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                openCvWebcam.startStreaming(FtcOpenCvCam.CAMERA_WIDTH, FtcOpenCvCam.CAMERA_HEIGHT,
+                        OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        dashboard.startCameraStream(openCvWebcam, 0);
+
         FtcLogger.exit();
     }
 
@@ -67,7 +88,7 @@ public class DriveTrainTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(10);
+        FtcUtils.sleep(50);
     }
 
     /*
@@ -80,12 +101,6 @@ public class DriveTrainTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        if (FtcUtils.DEBUG) {
-            robot.enableTelemetry();
-        } else {
-            robot.disableTelemetry();
-        }
-
         FtcLogger.exit();
     }
 
@@ -95,33 +110,31 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void loop() {
         FtcLogger.enter();
-        // Show the elapsed game time and wheel power.
         loopTime.reset();
 
-        telemetry.addData(">", "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
-        if (gamepad1.a) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.FRONT_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.b) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.REAR_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
-        } else if (gamepad1.x) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.FIELD_ORIENTED_DRIVE);
-        } else if (gamepad1.y) {
-            robot.driveTrain.setDriveTypeAndMode(
-                    DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
+        // Calling getDetectionsUpdate() will only return an object if there was a new frame
+        // processed since the last time we called it. Otherwise, it will return null. This
+        // enables us to only run logic when there has been a new frame, as opposed to the
+        // getLatestDetections() method which will always return an object.
+        telemetry.addData("FPS", "%.0f", openCvWebcam.getFps());
+        telemetry.addData("Pipeline time ms", openCvWebcam.getPipelineTimeMs());
+        if (atdPipeline.error) {
+            telemetry.addData("Exception: ", atdPipeline.lastException);
+        } else {
+            ArrayList<AprilTagDetection> detections = atdPipeline.getLatestDetections();
+            if (detections != null && detections.size() > 0) {
+                for (AprilTagDetection detection : detections) {
+                    telemetry.addData("Detected tag", "ID=%d", detection.id);
+                }
+            } else {
+                telemetry.addData("Detected tag", "None");
+            }
         }
 
-        robot.bulkRead.clearBulkCache();
-        robot.driveTrain.operate(gamepad1, gamepad2, lastLoopTime);
-        robot.driveTrain.showTelemetry();
-        robot.imu.showTelemetry();
-        robot.showGamePadTelemetry(gamepad1);
+        // Show the elapsed game time.
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        lastLoopTime = loopTime.milliseconds();
         FtcLogger.exit();
     }
 
@@ -131,7 +144,11 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        robot.stop();
+        if (openCvWebcam != null) {
+            openCvWebcam.stopStreaming();
+            openCvWebcam.closeCameraDevice();
+        }
+
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
