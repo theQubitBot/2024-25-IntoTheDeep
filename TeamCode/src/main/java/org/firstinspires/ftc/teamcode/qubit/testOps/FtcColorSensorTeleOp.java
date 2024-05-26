@@ -37,7 +37,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 @Disabled
 @TeleOp(group = "TestOp")
-public class hgFtcColorSensorTeleOp extends OpMode {
+public class FtcColorSensorTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
     FtcColorSensor colorSensor;
