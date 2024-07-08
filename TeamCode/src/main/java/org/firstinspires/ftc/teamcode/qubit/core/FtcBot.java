@@ -46,6 +46,8 @@ public class FtcBot extends FtcSubSystem {
 
     // robot sub systems
     public FtcImu imu = null;
+    public FtcOpenCvCam openCvCam = null;
+    public MatchConfig config = null;
     private Telemetry telemetry = null;
 
     /* Constructor */
@@ -83,6 +85,8 @@ public class FtcBot extends FtcSubSystem {
 
         bulkRead = new FtcBulkRead();
         bulkRead.init(hardwareMap, telemetry);
+        config = new MatchConfig();
+        config.init(hardwareMap, telemetry);
         driveTrain = new FtcDriveTrain(this);
         driveTrain.setDriveTypeAndMode(DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
         driveTrain.init(hardwareMap, telemetry);
@@ -90,6 +94,13 @@ public class FtcBot extends FtcSubSystem {
         if (!autoOp) {
             // PERFORMANCE
             imu.init(hardwareMap, telemetry);
+        }
+
+        openCvCam = new FtcOpenCvCam();
+        if (autoOp) {
+            // PERFORMANCE
+            // Don't initialize webCam in TeleOp, to save on CPU cycles and battery.
+            openCvCam.init(hardwareMap, telemetry);
         }
 
         telemetry.addData(TAG, "initialized");
