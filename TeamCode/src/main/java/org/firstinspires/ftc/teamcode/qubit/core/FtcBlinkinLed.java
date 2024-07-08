@@ -39,9 +39,12 @@ import java.util.Locale;
  */
 public class FtcBlinkinLed extends FtcSubSystem {
     private static final String TAG = "FtcBlinkinLed";
-    private final boolean blinkinLedEnabled = false;
+    private static final String BLINKIN_NAME = "blinkinLed";
+    private final boolean blinkinLedEnabled = true;
     public boolean telemetryEnabled = true;
     RevBlinkinLedDriver blinkinLedDriver = null;
+
+    // Start with LED strip being off.
     BlinkinPattern currentPattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
     Telemetry telemetry;
 
@@ -54,11 +57,26 @@ public class FtcBlinkinLed extends FtcSubSystem {
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
         if (blinkinLedEnabled) {
-            blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+            blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, BLINKIN_NAME);
+            set(currentPattern);
             telemetry.addData(TAG, "initialized");
         } else {
             telemetry.addData(TAG, "not enabled");
         }
+    }
+
+    /**
+     * Set the next pattern.
+     */
+    public void setNextPattern() {
+        set(currentPattern.next());
+    }
+
+    /**
+     * Set the previous pattern.
+     */
+    public void setPreviousPattern() {
+        set(currentPattern.previous());
     }
 
     /**
@@ -78,7 +96,7 @@ public class FtcBlinkinLed extends FtcSubSystem {
      */
     public void showTelemetry() {
         if (blinkinLedEnabled && telemetryEnabled && blinkinLedDriver != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "Pattern: %s (%d)",
+            telemetry.addData(TAG, String.format(Locale.US, "%s (%d)",
                     currentPattern.toString(), currentPattern.ordinal()));
         }
     }
