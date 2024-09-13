@@ -32,19 +32,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.TeamPropLocationEnum;
 import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
 
 /**
  * A class to implement autonomous objective
  */
-public class OptionBlueRight extends OptionBase {
+public class OptionRight extends OptionBase {
 
-    public OptionBlueRight(LinearOpMode autoOpMode, FtcBot robot, SampleMecanumDrive drive) {
+    public OptionRight(LinearOpMode autoOpMode, FtcBot robot, SampleMecanumDrive drive) {
         super(autoOpMode, robot, drive);
     }
 
-    public OptionBlueRight init() {
+    public OptionRight init() {
         super.initialize();
         return this;
     }
@@ -69,34 +68,14 @@ public class OptionBlueRight extends OptionBase {
                 lcrValue(90, 90, 90));
 
         if (!autoOpMode.opModeIsActive()) return;
-        if (robot.config.teamPropLocation == TeamPropLocationEnum.LEFT) {
-            // Go in a curve onto the left to avoid hitting truss
-            t1 = drive.trajectoryBuilder(startPose)
-                    .splineToLinearHeading(pose1, RADIAN90).build();
-        } else {
-            t1 = drive.trajectoryBuilder(startPose).lineToConstantHeading(v1).build();
-        }
 
         drive.followTrajectory(t1);
 
         if (!autoOpMode.opModeIsActive()) return;
-        if (robot.config.teamPropLocation == TeamPropLocationEnum.LEFT) {
-            pose2 = new Pose2d(15, -11, -RADIAN45);
-            v2 = new Vector2d(pose2.getX(), pose2.getY());
-
-            t2 = drive.trajectoryBuilder(t1.end(), true)
-                    .lineToLinearHeading(pose2).build();
-            drive.followTrajectory(t2);
-
-            if (!autoOpMode.opModeIsActive()) return;
-            t3 = drive.trajectoryBuilder(t2.end(), true)
-                    .lineToLinearHeading(pose3).build();
-            drive.followTrajectory(t3);
-        } else {
             t3 = drive.trajectoryBuilder(t1.end(), true)
                     .lineToLinearHeading(pose3).build();
             drive.followTrajectory(t3);
-        }
+
 
         if (!autoOpMode.opModeIsActive()) return;
         t4 = drive.trajectoryBuilder(t3.end(), true)

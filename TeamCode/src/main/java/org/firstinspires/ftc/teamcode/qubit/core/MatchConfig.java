@@ -34,7 +34,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.AllianceColorEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.RobotPositionEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.TeamPropLocationEnum;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +56,6 @@ public class MatchConfig {
 
     public AllianceColorEnum allianceColor;
     public RobotPositionEnum robotPosition;
-    public TeamPropLocationEnum teamPropLocation;
     public long delayInSeconds;
 
     /**
@@ -136,7 +134,6 @@ public class MatchConfig {
         FtcLogger.enter();
         allianceColor = AllianceColorEnum.RED;
         robotPosition = RobotPositionEnum.RIGHT;
-        teamPropLocation = TeamPropLocationEnum.LEFT;
         delayInSeconds = 0;
         gamePad1Connected = gamePad2Connected = false;
         configIsComplete = !configFeatureEnabled;

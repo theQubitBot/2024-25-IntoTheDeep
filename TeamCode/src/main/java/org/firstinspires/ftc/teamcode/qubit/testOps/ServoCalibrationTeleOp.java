@@ -34,7 +34,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcArm;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcCatapult;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcHand;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
@@ -47,7 +46,7 @@ public class ServoCalibrationTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
     static final int CYCLE_MS = 50;           // period of each cycle
-    static final String SERVO_NAME = FtcCatapult.CATAPULT_SERVO_NAME;
+    static final String SERVO_NAME = "";
 
     Servo handServo;
     double handPosition;

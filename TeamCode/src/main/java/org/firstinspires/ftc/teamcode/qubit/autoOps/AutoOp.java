@@ -33,7 +33,6 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.AllianceColorEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.RobotPositionEnum;
@@ -76,19 +75,11 @@ public class AutoOp extends LinearOpMode {
         telemetry.update();
 
         if (!opModeIsActive()) return;
-        if (robot.config.allianceColor == AllianceColorEnum.RED) {
             if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-                new OptionRedLeft(this, robot, drive).init().execute();
+                new OptionLeft(this, robot, drive).init().execute();
             } else {
-                new OptionRedRight(this, robot, drive).init().execute();
+                new OptionRight(this, robot, drive).init().execute();
             }
-        } else { // BLUE
-            if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-                new OptionBlueLeft(this, robot, drive).init().execute();
-            } else {
-                new OptionBlueRight(this, robot, drive).init().execute();
-            }
-        }
 
         FtcLogger.exit();
     }
@@ -130,8 +121,6 @@ public class AutoOp extends LinearOpMode {
         while (opModeInInit()) {
             robot.config.showConfiguration();
             telemetry.addLine();
-            robot.config.teamPropLocation = robot.openCvCam.getTeamPropPosition(robot.config.allianceColor);
-            telemetry.addData(">", "TeamProp: %s", robot.config.teamPropLocation);
             if (robot.imu.isGyroDrifting()) {
                 telemetry.addLine();
                 telemetry.addData(">", "Gyro %.1f is DRIFTING! STOP and ReInitialize.",
@@ -142,10 +131,6 @@ public class AutoOp extends LinearOpMode {
             telemetry.update();
             FtcUtils.sleep(5);
         }
-
-        // PERFORMANCE
-        // Stop the camera to conserve CPU and battery.
-        robot.openCvCam.stop();
 
         FtcLogger.exit();
     }

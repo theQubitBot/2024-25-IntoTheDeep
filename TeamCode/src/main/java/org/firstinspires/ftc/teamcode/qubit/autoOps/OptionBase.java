@@ -35,7 +35,6 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcDriveTrain;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.TeamPropLocationEnum;
 import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
 
 /**
@@ -88,8 +87,6 @@ public class OptionBase {
     }
 
     protected double lcrValue(double leftValue, double centerValue, double rightValue) {
-        if (robot.config.teamPropLocation == TeamPropLocationEnum.LEFT) return leftValue;
-        if (robot.config.teamPropLocation == TeamPropLocationEnum.CENTER) return centerValue;
         return rightValue;
     }
 }

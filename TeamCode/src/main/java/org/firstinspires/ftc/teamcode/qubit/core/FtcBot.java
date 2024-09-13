@@ -46,7 +46,6 @@ public class FtcBot extends FtcSubSystem {
 
     // robot sub systems
     public FtcImu imu = null;
-    public FtcOpenCvCam openCvCam = null;
     public MatchConfig config = null;
     private Telemetry telemetry = null;
 
@@ -96,12 +95,6 @@ public class FtcBot extends FtcSubSystem {
             imu.init(hardwareMap, telemetry);
         }
 
-        openCvCam = new FtcOpenCvCam();
-        if (autoOp) {
-            // PERFORMANCE
-            // Don't initialize webCam in TeleOp, to save on CPU cycles and battery.
-            openCvCam.init(hardwareMap, telemetry);
-        }
 
         telemetry.addData(TAG, "initialized");
         FtcLogger.exit();
