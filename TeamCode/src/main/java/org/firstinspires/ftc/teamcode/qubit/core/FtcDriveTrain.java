@@ -122,7 +122,6 @@ public class FtcDriveTrain extends FtcSubSystem {
                     driveTrainEnum == DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE) {
                 leftFrontMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "leftFrontMotor"));
                 rightFrontMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "rightFrontMotor"));
-                leftFrontMotor.setDirection(DcMotorEx.Direction.REVERSE);
                 rightFrontMotor.setDirection(DcMotorEx.Direction.FORWARD);
                 frontMotors = Arrays.asList(leftFrontMotor, rightFrontMotor);
                 activeMotors = frontMotors;
