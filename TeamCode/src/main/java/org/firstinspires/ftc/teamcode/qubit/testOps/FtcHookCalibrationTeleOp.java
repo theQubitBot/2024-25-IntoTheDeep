@@ -45,8 +45,6 @@ public class FtcHookCalibrationTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
     static final int CYCLE_MS = 50;           // period of each cycle
-    Servo servo;
-    double servoPosition;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -56,10 +54,6 @@ public class FtcHookCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        servo = hardwareMap.get(Servo.class, FtcHook.HOOK_SERVO_NAME);
-        servo.getController().pwmEnable();
-        servoPosition = FtcServo.MID_POSITION;
-        servo.setPosition(servoPosition);
         FtcLogger.exit();
     }
 
@@ -94,21 +88,7 @@ public class FtcHookCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         loopTime.reset();
 
-        if (gamepad1.dpad_up) {
-            servoPosition += FtcServo.SMALL_INCREMENT;
-        } else if (gamepad1.dpad_down) {
-            servoPosition -= FtcServo.SMALL_INCREMENT;
-        } else if (gamepad1.left_bumper) {
-            servoPosition += FtcServo.LARGE_INCREMENT;
-        } else if (gamepad1.left_trigger > 0.5) {
-            servoPosition -= FtcServo.LARGE_INCREMENT;
-        }
 
-        servoPosition = Range.clip(servoPosition, Servo.MIN_POSITION, Servo.MAX_POSITION);
-        servo.setPosition(servoPosition);
-
-        telemetry.addData(">", "Use dPad up/down to calibrate servo");
-        telemetry.addData("Position", "%5.4f", servoPosition);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
@@ -121,7 +101,6 @@ public class FtcHookCalibrationTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        servo.getController().pwmDisable();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

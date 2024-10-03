@@ -41,11 +41,6 @@ import java.util.Locale;
  */
 public class FtcHook extends FtcSubSystem {
     private static final String TAG = "FtcHook";
-    public static final String HOOK_SERVO_NAME = "nuclearSiloServo";
-    public static final double HOOK_SERVO_HORIZONTAL_POSITION = 0.4490;
-    public static final double HOOK_SERVO_VERTICAL_POSITION = 0.5360;
-    private static final long HOOK_SERVO_MOVE_UP_TIME_MS = 300;
-    private static final long HOOK_SERVO_MOVE_DOWN_TIME_MS = 200;
     public static final String HOOK_MOTOR_NAME = "hookMotor";
     public static final int HOOK_MOTOR_LOW_POSITION = 5;
     public static final int HOOK_MOTOR_HIGH_POSITION = 7700;
@@ -55,7 +50,6 @@ public class FtcHook extends FtcSubSystem {
     private final boolean hookEnabled = false;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
-    public FtcServo hookServo = null;
     public FtcMotor hookMotor = null;
 
     /**
@@ -68,7 +62,6 @@ public class FtcHook extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (hookEnabled) {
-            hookServo = new FtcServo(hardwareMap.get(Servo.class, HOOK_SERVO_NAME));
 
             hookMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, HOOK_MOTOR_NAME));
             hookMotor.setDirection(DcMotorEx.Direction.FORWARD);
@@ -101,15 +94,9 @@ public class FtcHook extends FtcSubSystem {
                 // Debug mode or end game or both controllers are used
                 (FtcUtils.DEBUG || runtime.seconds() > 90 ||
                         (gamePad1.dpad_up && gamePad2.dpad_up) ||
-                        (gamePad1.dpad_down && gamePad2.dpad_down) ||
-                        (gamePad1.share && gamePad2.share))) {
-
-            if (gamePad1.share || gamePad2.share) {
-                setHorizontal(false);
-            }
+                        (gamePad1.dpad_down && gamePad2.dpad_down))) {
 
             if (gamePad1.dpad_up || gamePad2.dpad_up) {
-                setVertical(true);
                 raise();
             } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
                 lower();
@@ -161,49 +148,16 @@ public class FtcHook extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    /**
-     * Rotate hook to make it horizontal.
-     *
-     * @param waitTillCompletion When true, waits till operation completes.
-     */
-    private void setHorizontal(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (hookEnabled && hookServo != null) {
-            hookServo.setPosition(HOOK_SERVO_HORIZONTAL_POSITION);
-            if (waitTillCompletion) {
-                FtcUtils.sleep(HOOK_SERVO_MOVE_DOWN_TIME_MS);
-            }
-        }
 
-        FtcLogger.exit();
-    }
 
-    /**
-     * Rotate hook to make it vertical.
-     *
-     * @param waitTillCompletion When true, waits till operation completes.
-     */
-    private void setVertical(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (hookEnabled && hookServo != null) {
-            hookServo.setPosition(HOOK_SERVO_VERTICAL_POSITION);
-            if (waitTillCompletion) {
-                FtcUtils.sleep(HOOK_SERVO_MOVE_UP_TIME_MS);
-            }
-        }
-
-        FtcLogger.exit();
-    }
 
     /**
      * Displays hook telemetry. Helps with debugging.
      */
     public void showTelemetry() {
         FtcLogger.enter();
-        if (hookEnabled && telemetryEnabled &&
-                hookServo != null && hookMotor != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "Servo: %.4f, Motor: %d",
-                    hookServo.getPosition(), hookMotor.getCurrentPosition()));
+        if (hookEnabled && telemetryEnabled && hookMotor != null) {
+            telemetry.addData(TAG, String.format(Locale.US, "Motor: %d", hookMotor.getCurrentPosition()));
         }
 
         FtcLogger.exit();
@@ -214,10 +168,6 @@ public class FtcHook extends FtcSubSystem {
      */
     public void start() {
         FtcLogger.enter();
-        if (hookEnabled) {
-            hookServo.getController().pwmEnable();
-            setHorizontal(false);
-        }
 
         FtcLogger.exit();
     }
@@ -228,7 +178,6 @@ public class FtcHook extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (hookEnabled) {
-            hookServo.getController().pwmDisable();
             if (hookMotor != null) {
                 hookMotor.setPower(HOOK_ZERO_POWER);
             }
