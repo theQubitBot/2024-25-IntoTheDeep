@@ -41,13 +41,15 @@ import java.util.Locale;
  */
 public class FtcLift extends FtcSubSystem {
     private static final String TAG = "FtcLift";
-    public static final String LIFT_MOTOR_NAME = "liftMotor";
+    public static final String RIGHT_LIFT_MOTOR_NAME = "leftLiftMotor";
+    public static final String LEFT_LIFT_MOTOR_NAME = "rightLiftMotor";
     public static final int LIFT_POSITION_HIGH = 1340;
     public static final int LIFT_POSITION_LOW = 5;
     public static final int LIFT_POSITION_MEDIUM = 420;
     public static final int LIFT_POSITION_MINIMUM = 0;
     public static final int LIFT_POSITION_ERROR_MARGIN = 20;
-    public static final int LIFT_POSITION_INVALID = Integer.MIN_VALUE;
+    public static final int LEFT_LIFT_POSITION_INVALID = Integer.MIN_VALUE;
+    public static final int RIGHT_LIFT_POSITION_INVALID = Integer.MIN_VALUE;
     public static final double LIFT_UP_POWER = 1.0;
     public static final double LIFT_DOWN_POWER = -LIFT_UP_POWER;
     public static final double LIFT_ZERO_POWER = 0.0;
@@ -56,7 +58,8 @@ public class FtcLift extends FtcSubSystem {
     public boolean telemetryEnabled = true;
     private FtcBot parent;
     private Telemetry telemetry = null;
-    public FtcMotor liftMotor = null;
+    public FtcMotor leftLiftMotor = null;
+    public FtcMotor rightLiftMotor = null;
 
     /**
      * Estimate approximate time (in milliseconds) the lift will take
@@ -81,14 +84,16 @@ public class FtcLift extends FtcSubSystem {
      * @return The current lift position.
      */
     public int getPosition() {
-        int position = LIFT_POSITION_INVALID;
+        int leftPosition = LEFT_LIFT_POSITION_INVALID;
+        int rightPosition = RIGHT_LIFT_POSITION_INVALID;
         FtcLogger.enter();
         if (liftEnabled) {
-            position = liftMotor.getCurrentPosition();
+            leftPosition = leftLiftMotor.getCurrentPosition();
+            rightPosition = rightLiftMotor.getCurrentPosition();
         }
 
         FtcLogger.exit();
-        return position;
+        return leftPosition;
     }
 
     /**
@@ -102,15 +107,24 @@ public class FtcLift extends FtcSubSystem {
         this.parent = parent;
         this.telemetry = telemetry;
         if (liftEnabled) {
-            liftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, LIFT_MOTOR_NAME));
-            liftMotor.setDirection(DcMotorEx.Direction.REVERSE);
-            liftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            liftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-            liftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_LIFT_MOTOR_NAME));
+            rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+            rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+            rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+            leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_LIFT_MOTOR_NAME));
+            leftLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+            leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+            leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
             // Initialize lift
-            liftMotor.setTargetPosition(LIFT_POSITION_LOW);
-            liftMotor.setPower(LIFT_ZERO_POWER);
+            rightLiftMotor.setTargetPosition(LIFT_POSITION_LOW);
+            rightLiftMotor.setPower(LIFT_ZERO_POWER);
+
+            leftLiftMotor.setTargetPosition(LIFT_POSITION_LOW);
+            leftLiftMotor.setPower(LIFT_ZERO_POWER);
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -141,53 +155,68 @@ public class FtcLift extends FtcSubSystem {
     public void operate(Gamepad gamePad1, Gamepad gamePad2) {
         if (liftEnabled) {
             // Stop the lift if it hits the magnetic stops.
-            double liftPower = liftMotor.getPower();
-            int targetPosition = LIFT_POSITION_INVALID;
+            double leftLiftPower = leftLiftMotor.getPower();
+            double rightLiftPower = rightLiftMotor.getPower();
+            int leftTargetPosition = LEFT_LIFT_POSITION_INVALID;
+            int rightTargetPosition = RIGHT_LIFT_POSITION_INVALID;
 
             // If lift zero is being reset, we want lower the lift physically as well.
             if (gamePad1.a || gamePad2.a) {
-                targetPosition = FtcLift.LIFT_POSITION_LOW;
+                leftTargetPosition = FtcLift.LIFT_POSITION_LOW;
+                rightTargetPosition = FtcLift.LIFT_POSITION_LOW;
             } else if (gamePad1.x || gamePad2.x || gamePad1.b || gamePad2.b) {
-                targetPosition = FtcLift.LIFT_POSITION_MEDIUM;
+                leftTargetPosition = FtcLift.LIFT_POSITION_MEDIUM;
+                rightTargetPosition = FtcLift.LIFT_POSITION_MEDIUM;
             } else if (gamePad1.y || gamePad2.y) {
-                targetPosition = FtcLift.LIFT_POSITION_HIGH;
+                leftTargetPosition = FtcLift.LIFT_POSITION_HIGH;
+                rightTargetPosition = FtcLift.LIFT_POSITION_HIGH;
             }
 
-            if (targetPosition != LIFT_POSITION_INVALID) {
-                move(targetPosition, false);
+            if (leftTargetPosition != LEFT_LIFT_POSITION_INVALID ||
+            rightTargetPosition != RIGHT_LIFT_POSITION_INVALID) {
+                move(leftTargetPosition, rightTargetPosition, false);
             }
+
         }
     }
 
     /**
      * Moves lift to the target motor encoder position.
      *
-     * @param targetPosition The target motor encoder position.
+     * @param leftTargetPosition The target motor encoder position.
      * @param waitTillEnd    When true, waits for lift to reach target position.
      */
-    public void move(int targetPosition, boolean waitTillEnd) {
+    public void move(int leftTargetPosition, int rightTargetPosition, boolean waitTillEnd) {
         if (liftEnabled) {
-            targetPosition = Range.clip(targetPosition,
+            leftTargetPosition = Range.clip(leftTargetPosition,
                     LIFT_POSITION_MINIMUM, LIFT_POSITION_HIGH);
-            int currentPosition = liftMotor.getCurrentPosition();
-            if (targetPosition != currentPosition) {
+            rightTargetPosition = Range.clip(rightTargetPosition,
+                    LIFT_POSITION_MINIMUM, LIFT_POSITION_HIGH);
+            int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
+            int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
+            if (leftTargetPosition != leftCurrentPosition || rightTargetPosition != rightCurrentPosition) {
                 // Must set motor position before setting motor mode.
-                liftMotor.setTargetPosition(targetPosition);
-                liftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                leftLiftMotor.setTargetPosition(leftTargetPosition);
+                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+
+                rightLiftMotor.setTargetPosition(rightTargetPosition);
+                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
             }
 
             double liftPower = LIFT_ZERO_POWER;
-            if (targetPosition > currentPosition) {
+            if (leftTargetPosition > leftCurrentPosition || rightTargetPosition > rightCurrentPosition) {
                 liftPower = LIFT_UP_POWER;
-            } else if (targetPosition < currentPosition) {
+            } else if (leftTargetPosition < leftCurrentPosition || rightTargetPosition < rightCurrentPosition) {
                 liftPower = LIFT_DOWN_POWER;
             }
 
-            liftMotor.setPower(liftPower);
+            leftLiftMotor.setPower(liftPower);
+            rightLiftMotor.setPower(liftPower);
             if (waitTillEnd) {
-                double waitTime = estimateTravelTime(currentPosition, targetPosition);
+                double waitTime = estimateTravelTime(leftCurrentPosition, leftTargetPosition);
                 ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-                while (!liftNearTarget(liftMotor.getCurrentPosition(), targetPosition) &&
+                while (!liftNearTarget(leftLiftMotor.getCurrentPosition(), leftTargetPosition) &&
+                        !liftNearTarget(rightLiftMotor.getCurrentPosition(), rightTargetPosition) &&
                         runtime.milliseconds() < waitTime) {
                     FtcUtils.sleep(10);
                 }
@@ -202,7 +231,8 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         if (liftEnabled && telemetryEnabled) {
             telemetry.addData(TAG, String.format(Locale.US, "Power %.2f, position %d",
-                    liftMotor.getPower(), liftMotor.getCurrentPosition()));
+                    leftLiftMotor.getPower(), leftLiftMotor.getCurrentPosition(),
+                    rightLiftMotor.getPower(), rightLiftMotor.getCurrentPosition()));
         }
 
         FtcLogger.exit();
@@ -214,7 +244,8 @@ public class FtcLift extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (liftEnabled) {
-            liftMotor.setPower(LIFT_ZERO_POWER);
+            leftLiftMotor.setPower(LIFT_ZERO_POWER);
+            rightLiftMotor.setPower(LIFT_ZERO_POWER);
         }
 
         FtcLogger.exit();

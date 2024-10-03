@@ -47,7 +47,8 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    public FtcMotor liftMotor = null;
+    public FtcMotor leftLiftMotor = null;
+    public FtcMotor rightLiftMotor = null;
 
     // Start point for the lift
     int currentPosition = FtcLift.LIFT_POSITION_LOW;
@@ -61,11 +62,17 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        liftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LIFT_MOTOR_NAME));
-        liftMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        liftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        liftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        liftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_LIFT_MOTOR_NAME));
+        leftLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.RIGHT_LIFT_MOTOR_NAME));
+        rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         FtcLogger.exit();
     }
 
@@ -103,7 +110,7 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         telemetry.addData(">", "Use DPad up/down to move lift");
 
         // Lift operation
-        currentPosition = liftMotor.getCurrentPosition();
+        currentPosition = leftLiftMotor.getCurrentPosition();
         if (gamepad1.dpad_up) {
             targetPosition++;
         } else if (gamepad1.dpad_down) {
@@ -116,8 +123,11 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
 
         if (targetPosition != currentPosition) {
             // Must set motor position before setting motor mode.
-            liftMotor.setTargetPosition(targetPosition);
-            liftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            leftLiftMotor.setTargetPosition(targetPosition);
+            leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+
+            rightLiftMotor.setTargetPosition(targetPosition);
+            rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         }
 
         double liftPower = FtcLift.LIFT_ZERO_POWER;
@@ -127,7 +137,8 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
             liftPower = FtcLift.LIFT_DOWN_POWER;
         }
 
-        liftMotor.setPower(liftPower);
+        leftLiftMotor.setPower(liftPower);
+        rightLiftMotor.setPower(liftPower);
         telemetry.addData(TAG, String.format(Locale.US, "Power %.2f, distance %d",
                 liftPower, currentPosition));
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
