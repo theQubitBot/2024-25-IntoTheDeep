@@ -72,9 +72,9 @@ public class OptionRight extends OptionBase {
         drive.followTrajectory(t1);
 
         if (!autoOpMode.opModeIsActive()) return;
-            t3 = drive.trajectoryBuilder(t1.end(), true)
-                    .lineToLinearHeading(pose3).build();
-            drive.followTrajectory(t3);
+        t3 = drive.trajectoryBuilder(t1.end(), true)
+                .lineToLinearHeading(pose3).build();
+        drive.followTrajectory(t3);
 
 
         if (!autoOpMode.opModeIsActive()) return;

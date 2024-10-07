@@ -27,10 +27,12 @@
 package org.firstinspires.ftc.teamcode.qubit.core;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 
@@ -71,7 +73,7 @@ public class FtcDriveTrain extends FtcSubSystem {
     // Electronic Stability Control (ESC), or Dynamic Stability Control (DSC).
     // Provides anti skid acceleration, anti-lock braking aka smooth acceleration/deceleration.
     // Smaller values result in tight brakes. Experiment with your bot to find the right value.
-    private static final double POWER_RAMP_UP_DOWN_TIME = 200.0; // milliseconds
+    private static final double POWER_RAMP_UP_DOWN_TIME = 250.0; // milliseconds
 
     // The amount of proportional (p) feedback to apply for software assisted straight line steering.
     // Larger is more responsive, but less stable. Typical values lie in [0.01, 0.10] interval.
@@ -122,7 +124,7 @@ public class FtcDriveTrain extends FtcSubSystem {
                     driveTrainEnum == DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE) {
                 leftFrontMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "leftFrontMotor"));
                 rightFrontMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "rightFrontMotor"));
-                rightFrontMotor.setDirection(DcMotorEx.Direction.FORWARD);
+                leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontMotors = Arrays.asList(leftFrontMotor, rightFrontMotor);
                 activeMotors = frontMotors;
             }
@@ -132,8 +134,7 @@ public class FtcDriveTrain extends FtcSubSystem {
                     driveTrainEnum == DriveTrainEnum.TRACTION_OMNI_WHEEL_DRIVE) {
                 leftRearMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "leftRearMotor"));
                 rightRearMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, "rightRearMotor"));
-                leftRearMotor.setDirection(DcMotorEx.Direction.FORWARD);
-                rightRearMotor.setDirection(DcMotorEx.Direction.FORWARD);
+                leftRearMotor.setDirection(DcMotorSimple.Direction.REVERSE);
                 rearMotors = Arrays.asList(leftRearMotor, rightRearMotor);
                 activeMotors = rearMotors;
             }
@@ -188,8 +189,8 @@ public class FtcDriveTrain extends FtcSubSystem {
      * @return True, if the robot is strafing.
      */
     private boolean isBotStrafing(double robotHeading, double joystickHeading) {
-        double rH = FtcImu.normalize(robotHeading);
-        double jH = FtcImu.normalize(joystickHeading);
+        double rH = FtcImu.normalize(robotHeading, AngleUnit.DEGREES);
+        double jH = FtcImu.normalize(joystickHeading, AngleUnit.DEGREES);
         double delta = Math.abs(rH - jH);
 
         // Robot's zero heading is forward, joy stick's zero heading is towards right.

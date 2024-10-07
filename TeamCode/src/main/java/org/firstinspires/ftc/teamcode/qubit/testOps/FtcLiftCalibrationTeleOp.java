@@ -63,7 +63,7 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
         leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_LIFT_MOTOR_NAME));
-        leftLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
@@ -130,7 +130,7 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
             rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         }
 
-        double liftPower = FtcLift.LIFT_ZERO_POWER;
+        double liftPower = FtcMotor.ZERO_POWER;
         if (targetPosition > currentPosition) {
             liftPower = FtcLift.LIFT_UP_POWER;
         } else if (targetPosition < currentPosition) {
@@ -139,8 +139,9 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
 
         leftLiftMotor.setPower(liftPower);
         rightLiftMotor.setPower(liftPower);
-        telemetry.addData(TAG, String.format(Locale.US, "Power %.2f, distance %d",
-                liftPower, currentPosition));
+        telemetry.addData(TAG, String.format(Locale.US, "LLPower %.2f, LLDistance %d, RLPower %.2f, RLDistance %d",
+                leftLiftMotor.getPower(), leftLiftMotor.getCurrentPosition(),
+                rightLiftMotor.getPower(), rightLiftMotor.getCurrentPosition()));
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();

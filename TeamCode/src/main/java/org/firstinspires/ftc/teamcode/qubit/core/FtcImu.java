@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 /**
  * A class to manage the built-in IMU.
@@ -41,8 +42,10 @@ public class FtcImu extends FtcSubSystem {
 
     private FtcBhi260apImu bhi260apImu = null;
     private FtcBno055Imu bno055Imu = null;
-    private final boolean useBhi260apImu = true;
-    private final boolean useBno055Imu = true;
+    private FtcGoBoDriver ftcGoBoDriver = null;
+    private final boolean useBhi260apImu = false;
+    private final boolean useBno055Imu = false;
+    private final boolean useGoBoDriver = true;
     public static double endAutoOpHeading = 0;
     private double initialTeleOpHeading = 0.0;
     private double initialGyroHeadingToDetermineDrift = 0.0;
@@ -51,7 +54,7 @@ public class FtcImu extends FtcSubSystem {
 
     // PERFORMANCE
     // Set to true to enable asynchronous background update of IMU values.
-    public final boolean asyncUpdaterEnabled = true;
+    public final boolean asyncUpdaterEnabled = false;
     private static final Object directionLock = new Object();
     private FtcImuAsyncUpdater imuAsyncUpdater = null;
 
@@ -121,7 +124,7 @@ public class FtcImu extends FtcSubSystem {
 
         // Z increases when robot turns left!
         // Yaw is never more than 180 or less than -180
-        targetHeading = normalize(targetHeading);
+        targetHeading = normalize(targetHeading, AngleUnit.DEGREES);
         double currentHeading = getHeading();
         double headingOffset;
         if (targetHeading * currentHeading >= 0) {
@@ -173,7 +176,12 @@ public class FtcImu extends FtcSubSystem {
             bno055Imu.init(hardwareMap, telemetry);
         }
 
-        if (useBhi260apImu || useBno055Imu) {
+        if (useGoBoDriver) {
+            ftcGoBoDriver = new FtcGoBoDriver();
+            ftcGoBoDriver.init(hardwareMap, telemetry);
+        }
+
+        if (useBhi260apImu || useBno055Imu || useGoBoDriver) {
             // Get a reading before the async reader is started.
             readAsync();
             if (asyncUpdaterEnabled) {
@@ -218,14 +226,22 @@ public class FtcImu extends FtcSubSystem {
     }
 
     /**
-     * Normalize angle to be within [-180, 179.9999] degrees.
+     * Normalize angle to be within [-180, 179.9999] degrees
+     * or to be within [-Pi, Pi] radians.
      *
-     * @param angle The angle (in degrees) to normalize.
+     * @param angle     The angle to normalize.
+     * @param angleUnit The angle units
      * @return Normalized angle.
      */
-    public static double normalize(double angle) {
-        while (angle >= 180) angle -= 180.0;
-        while (angle <= -180) angle += 180.0;
+    public static double normalize(double angle, AngleUnit angleUnit) {
+        if (angleUnit == AngleUnit.DEGREES) {
+            while (angle >= 180) angle -= 180.0;
+            while (angle <= -180) angle += 180.0;
+        } else {
+            while (angle >= Math.PI) angle -= Math.PI;
+            while (angle <= -Math.PI) angle += Math.PI;
+        }
+
         return angle;
     }
 
@@ -247,22 +263,26 @@ public class FtcImu extends FtcSubSystem {
         if (useBhi260apImu && bhi260apImu != null && bhi260apImu.imuIsGood()) {
             bhi260apImu.read();
             synchronized (directionLock) {
-                heading = normalize(bhi260apImu.getHeading());
-                roll = normalize(bhi260apImu.getRoll());
-                pitch = normalize(bhi260apImu.getPitch());
+                heading = normalize(bhi260apImu.getHeading(), AngleUnit.DEGREES);
+                roll = normalize(bhi260apImu.getRoll(), AngleUnit.DEGREES);
+                pitch = normalize(bhi260apImu.getPitch(), AngleUnit.DEGREES);
             }
         } else if (useBno055Imu && bno055Imu != null && bno055Imu.imuIsGood()) {
             bno055Imu.read();
             synchronized (directionLock) {
-                heading = normalize(bno055Imu.getHeading());
-                roll = normalize(bno055Imu.getRoll());
-                pitch = normalize(bno055Imu.getPitch());
+                heading = normalize(bno055Imu.getHeading(), AngleUnit.DEGREES);
+                roll = normalize(bno055Imu.getRoll(), AngleUnit.DEGREES);
+                pitch = normalize(bno055Imu.getPitch(), AngleUnit.DEGREES);
+            }
+        } else if (useGoBoDriver && ftcGoBoDriver != null) {
+            synchronized (directionLock) {
+                heading = normalize(ftcGoBoDriver.getHeading(AngleUnit.DEGREES), AngleUnit.DEGREES);
             }
         } else {
-            // Both IMUs are bad or not enabled
-            // Fallback to the third IMU?!!
+            // All IMUs are bad or not enabled
+            // Fallback to the next IMU?!!
             if (telemetryEnabled) {
-                telemetry.addData(TAG, "Both IMUs are dead.");
+                telemetry.addData(TAG, "All IMUs are dead.");
             }
         }
     }

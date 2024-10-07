@@ -46,6 +46,7 @@ public class FtcBot extends FtcSubSystem {
 
     // robot sub systems
     public FtcImu imu = null;
+    public FtcLift lift = null;
     public MatchConfig config = null;
     private Telemetry telemetry = null;
 
@@ -58,6 +59,7 @@ public class FtcBot extends FtcSubSystem {
         telemetryEnabled = false;
         driveTrain.telemetryEnabled = false;
         imu.telemetryEnabled = false;
+        lift.telemetryEnabled = false;
         FtcLogger.exit();
     }
 
@@ -66,6 +68,7 @@ public class FtcBot extends FtcSubSystem {
         telemetryEnabled = true;
         driveTrain.telemetryEnabled = true;
         imu.telemetryEnabled = true;
+        lift.telemetryEnabled = true;
         FtcLogger.exit();
     }
 
@@ -95,6 +98,8 @@ public class FtcBot extends FtcSubSystem {
             imu.init(hardwareMap, telemetry);
         }
 
+        lift = new FtcLift(this);
+        lift.init(hardwareMap, telemetry);
 
         telemetry.addData(TAG, "initialized");
         FtcLogger.exit();
@@ -110,6 +115,7 @@ public class FtcBot extends FtcSubSystem {
 
         // Drive operation
         driveTrain.operate(gamePad1, gamePad2, loopTime);
+        lift.operate(gamePad1, gamePad2);
         if (telemetryEnabled) {
             imu.showTelemetry();
             showGamePadTelemetry(gamePad1);
@@ -155,6 +161,10 @@ public class FtcBot extends FtcSubSystem {
 
         if (driveTrain != null) {
             driveTrain.stop();
+        }
+
+        if (lift != null) {
+            lift.stop();
         }
 
         FtcLogger.exit();

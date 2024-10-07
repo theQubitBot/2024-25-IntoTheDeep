@@ -276,4 +276,3 @@ public final class FtcUtils {
         return SimpleGson.getInstance().fromJson(data, classOf);
     }
 }
-

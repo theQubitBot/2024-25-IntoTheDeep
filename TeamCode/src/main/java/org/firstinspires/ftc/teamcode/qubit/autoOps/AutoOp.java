@@ -75,11 +75,11 @@ public class AutoOp extends LinearOpMode {
         telemetry.update();
 
         if (!opModeIsActive()) return;
-            if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-                new OptionLeft(this, robot, drive).init().execute();
-            } else {
-                new OptionRight(this, robot, drive).init().execute();
-            }
+        if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
+            new OptionLeft(this, robot, drive).init().execute();
+        } else {
+            new OptionRight(this, robot, drive).init().execute();
+        }
 
         FtcLogger.exit();
     }
