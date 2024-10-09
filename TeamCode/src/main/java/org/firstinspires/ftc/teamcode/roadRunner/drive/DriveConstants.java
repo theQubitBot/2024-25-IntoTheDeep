@@ -20,8 +20,8 @@ public class DriveConstants {
     /*
      * These are motor constants that should be listed online for your motors.
      */
-    public static final double TICKS_PER_REV = 537.6; // GoBilda: 28 * 19.2;
-    public static final double MAX_RPM = 312; // GoBilda
+    public static final double TICKS_PER_REV = 384.5; // GoBilda: Encoder Resolution 384.5 PPR at the Output Shaft
+    public static final double MAX_RPM = 435; // GoBilda No-Load Speed @ 12VDC	435 RPM
 
     /*
      * Set RUN_USING_ENCODER to true to enable built-in hub velocity control using drive encoders.
@@ -33,7 +33,7 @@ public class DriveConstants {
      */
     public static final boolean RUN_USING_ENCODER = true;
     // Default: MOTOR_VELO_PID = new PIDFCoefficients(0, 0, 0, getMotorVelocityF(MAX_RPM / 60 * TICKS_PER_REV));
-    public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(0, 0, 0,
+    public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(1, 0, 0,
             getMotorVelocityF(MAX_RPM / 60 * TICKS_PER_REV));
 
     /*
@@ -44,12 +44,12 @@ public class DriveConstants {
      * angular distances although most angular parameters are wrapped in Math.toRadians() for
      * convenience. Make sure to exclude any gear ratio included in MOTOR_CONFIG from GEAR_RATIO.
      */
-    public static double WHEEL_RADIUS = 48.0 / 25.4; // in; GoBilda 96mm Mecanum wheels
+    public static double WHEEL_RADIUS = 52.0 / 25.4; // in; GoBilda 104mm Mecanum wheels
 
     public static double GEAR_RATIO = 1.0; // output (wheel speed) / input (motor shaft speed)
 
     // Track width calculated from physical measurement tempered with TrackWidthTuner estimate.
-    public static double TRACK_WIDTH = 12.25; // in
+    public static double TRACK_WIDTH = 9.25; // in
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -90,9 +90,9 @@ public class DriveConstants {
 
      */
     public static double MAX_VEL = 36; // MAX_VEL: 58.64, Voltage Compensated kF: 13.15
-    public static double MAX_ACCEL = 24;
+    public static double MAX_ACCEL = 36;
     public static double MAX_ANG_VEL = Math.toRadians(90.0);
-    public static double MAX_ANG_ACCEL = Math.toRadians(60.0);
+    public static double MAX_ANG_ACCEL = Math.toRadians(90.0);
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;

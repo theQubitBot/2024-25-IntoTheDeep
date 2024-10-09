@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.roadRunner.drive.opmode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.roadRunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadRunner.drive.DriveVariables;
@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.roadRunner.drive.TwoWheelTrackingLocalizer
  * exercise is to ascertain whether the localizer has been configured properly (note: the pure
  * encoder localizer heading may be significantly off if the track width has not been tuned).
  */
-@Disabled
+//@Disabled
 @TeleOp(group = "drive")
 public class LocalizationTest extends LinearOpMode {
     @Override
@@ -41,16 +41,16 @@ public class LocalizationTest extends LinearOpMode {
             leftRearMotor = hardwareMap.get(DcMotor.class, "leftRearMotor");
             rightFrontMotor = hardwareMap.get(DcMotor.class, "rightFrontMotor");
             rightRearMotor = hardwareMap.get(DcMotor.class, "rightRearMotor");
-            leftFrontMotor.setDirection(DcMotor.Direction.FORWARD);
+            leftFrontMotor.setDirection(DcMotor.Direction.REVERSE);
             leftRearMotor.setDirection(DcMotor.Direction.REVERSE);
-            rightFrontMotor.setDirection(DcMotor.Direction.REVERSE);
-            rightRearMotor.setDirection(DcMotor.Direction.REVERSE);
+            rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);
+            rightRearMotor.setDirection(DcMotor.Direction.FORWARD);
         }
 
         if (DriveVariables.use2WheelTrackingLocalizer) {
             parallelEncoder = hardwareMap.get(DcMotor.class, "parallelEncoder");
             perpendicularEncoder = hardwareMap.get(DcMotor.class, "perpendicularEncoder");
-            parallelEncoder.setDirection(DcMotor.Direction.REVERSE);
+            parallelEncoder.setDirection(DcMotor.Direction.FORWARD);
             perpendicularEncoder.setDirection(DcMotor.Direction.FORWARD);
             parallelEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             perpendicularEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -93,12 +93,12 @@ public class LocalizationTest extends LinearOpMode {
             Pose2d poseEstimate = drive.getPoseEstimate();
             telemetry.addData("Drive pose estimate", "x: %.1f, y: %.1f, heading: %.1f",
                     poseEstimate.getX(), poseEstimate.getY(),
-                    FtcImu.normalize(Math.toDegrees(poseEstimate.getHeading())));
+                    FtcImu.normalize(poseEstimate.getHeading(), AngleUnit.DEGREES));
 
             if (DriveConstants.RUN_USING_ENCODER) {
                 telemetry.addData("Motors", "LF: %d, LR: %d, RF: %d, RR: %d",
-                        leftFrontMotor.getCurrentPosition(),
-                        leftRearMotor.getCurrentPosition(),
+                        -leftFrontMotor.getCurrentPosition(),
+                        -leftRearMotor.getCurrentPosition(),
                         rightFrontMotor.getCurrentPosition(),
                         rightRearMotor.getCurrentPosition());
             }
@@ -106,11 +106,12 @@ public class LocalizationTest extends LinearOpMode {
             if (DriveVariables.use2WheelTrackingLocalizer) {
                 telemetry.addData("Encoders", "Parallel: %d, Perpendicular: %d",
                         parallelEncoder.getCurrentPosition(), perpendicularEncoder.getCurrentPosition());
-                telemetry.addData("Expected pose", "x: %.1f, y: %.1f",
+                telemetry.addData("Expected pose", "x: %.1f, y: %.1f, heading: %.1f",
                         TwoWheelTrackingLocalizer.encoderTicksToInches(
                                 parallelEncoder.getCurrentPosition() - startParallelPosition) * TwoWheelTrackingLocalizer.X_MULTIPLIER,
                         TwoWheelTrackingLocalizer.encoderTicksToInches(
-                                perpendicularEncoder.getCurrentPosition() - startPerpendicularPosition) * TwoWheelTrackingLocalizer.Y_MULTIPLIER);
+                                perpendicularEncoder.getCurrentPosition() - startPerpendicularPosition) * TwoWheelTrackingLocalizer.Y_MULTIPLIER,
+                        drive.ftcGoBoDriver.getHeading(AngleUnit.DEGREES));
             } else if (DriveVariables.use3WheelTrackingLocalizer) {
                 telemetry.addData("Encoders", "Left: %d, Front: %d, Right: %d",
                         leftEncoder.getCurrentPosition(), frontEncoder.getCurrentPosition(),

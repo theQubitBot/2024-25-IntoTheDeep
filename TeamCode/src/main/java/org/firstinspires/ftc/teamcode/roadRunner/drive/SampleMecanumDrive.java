@@ -37,6 +37,8 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcGoBoDriver;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequenceRunner;
@@ -52,15 +54,15 @@ import java.util.List;
 public class SampleMecanumDrive extends MecanumDrive {
 
     // Execute BackAndForth to tune TRANSLATIONAL_PID.kP
-    // Increase kP till robot jitters towards end. Then decrease till jitter goes away.
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(3, 0, 0);
+    // Increase kP till robot jitters before reversing direction. Then decrease kP till jitter goes away.
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0.5, 0, 0);
 
     // Execute BackAndForth/StraightTest to tune HEADING_PID.kP
     // Start with a default value of 10. Increase till heading goes out of whack, then decrease.
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(12, 0, 0);
 
     // from strafe test, expected / measured by tape. Then get it right via experimentation.
-    public static double LATERAL_MULTIPLIER = 1.40;
+    public static double LATERAL_MULTIPLIER = 96.0 / 97.0;
 
     public static double VX_WEIGHT = 1;
     public static double VY_WEIGHT = 1;
@@ -80,6 +82,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private final List<DcMotorEx> motors;
 
     private final VoltageSensor batteryVoltageSensor;
+    public final FtcGoBoDriver ftcGoBoDriver;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
@@ -95,7 +98,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        DriveGyro.init(hardwareMap);
+        ftcGoBoDriver = new FtcGoBoDriver();
+        ftcGoBoDriver.init(hardwareMap, null);
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFrontMotor");
         leftRear = hardwareMap.get(DcMotorEx.class, "leftRearMotor");
@@ -119,13 +123,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // reverse motors, if necessary
-        leftFront.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
         leftRear.setDirection(DcMotor.Direction.REVERSE);
-        rightRear.setDirection(DcMotor.Direction.REVERSE);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightRear.setDirection(DcMotor.Direction.FORWARD);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
 
         if (DriveVariables.use2WheelTrackingLocalizer) {
-            setLocalizer(new TwoWheelTrackingLocalizer(hardwareMap));
+            setLocalizer(new TwoWheelTrackingLocalizer(hardwareMap, ftcGoBoDriver));
         } else if (DriveVariables.use3WheelTrackingLocalizer) {
             setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap));
         }
@@ -258,6 +262,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         for (DcMotorEx motor : motors) {
             wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
         }
+
         return wheelPositions;
     }
 
@@ -267,6 +272,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         for (DcMotorEx motor : motors) {
             wheelVelocities.add(encoderTicksToInches(motor.getVelocity()));
         }
+
         return wheelVelocities;
     }
 
@@ -280,12 +286,12 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     @Override
     public double getRawExternalHeading() {
-        return DriveGyro.getRawExternalHeading();
+        return ftcGoBoDriver.getHeading(AngleUnit.RADIANS);
     }
 
     @Override
     public Double getExternalHeadingVelocity() {
-        return DriveGyro.getExternalHeadingVelocity();
+        return ftcGoBoDriver.getHeadingVelocity(AngleUnit.RADIANS);
     }
 
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxVel, double maxAngularVel, double trackWidth) {

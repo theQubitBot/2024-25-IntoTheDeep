@@ -42,7 +42,7 @@ import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
 @Disabled
 @TeleOp(group = "drive")
 public class MotorDirectionDebugger extends LinearOpMode {
-    public static double MOTOR_POWER = 0.7;
+    public static double MOTOR_POWER = 0.4;
 
     @Override
     public void runOpMode() throws InterruptedException {

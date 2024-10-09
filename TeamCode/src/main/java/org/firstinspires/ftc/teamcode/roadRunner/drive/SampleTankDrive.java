@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.teamcode.qubit.core.FtcGoBoDriver;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.roadRunner.trajectorysequence.TrajectorySequenceRunner;
@@ -117,7 +118,7 @@ public class SampleTankDrive extends TankDrive {
         rightRear.setDirection(DcMotor.Direction.FORWARD);
 
         if (DriveVariables.use2WheelTrackingLocalizer) {
-            setLocalizer(new TwoWheelTrackingLocalizer(hardwareMap));
+            setLocalizer(new TwoWheelTrackingLocalizer(hardwareMap, new FtcGoBoDriver()));
         } else if (DriveVariables.use3WheelTrackingLocalizer) {
             setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap));
         }
