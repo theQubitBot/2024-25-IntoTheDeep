@@ -51,8 +51,8 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
     public FtcMotor rightLiftMotor = null;
 
     // Start point for the lift
-    int currentPosition = FtcLift.LIFT_POSITION_LOW;
-    int targetPosition = FtcLift.LIFT_POSITION_LOW;
+    int currentPosition = FtcLift.POSITION_MINIMUM;
+    int targetPosition = FtcLift.POSITION_MINIMUM;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -62,13 +62,13 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_LIFT_MOTOR_NAME));
+        leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_MOTOR_NAME));
         leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.RIGHT_LIFT_MOTOR_NAME));
+        rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.RIGHT_MOTOR_NAME));
         rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
         rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
@@ -118,7 +118,7 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         }
 
         targetPosition = Range.clip(
-                targetPosition, FtcLift.LIFT_POSITION_LOW, FtcLift.LIFT_POSITION_HIGH);
+                targetPosition, FtcLift.POSITION_LOW, FtcLift.POSITION_HIGH);
         telemetry.addData("targetPosition", "%d", targetPosition);
 
         if (targetPosition != currentPosition) {
@@ -132,9 +132,9 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
 
         double liftPower = FtcMotor.ZERO_POWER;
         if (targetPosition > currentPosition) {
-            liftPower = FtcLift.LIFT_UP_POWER;
+            liftPower = FtcLift.UP_POWER;
         } else if (targetPosition < currentPosition) {
-            liftPower = FtcLift.LIFT_DOWN_POWER;
+            liftPower = FtcLift.DOWN_POWER;
         }
 
         leftLiftMotor.setPower(liftPower);

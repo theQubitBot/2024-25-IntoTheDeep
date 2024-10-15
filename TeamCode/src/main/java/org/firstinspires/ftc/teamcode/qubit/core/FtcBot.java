@@ -127,6 +127,8 @@ public class FtcBot extends FtcSubSystem {
             imu.showTelemetry();
             showGamePadTelemetry(gamePad1);
             driveTrain.showTelemetry();
+            lift.showTelemetry();
+            relay.showTelemetry();
         }
 
         FtcLogger.exit();

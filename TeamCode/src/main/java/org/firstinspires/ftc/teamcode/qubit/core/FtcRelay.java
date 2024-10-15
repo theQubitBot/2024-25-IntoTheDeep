@@ -26,6 +26,8 @@
 
 package org.firstinspires.ftc.teamcode.qubit.core;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -39,27 +41,26 @@ import java.util.Locale;
  */
 public class FtcRelay extends FtcSubSystem {
     private static final String TAG = "FtcRelay";
-    public static final String LEFT_LIFT_SERVO_NAME = "leftLiftServo";
-    public static final String RIGHT_LIFT_SERVO_NAME = "rightLiftServo";
-    public static final double LEFT_LIFT_SERVO_FORWARD_POSITION = 0.5;
-    public static final double LEFT_LIFT_SERVO_BACKWARD_POSITION = 0.5;
-    public static final double RIGHT_LIFT_SERVO_FORWARD_POSITION = 0.5;
-    public static final double RIGHT_LIFT_SERVO_BACKWARD_POSITION = 0.5;
+    public static final String ARM_MOTOR_NAME = "armMotor";
+    public static final int ARM_FORWARD_POSITION = 0;
+    public static final int ARM_BACKWARD_POSITION = 2800;
+    public static final double ARM_BACKWARD_POWER = FtcMotor.MIN_POWER;
+    public static final double ARM_FORWARD_POWER = FtcMotor.MAX_POWER;
     public static final String RACK_N_PINION_SERVO_NAME = "rackAndPinionServo";
-    public static final double RACK_N_PINION_SERVO_FORWARD_POSITION = 0.5;
-    public static final double RACK_N_PINION_SERVO_REAR_POSITION = 0.5;
-    public static final String SPINNER_SERVO_NAME = "spinnerServo";
-    public static final double SPINNER_IN_POWER = 1.0;
-    public static final double SPINNER_HOLD_POWER = 0.60;
-    public static final double SPINNER_STOP_POWER = 0.50;
-    public static final double SPINNER_OUT_POWER = 0.00;
-    private final boolean relayEnabled = false;
+    public static final double RACK_N_PINION_PUSH_POWER = 1.0;
+    public static final double RACK_N_PINION_PULL_POWER = 0.0;
+    public static final double RACK_N_PINION_STOP_POWER = FtcServo.MID_POSITION;
+    public static final String SPIN_SERVO_NAME = "spinServo";
+    public static final double SPIN_IN_POWER = 0.75;
+    public static final double SPIN_OUT_POWER = 0.25;
+    public static final double SPIN_HOLD_POWER = 0.55;
+    public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
+    private final boolean relayEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
-    public FtcServo leftLiftServo = null;
-    public FtcServo rightLiftServo = null;
+    public FtcMotor armMotor = null;
     public FtcServo rackNPinionServo = null;
-    public FtcServo spinnerServo = null;
+    public FtcServo spinServo = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -71,17 +72,18 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (relayEnabled) {
-            leftLiftServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_LIFT_SERVO_NAME));
-            spinnerServo.setDirection(Servo.Direction.FORWARD);
-
-            rightLiftServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_LIFT_SERVO_NAME));
-            spinnerServo.setDirection(Servo.Direction.FORWARD);
+            armMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, ARM_MOTOR_NAME));
+            armMotor.setDirection(DcMotor.Direction.REVERSE);
+            armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+            armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
             rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RACK_N_PINION_SERVO_NAME));
             rackNPinionServo.setDirection(Servo.Direction.FORWARD);
 
-            spinnerServo = new FtcServo(hardwareMap.get(Servo.class, SPINNER_SERVO_NAME));
-            spinnerServo.setDirection(Servo.Direction.FORWARD);
+            spinServo = new FtcServo(hardwareMap.get(Servo.class, SPIN_SERVO_NAME));
+            spinServo.setDirection(Servo.Direction.REVERSE);
+
             showTelemetry();
             telemetry.addData(TAG, "initialized");
         } else {
@@ -110,53 +112,66 @@ public class FtcRelay extends FtcSubSystem {
         }
 
         if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            pushOut();
+            rnpPushOut();
         } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
-            pullIn();
+            rnpPullIn();
+        } else {
+            rnpStop();
         }
 
         if (gamePad1.left_trigger >= 0.5 || gamePad2.left_trigger >= 0.5) {
-            rotateForward();
-        } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
-            rotateBackward();
+            armForward();
+        } else if (gamePad1.left_bumper || gamePad2.left_bumper) {
+            armBackward();
         }
 
         FtcLogger.exit();
     }
 
-    private void pullIn() {
+    private void rnpPullIn() {
         FtcLogger.enter();
         if (relayEnabled) {
-            rackNPinionServo.setPosition(RACK_N_PINION_SERVO_REAR_POSITION);
+            rackNPinionServo.setPosition(RACK_N_PINION_PULL_POWER);
         }
 
         FtcLogger.exit();
     }
 
-    private void pushOut() {
+    private void rnpPushOut() {
         FtcLogger.enter();
         if (relayEnabled) {
-            rackNPinionServo.setPosition(RACK_N_PINION_SERVO_FORWARD_POSITION);
+            rackNPinionServo.setPosition(RACK_N_PINION_PUSH_POWER);
         }
 
         FtcLogger.exit();
     }
 
-    private void rotateForward() {
+    private void rnpStop() {
         FtcLogger.enter();
         if (relayEnabled) {
-            leftLiftServo.setPosition(LEFT_LIFT_SERVO_FORWARD_POSITION);
-            rightLiftServo.setPosition(RIGHT_LIFT_SERVO_FORWARD_POSITION);
+            rackNPinionServo.setPosition(RACK_N_PINION_STOP_POWER);
         }
 
         FtcLogger.exit();
     }
 
-    private void rotateBackward() {
+    private void armForward() {
         FtcLogger.enter();
         if (relayEnabled) {
-            leftLiftServo.setPosition(LEFT_LIFT_SERVO_BACKWARD_POSITION);
-            rightLiftServo.setPosition(RIGHT_LIFT_SERVO_BACKWARD_POSITION);
+            armMotor.setTargetPosition(ARM_FORWARD_POSITION);
+            armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            armMotor.setPower(ARM_FORWARD_POWER);
+        }
+
+        FtcLogger.exit();
+    }
+
+    private void armBackward() {
+        FtcLogger.enter();
+        if (relayEnabled) {
+            armMotor.setTargetPosition(ARM_BACKWARD_POSITION);
+            armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            armMotor.setPower(ARM_BACKWARD_POWER);
         }
 
         FtcLogger.exit();
@@ -168,7 +183,7 @@ public class FtcRelay extends FtcSubSystem {
     private void spinIn() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinnerServo.setPosition(SPINNER_IN_POWER);
+            spinServo.setPosition(SPIN_IN_POWER);
         }
 
         FtcLogger.exit();
@@ -180,7 +195,7 @@ public class FtcRelay extends FtcSubSystem {
     private void spinOut() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinnerServo.setPosition(SPINNER_OUT_POWER);
+            spinServo.setPosition(SPIN_OUT_POWER);
         }
 
         FtcLogger.exit();
@@ -189,7 +204,16 @@ public class FtcRelay extends FtcSubSystem {
     private void spinHold() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinnerServo.setPosition(SPINNER_HOLD_POWER);
+            spinServo.setPosition(SPIN_HOLD_POWER);
+        }
+
+        FtcLogger.exit();
+    }
+
+    private void spinStop() {
+        FtcLogger.enter();
+        if (relayEnabled) {
+            spinServo.setPosition(SPIN_STOP_POWER);
         }
 
         FtcLogger.exit();
@@ -200,9 +224,11 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void showTelemetry() {
         FtcLogger.enter();
-        if (relayEnabled && telemetryEnabled && spinnerServo != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "Position: %.4f",
-                    spinnerServo.getPosition()));
+        if (relayEnabled && telemetryEnabled) {
+            if (spinServo != null && rackNPinionServo != null && armMotor != null) {
+                telemetry.addData(TAG, String.format(Locale.US, "spin: %.4f, rnp: %.4f, arm: %d",
+                        spinServo.getPosition(), rackNPinionServo.getPosition(), armMotor.getCurrentPosition()));
+            }
         }
 
         FtcLogger.exit();
@@ -214,16 +240,11 @@ public class FtcRelay extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (relayEnabled) {
-            leftLiftServo.getController().pwmEnable();
-            rightLiftServo.getController().pwmEnable();
-            leftLiftServo.setPosition(LEFT_LIFT_SERVO_FORWARD_POSITION);
-            rightLiftServo.setPosition(RIGHT_LIFT_SERVO_FORWARD_POSITION);
-
+            armForward();
+            spinServo.getController().pwmEnable();
             rackNPinionServo.getController().pwmEnable();
-            rackNPinionServo.setPosition(RACK_N_PINION_SERVO_REAR_POSITION);
-
-            spinnerServo.getController().pwmEnable();
-            spinnerServo.setPosition(SPINNER_STOP_POWER);
+            rnpPullIn();
+            spinStop();
         }
 
         FtcLogger.exit();
@@ -235,16 +256,17 @@ public class FtcRelay extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (relayEnabled) {
-            leftLiftServo.setPosition(LEFT_LIFT_SERVO_FORWARD_POSITION);
-            rightLiftServo.setPosition(RIGHT_LIFT_SERVO_FORWARD_POSITION);
-            leftLiftServo.getController().pwmDisable();
-            rightLiftServo.getController().pwmDisable();
+            if (spinServo != null) {
+                spinServo.getController().pwmDisable();
+            }
 
-            rackNPinionServo.setPosition(RACK_N_PINION_SERVO_REAR_POSITION);
-            rackNPinionServo.getController().pwmDisable();
+            if (rackNPinionServo != null) {
+                rackNPinionServo.getController().pwmDisable();
+            }
 
-            spinnerServo.setPosition(SPINNER_STOP_POWER);
-            spinnerServo.getController().pwmDisable();
+            if (armMotor != null) {
+                armMotor.setPower(FtcMotor.ZERO_POWER);
+            }
         }
 
         FtcLogger.exit();

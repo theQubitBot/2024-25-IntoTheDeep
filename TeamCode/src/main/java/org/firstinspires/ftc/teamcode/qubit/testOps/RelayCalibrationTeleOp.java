@@ -28,11 +28,14 @@ package org.firstinspires.ftc.teamcode.qubit.testOps;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcMotor;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
@@ -46,14 +49,12 @@ public class RelayCalibrationTeleOp extends OpMode {
     static final int CYCLE_MS = 50;           // period of each cycle
     static final String SERVO_NAME = "";
 
-    Servo spinServo;
+    FtcServo spinServo;
     double spinPower;
-    Servo rackNPinionServo;
+    FtcServo rackNPinionServo;
     double rackNPinionPosition;
-    Servo leftLiftServo;
-    Servo rightLiftServo;
-    double leftLiftServoPosition;
-    double rightLiftServoPosition;
+    FtcMotor armMotor;
+    int armPosition;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -64,21 +65,22 @@ public class RelayCalibrationTeleOp extends OpMode {
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
 
-        spinServo = hardwareMap.get(Servo.class, FtcRelay.SPINNER_SERVO_NAME);
-        rackNPinionServo = hardwareMap.get(Servo.class, FtcRelay.RACK_N_PINION_SERVO_NAME);
-        leftLiftServo = hardwareMap.get(Servo.class, FtcRelay.LEFT_LIFT_SERVO_NAME);
-        rightLiftServo = hardwareMap.get(Servo.class, FtcRelay.RIGHT_LIFT_SERVO_NAME);
+        armMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcRelay.ARM_MOTOR_NAME));
+        armMotor.setDirection(DcMotor.Direction.REVERSE);
+        armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        armPosition = FtcRelay.ARM_FORWARD_POSITION;
 
-        spinPower = FtcRelay.SPINNER_STOP_POWER;
-        spinServo.setPosition(spinPower);
-
-        rackNPinionPosition = FtcRelay.RACK_N_PINION_SERVO_FORWARD_POSITION;
+        rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.RACK_N_PINION_SERVO_NAME));
+        rackNPinionServo.setDirection(Servo.Direction.FORWARD);
+        rackNPinionPosition = FtcRelay.RACK_N_PINION_STOP_POWER;
         rackNPinionServo.setPosition(rackNPinionPosition);
 
-        leftLiftServoPosition = FtcRelay.LEFT_LIFT_SERVO_FORWARD_POSITION;
-        rightLiftServoPosition = FtcRelay.RIGHT_LIFT_SERVO_FORWARD_POSITION;
-        leftLiftServo.setPosition(leftLiftServoPosition);
-        rightLiftServo.setPosition(rightLiftServoPosition);
+        spinServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.SPIN_SERVO_NAME));
+        spinServo.setDirection(Servo.Direction.REVERSE);
+        spinPower = FtcRelay.SPIN_STOP_POWER;
+        spinServo.setPosition(spinPower);
 
         FtcLogger.exit();
     }
@@ -114,10 +116,22 @@ public class RelayCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         // Show the elapsed game time and wheel power.
         loopTime.reset();
+        FtcServo servo = null;
         double position = 0;
-        Servo servo = null;
 
-        if (gamepad1.dpad_up) {
+        FtcMotor motor = null;
+        int currentPosition = armMotor.getCurrentPosition();
+        int targetPosition = currentPosition;
+
+        if (gamepad1.right_trigger > 0.5) {
+            spinPower += FtcServo.LARGE_INCREMENT;
+            servo = spinServo;
+            position = spinPower;
+        } else if (gamepad1.right_bumper) {
+            spinPower -= FtcServo.LARGE_INCREMENT;
+            servo = spinServo;
+            position = spinPower;
+        } else if (gamepad1.dpad_up) {
             rackNPinionPosition += FtcServo.LARGE_INCREMENT;
             servo = rackNPinionServo;
             position = rackNPinionPosition;
@@ -125,22 +139,12 @@ public class RelayCalibrationTeleOp extends OpMode {
             rackNPinionPosition -= FtcServo.LARGE_INCREMENT;
             servo = rackNPinionServo;
             position = rackNPinionPosition;
-        } else if (gamepad1.dpad_left) {
-            spinPower += FtcServo.LARGE_INCREMENT;
-            servo = spinServo;
-            position = spinPower;
-        } else if (gamepad1.dpad_right) {
-            spinPower -= FtcServo.LARGE_INCREMENT;
-            servo = spinServo;
-            position = spinPower;
-        } else if (gamepad1.right_trigger > 0.5) {
-            leftLiftServoPosition += FtcServo.LARGE_INCREMENT;
-            servo = leftLiftServo;
-            position = leftLiftServoPosition;
-        } else if (gamepad1.right_bumper) {
-            leftLiftServoPosition -= FtcServo.LARGE_INCREMENT;
-            servo = leftLiftServo;
-            position = leftLiftServoPosition;
+        } else if (gamepad1.left_trigger > 0.5) {
+            targetPosition = currentPosition - 10;
+            motor = armMotor;
+        } else if (gamepad1.left_bumper) {
+            targetPosition = currentPosition + 10;
+            motor = armMotor;
         }
 
         if (servo != null) {
@@ -148,11 +152,26 @@ public class RelayCalibrationTeleOp extends OpMode {
             servo.setPosition(position);
         }
 
-        telemetry.addData("hand delivery", "dPad up/down");
-        telemetry.addData("hand fingers", "dPad left/right");
-        telemetry.addData("arm", "right trigger/bumper");
-        telemetry.addData("Position", "spin %5.4f rnp %5.4f leftLift %5.4f rightLift %5.4f",
-                spinPower, rackNPinionPosition, leftLiftServoPosition, rightLiftServoPosition);
+        if (motor != null) {
+            targetPosition = Range.clip(targetPosition, -FtcRelay.ARM_BACKWARD_POSITION, FtcRelay.ARM_BACKWARD_POSITION);
+            motor.setTargetPosition(targetPosition);
+            motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+
+            double liftPower = FtcMotor.ZERO_POWER;
+            if (targetPosition > currentPosition) {
+                liftPower = FtcRelay.ARM_BACKWARD_POWER;
+            } else if (targetPosition < currentPosition) {
+                liftPower = FtcRelay.ARM_BACKWARD_POWER;
+            }
+
+            motor.setPower(liftPower);
+        }
+
+        telemetry.addData("spinner", "right trigger/bumper");
+        telemetry.addData("RnP", "dPad up/down");
+        telemetry.addData("arm", "left trigger/bumper");
+        telemetry.addData("Position", "spin %5.4f rnp %5.4f arm %d",
+                spinPower, rackNPinionPosition, currentPosition);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();

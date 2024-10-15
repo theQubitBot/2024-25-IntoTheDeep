@@ -30,6 +30,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -52,27 +53,27 @@ public class FtcDriveTrain extends FtcSubSystem {
     private static final String TAG = "FtcDriveTrain";
     public static final double MAXIMUM_FORWARD_POWER = 1.00;
     public static final double MECANUM_POWER_BOOST_FACTOR = 1.00;
-    public static final double MINIMUM_FORWARD_TELE_OP_POWER = 0.20;
+    public static final double MINIMUM_FORWARD_TELE_OP_POWER = 0.25;
 
     // Ideally, you would find the min power value by incrementing motor power by 0.01
     // and noting the min power at which the robot begins to move/turn.
     // Robot weight distribution would impact rotational inertia, which would impact
     // the turn value most.
     public static final double MAXIMUM_TURN_POWER = 0.90;
-    public static final double MINIMUM_TURN_POWER = 0.20;
-    public static final double FORWARD_SLO_MO_POWER = 0.20;
-    public static final double STRAFE_SLO_MO_POWER = 0.30;
+    public static final double MINIMUM_TURN_POWER = 0.25;
+    public static final double FORWARD_SLO_MO_POWER = 0.25;
+    public static final double STRAFE_SLO_MO_POWER = 0.40;
 
     // JITTER is ideally the minimum motor power to move a wheel when the robot is jacked up.
     // Empirically, the minimum power would be the one to overcome internal friction.
     // So, if the joystick is jittery, we can safely ignore joystick values below this.
     // Must set this to at least 0.01 for trigonometry to work.
-    private static final double JITTER = 0.05;
+    private static final double JITTER = 0.06;
 
     // Ramp up/down time is used for software assisted anti-lock braking (ABS) or
     // Electronic Stability Control (ESC), or Dynamic Stability Control (DSC).
     // Provides anti skid acceleration, anti-lock braking aka smooth acceleration/deceleration.
-    // Smaller values result in tight brakes. Experiment with your bot to find the right value.
+    // Smaller values result in tighter brakes. Experiment with your bot to find the right value.
     private static final double POWER_RAMP_UP_DOWN_TIME = 250.0; // milliseconds
 
     // The amount of proportional (p) feedback to apply for software assisted straight line steering.
@@ -101,8 +102,9 @@ public class FtcDriveTrain extends FtcSubSystem {
     // This data is used for heading correction for an unbalanced robot.
     private double lastTheta = 0, lastHeading = 0;
     private final boolean useMotorEncoders = false;
-    private final boolean enableUnbalancedRobotCorrection = true;
+    private final boolean enableUnbalancedRobotCorrection = false;
     private final boolean enableMecanumPowerBoost = true;
+    private final boolean useLiftPositionForSpeedAdjustment = true;
 
     public FtcDriveTrain(FtcBot robot) {
         parent = robot;
@@ -367,6 +369,25 @@ public class FtcDriveTrain extends FtcSubSystem {
                 rightFrontPower /= crawlFactor;
                 rightRearPower /= crawlFactor;
             }
+        } else if (useLiftPositionForSpeedAdjustment && parent != null && parent.lift != null) {
+            int liftPosition = parent.lift.getPosition();
+
+            // Scale reduces as lift rises
+            double scaleFactor = (FtcLift.POSITION_HIGH - liftPosition) *
+                    (MAXIMUM_FORWARD_POWER - MINIMUM_FORWARD_TELE_OP_POWER) /
+                    (FtcLift.POSITION_HIGH - FtcLift.POSITION_LOW);
+
+            // Scale can't be outside the wheel power limits.
+            scaleFactor = Range.clip(scaleFactor, MINIMUM_FORWARD_TELE_OP_POWER, MAXIMUM_FORWARD_POWER);
+
+            // Power factor goes down with scale, but we need minimum power to move the bot.
+            scaleFactor = MINIMUM_FORWARD_TELE_OP_POWER + scaleFactor;
+
+            // Scale power for all wheels
+            leftFrontPower *= scaleFactor;
+            leftRearPower *= scaleFactor;
+            rightFrontPower *= scaleFactor;
+            rightRearPower *= scaleFactor;
         }
 
         setDrivePowerSmooth(leftFrontPower, leftRearPower, rightFrontPower, rightRearPower, loopTime);

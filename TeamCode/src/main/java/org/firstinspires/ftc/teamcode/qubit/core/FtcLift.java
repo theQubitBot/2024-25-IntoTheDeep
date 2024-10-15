@@ -33,25 +33,32 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A class to manage the robot lift.
  */
 public class FtcLift extends FtcSubSystem {
     private static final String TAG = "FtcLift";
-    public static final String LEFT_LIFT_MOTOR_NAME = "leftLiftMotor";
-    public static final String RIGHT_LIFT_MOTOR_NAME = "rightLiftMotor";
-    public static final int LIFT_POSITION_HIGH = 2100;
-    public static final int LIFT_POSITION_LOW = 5;
-    public static final int LIFT_POSITION_MEDIUM = 970;
-    public static final int LIFT_POSITION_MINIMUM = 0;
-    public static final int LIFT_POSITION_ERROR_MARGIN = 20;
-    public static final int LIFT_POSITION_INVALID = Integer.MIN_VALUE;
-    public static final double LIFT_UP_POWER = 1.0;
-    public static final double LIFT_DOWN_POWER = -LIFT_UP_POWER;
-    public static final double LIFT_TIME_MAX_MS = 3000;
+    public static final String LEFT_MOTOR_NAME = "leftLiftMotor";
+    public static final String RIGHT_MOTOR_NAME = "rightLiftMotor";
+    public static final int POSITION_HIGH = 2000;
+    public static final int POSITION_MEDIUM = 450;
+    public static final int POSITION_HANG = 950;
+    public static final int POSITION_LOW = 5;
+    public static final int POSITION_MINIMUM = 0;
+    public static final int POSITION_ERROR_MARGIN = 20;
+    public static final int POSITION_INVALID = Integer.MIN_VALUE;
+    public static final double UP_POWER = 1.0;
+    public static final double DOWN_POWER = -UP_POWER;
+    public static final double TRAVEL_TIME_MAX_MS = 3000;
+    public static final long TRAVEL_TIME_LOW2MID_MS = 1000;
+    public static final long TRAVEL_TIME_LOW2HIGH_MS = 2000;
+    public static final long TRAVEL_TIME_MID2HIGH_MS = 1000;
+    Deadline low2MidTravelDeadline, low2HighTravelDeadline, mid2HighTravelDeadline;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     private FtcBot parent;
@@ -77,7 +84,7 @@ public class FtcLift extends FtcSubSystem {
         double estimate;
         int distance = Math.abs(Math.abs(targetPosition) - Math.abs(currentPosition));
         estimate = 750 + distance * 5.0 / 12.0;
-        return Range.clip(estimate, 0, LIFT_TIME_MAX_MS);
+        return Range.clip(estimate, 0, TRAVEL_TIME_MAX_MS);
     }
 
     /**
@@ -86,7 +93,7 @@ public class FtcLift extends FtcSubSystem {
      * @return The current lift position.
      */
     public int getPosition() {
-        int leftPosition = LIFT_POSITION_INVALID;
+        int leftPosition = POSITION_INVALID;
         FtcLogger.enter();
         if (liftEnabled) {
             leftPosition = leftLiftMotor.getCurrentPosition();
@@ -106,24 +113,32 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (liftEnabled) {
-            rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_LIFT_MOTOR_NAME));
+            rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_MOTOR_NAME));
             rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
             rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-            leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, LEFT_LIFT_MOTOR_NAME));
+            leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, LEFT_MOTOR_NAME));
             leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);
             leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
             // Initialize lift
-            rightLiftMotor.setTargetPosition(LIFT_POSITION_LOW);
+            rightLiftMotor.setTargetPosition(POSITION_LOW);
             rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
 
-            leftLiftMotor.setTargetPosition(LIFT_POSITION_LOW);
+            leftLiftMotor.setTargetPosition(POSITION_LOW);
             leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
+
+            low2MidTravelDeadline = new Deadline(TRAVEL_TIME_LOW2MID_MS, TimeUnit.MILLISECONDS);
+            low2HighTravelDeadline = new Deadline(TRAVEL_TIME_LOW2HIGH_MS, TimeUnit.MILLISECONDS);
+            mid2HighTravelDeadline = new Deadline(TRAVEL_TIME_MID2HIGH_MS, TimeUnit.MILLISECONDS);
+
+            low2MidTravelDeadline.reset();
+            mid2HighTravelDeadline.reset();
+            mid2HighTravelDeadline.reset();
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -142,7 +157,7 @@ public class FtcLift extends FtcSubSystem {
      * @return True if lift is close to its target position, false otherwise.
      */
     public Boolean liftNearTarget(int currentPosition, int targetPosition) {
-        return FtcUtils.areEqual(currentPosition, targetPosition, LIFT_POSITION_ERROR_MARGIN);
+        return FtcUtils.areEqual(currentPosition, targetPosition, POSITION_ERROR_MARGIN);
     }
 
     /**
@@ -163,14 +178,17 @@ public class FtcLift extends FtcSubSystem {
 
             // If lift zero is being reset, we want lower the lift physically as well.
             if (gamePad1.a || gamePad2.a) {
-                leftTargetPosition = FtcLift.LIFT_POSITION_LOW;
-                rightTargetPosition = FtcLift.LIFT_POSITION_LOW;
+                leftTargetPosition = FtcLift.POSITION_LOW;
+                rightTargetPosition = FtcLift.POSITION_LOW;
             } else if (gamePad1.x || gamePad2.x || gamePad1.b || gamePad2.b) {
-                leftTargetPosition = FtcLift.LIFT_POSITION_MEDIUM;
-                rightTargetPosition = FtcLift.LIFT_POSITION_MEDIUM;
+                leftTargetPosition = FtcLift.POSITION_MEDIUM;
+                rightTargetPosition = FtcLift.POSITION_MEDIUM;
             } else if (gamePad1.y || gamePad2.y) {
-                leftTargetPosition = FtcLift.LIFT_POSITION_HIGH;
-                rightTargetPosition = FtcLift.LIFT_POSITION_HIGH;
+                leftTargetPosition = FtcLift.POSITION_HIGH;
+                rightTargetPosition = FtcLift.POSITION_HIGH;
+            } else if (gamePad1.options || gamePad2.options) {
+                leftTargetPosition = FtcLift.POSITION_HANG;
+                rightTargetPosition = FtcLift.POSITION_HANG;
             }
 
             if (leftTargetPosition != leftCurrentPosition ||
@@ -190,24 +208,24 @@ public class FtcLift extends FtcSubSystem {
         if (liftEnabled) {
             double liftPower;
             leftTargetPosition = Range.clip(leftTargetPosition,
-                    LIFT_POSITION_MINIMUM, LIFT_POSITION_HIGH);
+                    POSITION_MINIMUM, POSITION_HIGH);
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
             if (leftTargetPosition != leftCurrentPosition) {
                 // Must set motor position before setting motor mode.
                 leftLiftMotor.setTargetPosition(leftTargetPosition);
                 leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                liftPower = leftTargetPosition > leftCurrentPosition ? LIFT_UP_POWER : LIFT_DOWN_POWER;
+                liftPower = leftTargetPosition > leftCurrentPosition ? UP_POWER : DOWN_POWER;
                 leftLiftMotor.setPower(liftPower);
             }
 
             rightTargetPosition = Range.clip(rightTargetPosition,
-                    LIFT_POSITION_MINIMUM, LIFT_POSITION_HIGH);
+                    POSITION_MINIMUM, POSITION_HIGH);
             int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
             if (rightTargetPosition != rightCurrentPosition) {
                 // Must set motor position before setting motor mode.
                 rightLiftMotor.setTargetPosition(rightTargetPosition);
                 rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                liftPower = rightTargetPosition > rightCurrentPosition ? LIFT_UP_POWER : LIFT_DOWN_POWER;
+                liftPower = rightTargetPosition > rightCurrentPosition ? UP_POWER : DOWN_POWER;
                 rightLiftMotor.setPower(liftPower);
             }
 
