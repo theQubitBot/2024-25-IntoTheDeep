@@ -39,9 +39,16 @@ android {
             }
         }
 
+        debug {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile rootProject.file('libs/ftc.debug.keystore')
+            storePassword 'android'
+        }
     }
 
     defaultConfig {
+        signingConfig signingConfigs.debug
         applicationId 'com.qualcomm.ftcrobotcontroller'
         minSdkVersion 24
         //noinspection ExpiredTargetSdkVersion

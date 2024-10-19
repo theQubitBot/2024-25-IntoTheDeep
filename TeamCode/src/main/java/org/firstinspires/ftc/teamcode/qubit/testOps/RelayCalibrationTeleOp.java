@@ -73,12 +73,12 @@ public class RelayCalibrationTeleOp extends OpMode {
         armPosition = FtcRelay.ARM_FORWARD_POSITION;
 
         rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.RACK_N_PINION_SERVO_NAME));
-        rackNPinionServo.setDirection(Servo.Direction.FORWARD);
+        rackNPinionServo.setDirection(Servo.Direction.REVERSE);
         rackNPinionPosition = FtcRelay.RACK_N_PINION_STOP_POWER;
         rackNPinionServo.setPosition(rackNPinionPosition);
 
         spinServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.SPIN_SERVO_NAME));
-        spinServo.setDirection(Servo.Direction.REVERSE);
+        spinServo.setDirection(Servo.Direction.FORWARD);
         spinPower = FtcRelay.SPIN_STOP_POWER;
         spinServo.setPosition(spinPower);
 
@@ -117,28 +117,29 @@ public class RelayCalibrationTeleOp extends OpMode {
         // Show the elapsed game time and wheel power.
         loopTime.reset();
         FtcServo servo = null;
-        double position = 0;
+        double servoPosition = 0;
 
         FtcMotor motor = null;
+        double motorPower;
         int currentPosition = armMotor.getCurrentPosition();
         int targetPosition = currentPosition;
 
         if (gamepad1.right_trigger > 0.5) {
             spinPower += FtcServo.LARGE_INCREMENT;
             servo = spinServo;
-            position = spinPower;
+            servoPosition = spinPower;
         } else if (gamepad1.right_bumper) {
             spinPower -= FtcServo.LARGE_INCREMENT;
             servo = spinServo;
-            position = spinPower;
+            servoPosition = spinPower;
         } else if (gamepad1.dpad_up) {
             rackNPinionPosition += FtcServo.LARGE_INCREMENT;
             servo = rackNPinionServo;
-            position = rackNPinionPosition;
+            servoPosition = rackNPinionPosition;
         } else if (gamepad1.dpad_down) {
             rackNPinionPosition -= FtcServo.LARGE_INCREMENT;
             servo = rackNPinionServo;
-            position = rackNPinionPosition;
+            servoPosition = rackNPinionPosition;
         } else if (gamepad1.left_trigger > 0.5) {
             targetPosition = currentPosition - 10;
             motor = armMotor;
@@ -148,23 +149,24 @@ public class RelayCalibrationTeleOp extends OpMode {
         }
 
         if (servo != null) {
-            position = Range.clip(position, Servo.MIN_POSITION, Servo.MAX_POSITION);
-            servo.setPosition(position);
+            servoPosition = Range.clip(servoPosition, Servo.MIN_POSITION, Servo.MAX_POSITION);
+            servo.setPosition(servoPosition);
         }
 
         if (motor != null) {
             targetPosition = Range.clip(targetPosition, -FtcRelay.ARM_BACKWARD_POSITION, FtcRelay.ARM_BACKWARD_POSITION);
-            motor.setTargetPosition(targetPosition);
-            motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
 
-            double liftPower = FtcMotor.ZERO_POWER;
             if (targetPosition > currentPosition) {
-                liftPower = FtcRelay.ARM_BACKWARD_POWER;
+                motorPower = FtcRelay.ARM_BACKWARD_POWER;
             } else if (targetPosition < currentPosition) {
-                liftPower = FtcRelay.ARM_BACKWARD_POWER;
+                motorPower = FtcRelay.ARM_FORWARD_POWER;
+            } else {
+                motorPower = FtcMotor.ZERO_POWER;
             }
 
-            motor.setPower(liftPower);
+            motor.setTargetPosition(targetPosition);
+            motor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            motor.setPower(motorPower);
         }
 
         telemetry.addData("spinner", "right trigger/bumper");

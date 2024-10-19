@@ -28,15 +28,19 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 
 import java.lang.reflect.Modifier;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Global utility functions
@@ -47,6 +51,10 @@ public final class FtcUtils {
     public static final double EPSILON2 = 1e-2;
     public static final double EPSILON3 = 1e-3;
     public static final double EPSILON4 = 1e-4;
+    public static final int AUTO_OP_DURATION = 30;
+    public static final int TELE_OP_DURATION = 120;
+    public static final int END_GAME_DURATION = 30;
+    public static final int BUZZER_DURATION = 3;
 
     /* Constructor */
     public FtcUtils() {
@@ -121,6 +129,27 @@ public final class FtcUtils {
             destination.size.width = source.size.width;
             destination.angle = source.angle;
         }
+    }
+
+    public static boolean endGame(ElapsedTime runtime) {
+        return runtime.seconds() >= (TELE_OP_DURATION - END_GAME_DURATION);
+    }
+
+    public static boolean hangInitiated(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
+        return
+                // Either option button is pressed
+                ((gamePad1.options || gamePad2.options) &&
+                        ( // Debug mode
+                                DEBUG ||
+                                        // End game
+                                        endGame(runtime) ||
+                                        // both drivers initiate hang
+                                        (gamePad1.options && gamePad2.options)));
+    }
+
+    public static boolean gameOver(ElapsedTime runtime) {
+        // Include buzzer duration in game play time.
+        return runtime.seconds() >= (TELE_OP_DURATION + BUZZER_DURATION);
     }
 
     /**
@@ -229,6 +258,20 @@ public final class FtcUtils {
 
     public static int sign(double number) {
         return number >= 0 ? 1 : -1;
+    }
+
+    /**
+     * Sleep untill given deadline.
+     *
+     * @param deadline The duration to sleep until.
+     */
+    public static void sleep(Deadline deadline) {
+        try {
+            if (deadline != null && !deadline.hasExpired()) {
+                Thread.sleep(deadline.timeRemaining(TimeUnit.MILLISECONDS));
+            }
+        } catch (InterruptedException ignored) {
+        }
     }
 
     /**

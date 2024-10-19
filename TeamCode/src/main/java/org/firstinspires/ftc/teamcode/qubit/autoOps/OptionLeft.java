@@ -26,25 +26,101 @@
 
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
+import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
  * A class to implement autonomous objective
  */
 public class OptionLeft extends OptionBase {
 
-    public OptionLeft(LinearOpMode autoOpMode, FtcBot robot, SampleMecanumDrive drive) {
+    boolean deliverPreloaded = false, deliverSubmersible = false,
+            deliverFirstYellow = false, deliverSecondYellow = false, deliverThirdYellow = false,
+            park = false;
+
+    public OptionLeft(LinearOpMode autoOpMode, FtcBot robot, MecanumDrive drive) {
         super(autoOpMode, robot, drive);
     }
 
     public OptionLeft init() {
         super.initialize();
+
+        // preloaded specimen
+        v1 = new Vector2d(14, -4);
+        tab1 = drive.actionBuilder(startPose)
+                .strafeToConstantHeading(v1);
+        a1 = tab1.build();
+
+        // submersible sample
+        v2 = new Vector2d(16, -4);
+        tab2 = tab1.fresh()
+                .strafeToConstantHeading(v2);
+        a2 = tab2.build();
+
+        v3 = new Vector2d(20, 10);
+        tab3 = tab2.fresh()
+                .setReversed(true)
+                .splineToConstantHeading(v3, RADIAN90);
+        a3 = tab3.build();
+
+        // first yellow sample
+        v4 = new Vector2d(0, 0);
+        tab4 = tab3.fresh()
+                .setReversed(false)
+                .strafeToLinearHeading(v4, -RADIAN60);
+        a4 = tab4.build();
+
+        v5 = new Vector2d(0, 0);
+        tab5 = tab4.fresh()
+                .setReversed(true)
+                .strafeToConstantHeading(v5);
+        a5 = tab5.build();
+
+        // second yellow sample
+        v6 = new Vector2d(0, 0);
+        tab6 = tab5.fresh()
+                .setReversed(false)
+                .strafeToLinearHeading(v6, -RADIAN45);
+        a6 = tab6.build();
+
+        v7 = new Vector2d(0, 0);
+        tab7 = tab6.fresh()
+                .setReversed(true)
+                .strafeToConstantHeading(v7);
+        a7 = tab7.build();
+
+        // third yellow sample
+        v8 = new Vector2d(0, 0);
+        tab8 = tab7.fresh()
+                .setReversed(false)
+                .strafeToLinearHeading(v8, -RADIAN45);
+        a8 = tab8.build();
+
+        v9 = new Vector2d(0, 0);
+        tab9 = tab8.fresh()
+                .setReversed(true)
+                .strafeToConstantHeading(v9);
+        a9 = tab9.build();
+
+        // park
+        pose10 = new Pose2d(0, 0, -RADIAN90);
+        tab10 = tab9.fresh()
+                .setReversed(false)
+                .splineToLinearHeading(pose10, -RADIAN90);
+        a10 = tab10.build();
+
         return this;
     }
 
@@ -54,46 +130,92 @@ public class OptionLeft extends OptionBase {
     public void execute() {
         FtcLogger.enter();
 
+        // Deliver preloaded specimen
         if (!autoOpMode.opModeIsActive()) return;
-        pose1 = new Pose2d(
-                lcrValue(27, 32.25, 27),
-                lcrValue(18, 6.5, -5),
-                -RADIAN45);
-        pose2 = new Pose2d(
-                lcrValue(19, 26.25, 32.25),
-                lcrValue(39, 39, 39),
-                -RADIAN90);
+        if (deliverPreloaded) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            // Hold the specimen
+                            new InstantAction(() -> robot.relay.spinHold()),
+                            new ParallelAction(
+                                    // Raise arm for high chamber
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_HANG_POSITION)),
+                                    // Move towards submersible
+                                    a1,
+                                    // Extend RNP
+                                    new InstantAction(() -> robot.relay.rnpExtend(false))
+                            ),
+                            // Wait for RNP extension
+                            new SleepAction(0.5),
+                            // Deliver specimen by retracting RNP
+                            new InstantAction(() -> robot.relay.rnpRetract(true)),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinStop()),
+                                    new InstantAction(() -> robot.relay.rnpStop()),
+                                    // Lower arm
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION))
+                            )
+                    )
+            );
+        }
 
-        // Move along the back prop to the center
-        pose3 = new Pose2d(
-                lcrValue(50, 50, 50),
-                lcrValue(34, 34, 34),
-                -RADIAN90);
-        v3 = new Vector2d(pose3.getX(), pose3.getY());
-
-        // Move close to the perimeter for parking
-        pose4 = new Pose2d(
-                lcrValue(50, 50, 50),
-                lcrValue(51, 51, 51),
-                -RADIAN90);
-        v4 = new Vector2d(pose4.getX(), pose4.getY());
-
+        // Deliver submersible sample
         if (!autoOpMode.opModeIsActive()) return;
+        if (deliverSubmersible) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            a2,
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinIn()),
+                                    new InstantAction(() -> robot.relay.rnpExtend(true))
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinHold()),
+                                    new InstantAction(() -> robot.relay.rnpRetract(true))
+                            ),
+                            a3,
+                            // Deliver sample to high basket
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.rnpExtend(true))
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.rnpStop()),
+                                    new InstantAction(() -> robot.relay.spinOut())
+                            ),
+                            new SleepAction(1.0),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.spinStop()),
+                                    new InstantAction(() -> robot.relay.rnpRetract(true))
+                            )
+                    )
+            );
+        }
 
-        drive.followTrajectory(t1);
-
+        // Deliver first yellow sample
         if (!autoOpMode.opModeIsActive()) return;
-        t2 = drive.trajectoryBuilder(t1.end(), true).lineToLinearHeading(pose2).build();
-        drive.followTrajectory(t2);
+        if (deliverFirstYellow) {
 
+        }
+        // Deliver second yellow sample
         if (!autoOpMode.opModeIsActive()) return;
-        startCrawlingToBackProp();
-        stopCrawlingToBackProp();
+        if (deliverSecondYellow) {
 
+        }
+
+        // Deliver third yellow sample
         if (!autoOpMode.opModeIsActive()) return;
-        t3 = drive.trajectoryBuilder(t2.end()).splineToConstantHeading(v3, RADIAN90)
-                .splineToConstantHeading(v4, RADIAN90).build();
-        drive.followTrajectory(t3);
+        if (deliverThirdYellow) {
+
+        }
+
+        // Park
+        if (!autoOpMode.opModeIsActive()) return;
+        if (park) {
+
+        }
 
         FtcLogger.exit();
     }

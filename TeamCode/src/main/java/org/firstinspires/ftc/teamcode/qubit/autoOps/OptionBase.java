@@ -26,38 +26,47 @@
 
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcDriveTrain;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
  * A base class to provide common variables and methods.
  */
 public class OptionBase {
-    public static final double RADIAN90;
+    public static final double RADIAN0;
+    public static final double RADIAN30;
     public static final double RADIAN45;
-    private final long DRIVE_TIME_TO_BACKDROP = 1000; // milliseconds
+    public static final double RADIAN60;
+    public static final double RADIAN90;
+    public static final double RADIAN180;
     protected LinearOpMode autoOpMode;
     protected FtcBot robot;
-    protected SampleMecanumDrive drive;
+    protected MecanumDrive drive;
 
-    protected Pose2d startPose, pose1, pose2, pose3, pose4;
-    protected Vector2d v1, v2, v3, v4, v5;
-    protected Trajectory t1, t2, t3, t4, t5;
+    protected Pose2d startPose, pose1, pose2, pose3, pose4, pose5, pose6,
+            pose7, pose8, pose9, pose10, pose11, pose12;
+    protected Vector2d v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12;
+    protected TrajectoryActionBuilder tab1, tab2, tab3, tab4, tab5, tab6,
+            tab7, tab8, tab9, tab10, tab11, tab12;
+    protected Action a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12;
 
     static {
-        RADIAN90 = Math.toRadians(90);
+        RADIAN0 = Math.toRadians(0);
+        RADIAN30 = Math.toRadians(30);
         RADIAN45 = Math.toRadians(45);
+        RADIAN60 = Math.toRadians(60);
+        RADIAN90 = Math.toRadians(90);
+        RADIAN180 = Math.toRadians(180);
     }
 
-    public OptionBase(LinearOpMode autoOpMode, FtcBot robot, SampleMecanumDrive drive) {
+    public OptionBase(LinearOpMode autoOpMode, FtcBot robot, MecanumDrive drive) {
         this.autoOpMode = autoOpMode;
         this.robot = robot;
         this.drive = drive;
@@ -71,22 +80,6 @@ public class OptionBase {
 
         // Starting position
         startPose = new Pose2d(0, 0, 0);
-        drive.setPoseEstimate(startPose);
         FtcLogger.exit();
-    }
-
-    protected void startCrawlingToBackProp() {
-        robot.driveTrain.setDrivePower(-FtcDriveTrain.FORWARD_SLO_MO_POWER, -FtcDriveTrain.FORWARD_SLO_MO_POWER,
-                -FtcDriveTrain.FORWARD_SLO_MO_POWER, -FtcDriveTrain.FORWARD_SLO_MO_POWER);
-        FtcUtils.sleep(DRIVE_TIME_TO_BACKDROP);
-    }
-
-    protected void stopCrawlingToBackProp() {
-        robot.driveTrain.stop();
-        ;
-    }
-
-    protected double lcrValue(double leftValue, double centerValue, double rightValue) {
-        return rightValue;
     }
 }

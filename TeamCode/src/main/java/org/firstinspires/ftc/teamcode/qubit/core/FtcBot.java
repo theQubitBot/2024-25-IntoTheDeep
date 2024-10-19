@@ -92,16 +92,15 @@ public class FtcBot extends FtcSubSystem {
         bulkRead.init(hardwareMap, telemetry);
         config = new MatchConfig();
         config.init(hardwareMap, telemetry);
+
         driveTrain = new FtcDriveTrain(this);
         driveTrain.setDriveTypeAndMode(DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
         driveTrain.init(hardwareMap, telemetry);
-        imu = new FtcImu();
-        if (!autoOp) {
-            // PERFORMANCE
-            imu.init(hardwareMap, telemetry);
-        }
 
-        lift = new FtcLift(this);
+        imu = new FtcImu();
+        imu.init(hardwareMap, telemetry);
+
+        lift = new FtcLift();
         lift.init(hardwareMap, telemetry);
 
         relay = new FtcRelay();
@@ -121,8 +120,10 @@ public class FtcBot extends FtcSubSystem {
 
         // Drive operation
         driveTrain.operate(gamePad1, gamePad2, loopTime);
-        lift.operate(gamePad1, gamePad2);
-        relay.operate(gamePad1, gamePad2);
+
+        // Relay ideally operates before lift during hang (endgame).
+        relay.operate(gamePad1, gamePad2, runtime);
+        lift.operate(gamePad1, gamePad2, runtime);
         if (telemetryEnabled) {
             imu.showTelemetry();
             showGamePadTelemetry(gamePad1);

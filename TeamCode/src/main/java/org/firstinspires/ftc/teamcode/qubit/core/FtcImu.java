@@ -41,10 +41,8 @@ public class FtcImu extends FtcSubSystem {
     Telemetry telemetry = null;
 
     private FtcBhi260apImu bhi260apImu = null;
-    private FtcBno055Imu bno055Imu = null;
     private FtcGoBoDriver ftcGoBoDriver = null;
     private final boolean useBhi260apImu = false;
-    private final boolean useBno055Imu = false;
     private final boolean useGoBoDriver = true;
     public static double endAutoOpHeading = 0;
     private double initialTeleOpHeading = 0.0;
@@ -171,17 +169,12 @@ public class FtcImu extends FtcSubSystem {
             bhi260apImu.init(hardwareMap, telemetry);
         }
 
-        if (useBno055Imu) {
-            bno055Imu = new FtcBno055Imu();
-            bno055Imu.init(hardwareMap, telemetry);
-        }
-
         if (useGoBoDriver) {
             ftcGoBoDriver = new FtcGoBoDriver();
             ftcGoBoDriver.init(hardwareMap, telemetry);
         }
 
-        if (useBhi260apImu || useBno055Imu || useGoBoDriver) {
+        if (useBhi260apImu || useGoBoDriver) {
             // Get a reading before the async reader is started.
             readAsync();
             if (asyncUpdaterEnabled) {
@@ -267,13 +260,6 @@ public class FtcImu extends FtcSubSystem {
                 roll = normalize(bhi260apImu.getRoll(), AngleUnit.DEGREES);
                 pitch = normalize(bhi260apImu.getPitch(), AngleUnit.DEGREES);
             }
-        } else if (useBno055Imu && bno055Imu != null && bno055Imu.imuIsGood()) {
-            bno055Imu.read();
-            synchronized (directionLock) {
-                heading = normalize(bno055Imu.getHeading(), AngleUnit.DEGREES);
-                roll = normalize(bno055Imu.getRoll(), AngleUnit.DEGREES);
-                pitch = normalize(bno055Imu.getPitch(), AngleUnit.DEGREES);
-            }
         } else if (useGoBoDriver && ftcGoBoDriver != null) {
             synchronized (directionLock) {
                 heading = normalize(ftcGoBoDriver.getHeading(AngleUnit.DEGREES), AngleUnit.DEGREES);
@@ -312,10 +298,6 @@ public class FtcImu extends FtcSubSystem {
         if (telemetryEnabled) {
             if (useBhi260apImu && bhi260apImu != null) {
                 bhi260apImu.showTelemetry();
-            }
-
-            if (useBno055Imu && bno055Imu != null) {
-                bno055Imu.showTelemetry();
             }
         }
 

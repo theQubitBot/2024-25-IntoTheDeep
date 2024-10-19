@@ -26,20 +26,18 @@
 
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.roadRunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
  * A class to implement autonomous objective
  */
 public class OptionRight extends OptionBase {
 
-    public OptionRight(LinearOpMode autoOpMode, FtcBot robot, SampleMecanumDrive drive) {
+    public OptionRight(LinearOpMode autoOpMode, FtcBot robot, MecanumDrive drive) {
         super(autoOpMode, robot, drive);
     }
 
@@ -53,43 +51,16 @@ public class OptionRight extends OptionBase {
      */
     public void execute() {
         FtcLogger.enter();
-        pose1 = new Pose2d(
-                lcrValue(24, 29.25, 23),
-                lcrValue(6.25, 0, -11.5),
-                lcrValue(RADIAN45, 0, 0));
-        v1 = new Vector2d(pose1.getX(), pose1.getY());
-
-        pose3 = new Pose2d(3, -9, -RADIAN90);
-        v3 = new Vector2d(pose3.getX(), pose3.getY());
-
-        v4 = new Vector2d(pose3.getX(), 53);
-        v5 = new Vector2d(
-                lcrValue(19.5, 25, 31),
-                lcrValue(90, 90, 90));
 
         if (!autoOpMode.opModeIsActive()) return;
 
-        drive.followTrajectory(t1);
+        if (!autoOpMode.opModeIsActive()) return;
 
         if (!autoOpMode.opModeIsActive()) return;
-        t3 = drive.trajectoryBuilder(t1.end(), true)
-                .lineToLinearHeading(pose3).build();
-        drive.followTrajectory(t3);
-
 
         if (!autoOpMode.opModeIsActive()) return;
-        t4 = drive.trajectoryBuilder(t3.end(), true)
-                .splineToConstantHeading(v4, RADIAN90).build();
-        drive.followTrajectory(t4);
 
         if (!autoOpMode.opModeIsActive()) return;
-        t5 = drive.trajectoryBuilder(t4.end(), true)
-                .splineToConstantHeading(v5, RADIAN90).build();
-        drive.followTrajectory(t5);
-
-        if (!autoOpMode.opModeIsActive()) return;
-        startCrawlingToBackProp();
-        stopCrawlingToBackProp();
 
         FtcLogger.exit();
     }

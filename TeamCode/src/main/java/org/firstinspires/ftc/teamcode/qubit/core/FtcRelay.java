@@ -31,32 +31,40 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A class to manage the robot intake.
+ * A class to manage the robot sample/specimen delivery.
  */
 public class FtcRelay extends FtcSubSystem {
     private static final String TAG = "FtcRelay";
     public static final String ARM_MOTOR_NAME = "armMotor";
     public static final int ARM_FORWARD_POSITION = 0;
     public static final int ARM_BACKWARD_POSITION = 2800;
+    public static final int ARM_LOW_RUNG_POSITION = 1400;
+    public static final int ARM_HANG_POSITION = ARM_LOW_RUNG_POSITION;
     public static final double ARM_BACKWARD_POWER = FtcMotor.MIN_POWER;
     public static final double ARM_FORWARD_POWER = FtcMotor.MAX_POWER;
     public static final String RACK_N_PINION_SERVO_NAME = "rackAndPinionServo";
-    public static final double RACK_N_PINION_PUSH_POWER = 1.0;
-    public static final double RACK_N_PINION_PULL_POWER = 0.0;
+    public static final double RACK_N_PINION_EXTEND_POWER = 1.0;
+    private static final double RACK_N_PINION_RETRACT_POWER = 0.0;
     public static final double RACK_N_PINION_STOP_POWER = FtcServo.MID_POSITION;
+    public static final int RACK_N_PINION_TRAVEL_TIME = 2000; // milliseconds
     public static final String SPIN_SERVO_NAME = "spinServo";
-    public static final double SPIN_IN_POWER = 0.75;
-    public static final double SPIN_OUT_POWER = 0.25;
-    public static final double SPIN_HOLD_POWER = 0.55;
+    private static final double SPIN_IN_POWER = 0.75;
+    private static final double SPIN_OUT_POWER = 0.25;
+    private static final double SPIN_HOLD_POWER = 0.55;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
     private final boolean relayEnabled = true;
     public boolean telemetryEnabled = true;
+    Deadline rnpTravelDeadline = null;
+    public static int endAutoOpArmPosition = ARM_FORWARD_POSITION;
     private Telemetry telemetry = null;
     public FtcMotor armMotor = null;
     public FtcServo rackNPinionServo = null;
@@ -78,11 +86,13 @@ public class FtcRelay extends FtcSubSystem {
             armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
+            rnpTravelDeadline = new Deadline(RACK_N_PINION_TRAVEL_TIME, TimeUnit.MILLISECONDS);
             rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RACK_N_PINION_SERVO_NAME));
-            rackNPinionServo.setDirection(Servo.Direction.FORWARD);
+            rackNPinionServo.setDirection(Servo.Direction.REVERSE);
 
             spinServo = new FtcServo(hardwareMap.get(Servo.class, SPIN_SERVO_NAME));
-            spinServo.setDirection(Servo.Direction.REVERSE);
+            spinServo.setDirection(Servo.Direction.FORWARD);
+            rnpTravelDeadline = new Deadline(2, TimeUnit.SECONDS);
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -100,10 +110,13 @@ public class FtcRelay extends FtcSubSystem {
      *
      * @param gamePad1 The first gamePad to use.
      * @param gamePad2 The second gamePad to use.
+     * @param runtime The tele op runtime.
      */
-    public void operate(Gamepad gamePad1, Gamepad gamePad2) {
+    public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         FtcLogger.enter();
-        if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
+        if (FtcUtils.gameOver(runtime) || FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+            spinStop();
+        } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
             spinIn();
         } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
             spinOut();
@@ -111,42 +124,70 @@ public class FtcRelay extends FtcSubSystem {
             spinHold();
         }
 
-        if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            rnpPushOut();
-        } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
-            rnpPullIn();
+        if (FtcUtils.gameOver(runtime)) {
+            rnpStop();
+        } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
+            rnpExtend(false);
+        } else if (gamePad1.dpad_down || gamePad2.dpad_down ||
+                FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+            rnpRetract(false);
         } else {
             rnpStop();
         }
 
-        if (gamePad1.left_trigger >= 0.5 || gamePad2.left_trigger >= 0.5) {
-            armForward();
+        if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+            moveArm(ARM_HANG_POSITION - endAutoOpArmPosition);
+        } else if (gamePad1.left_trigger >= 0.5 || gamePad2.left_trigger >= 0.5) {
+            moveArm(ARM_FORWARD_POSITION - endAutoOpArmPosition);
         } else if (gamePad1.left_bumper || gamePad2.left_bumper) {
-            armBackward();
+            moveArm(ARM_BACKWARD_POSITION - endAutoOpArmPosition);
         }
 
         FtcLogger.exit();
     }
 
-    private void rnpPullIn() {
+    /**
+     * Extend the intake.
+     * @param waitTillCompletion When ture, waits for intake to be fully extended.
+     *                           Stops the extension servo.
+     */
+    public void rnpExtend(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (relayEnabled) {
-            rackNPinionServo.setPosition(RACK_N_PINION_PULL_POWER);
+            rackNPinionServo.setPosition(RACK_N_PINION_EXTEND_POWER);
+            if (waitTillCompletion) {
+                rnpTravelDeadline.reset();
+                FtcUtils.sleep(rnpTravelDeadline);
+                rackNPinionServo.setPosition(RACK_N_PINION_STOP_POWER);
+            }
         }
 
         FtcLogger.exit();
     }
 
-    private void rnpPushOut() {
+    /**
+     * Retract the intake.
+     * @param waitTillCompletion When ture, waits for intake to be fully retracted.
+     *                           Stops the extension servo.
+     */
+    public void rnpRetract(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (relayEnabled) {
-            rackNPinionServo.setPosition(RACK_N_PINION_PUSH_POWER);
+            rackNPinionServo.setPosition(RACK_N_PINION_RETRACT_POWER);
+            if (waitTillCompletion) {
+                rnpTravelDeadline.reset();
+                FtcUtils.sleep(rnpTravelDeadline);
+                rackNPinionServo.setPosition(RACK_N_PINION_STOP_POWER);
+            }
         }
 
         FtcLogger.exit();
     }
 
-    private void rnpStop() {
+    /**
+     * Stops the intake.
+     */
+    public void rnpStop() {
         FtcLogger.enter();
         if (relayEnabled) {
             rackNPinionServo.setPosition(RACK_N_PINION_STOP_POWER);
@@ -155,32 +196,34 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    private void armForward() {
+    public int getArmPosition() {
         FtcLogger.enter();
+        int armPosition = ARM_FORWARD_POSITION - endAutoOpArmPosition;
         if (relayEnabled) {
-            armMotor.setTargetPosition(ARM_FORWARD_POSITION);
-            armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            armMotor.setPower(ARM_FORWARD_POWER);
+            armPosition = armMotor.getCurrentPosition();
         }
 
         FtcLogger.exit();
+        return armPosition;
     }
 
-    private void armBackward() {
+    public void moveArm(int targetPosition) {
         FtcLogger.enter();
         if (relayEnabled) {
-            armMotor.setTargetPosition(ARM_BACKWARD_POSITION);
+            int currentPosition = armMotor.getCurrentPosition();
+            double power = currentPosition < targetPosition ? ARM_BACKWARD_POWER : ARM_FORWARD_POWER;
+            armMotor.setTargetPosition(targetPosition);
             armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            armMotor.setPower(ARM_BACKWARD_POWER);
+            armMotor.setPower(power);
         }
 
         FtcLogger.exit();
     }
 
     /**
-     * Rotate inwards to intake the object.
+     * Spin inwards to intake the object.
      */
-    private void spinIn() {
+    public void spinIn() {
         FtcLogger.enter();
         if (relayEnabled) {
             spinServo.setPosition(SPIN_IN_POWER);
@@ -190,9 +233,9 @@ public class FtcRelay extends FtcSubSystem {
     }
 
     /**
-     * Rotate outwards to outtake the object.
+     * Spin outwards to outtake the object.
      */
-    private void spinOut() {
+    public void spinOut() {
         FtcLogger.enter();
         if (relayEnabled) {
             spinServo.setPosition(SPIN_OUT_POWER);
@@ -201,7 +244,10 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    private void spinHold() {
+    /**
+     * Spin slowly inwards to hold the object.
+     */
+    public void spinHold() {
         FtcLogger.enter();
         if (relayEnabled) {
             spinServo.setPosition(SPIN_HOLD_POWER);
@@ -210,7 +256,10 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    private void spinStop() {
+    /**
+     * Stops all motion.
+     */
+    public void spinStop() {
         FtcLogger.enter();
         if (relayEnabled) {
             spinServo.setPosition(SPIN_STOP_POWER);
@@ -234,16 +283,16 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    /*
+    /**
      * Code to run ONCE when the driver hits PLAY
      */
     public void start() {
         FtcLogger.enter();
         if (relayEnabled) {
-            armForward();
+            moveArm(FtcRelay.ARM_FORWARD_POSITION - endAutoOpArmPosition);
             spinServo.getController().pwmEnable();
             rackNPinionServo.getController().pwmEnable();
-            rnpPullIn();
+            rnpRetract(false);
             spinStop();
         }
 
@@ -251,7 +300,7 @@ public class FtcRelay extends FtcSubSystem {
     }
 
     /**
-     * Stops the intake.
+     * Stops the Relay.
      */
     public void stop() {
         FtcLogger.enter();

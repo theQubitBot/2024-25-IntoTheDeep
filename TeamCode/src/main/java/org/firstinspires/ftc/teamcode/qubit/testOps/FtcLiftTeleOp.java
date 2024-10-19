@@ -52,7 +52,7 @@ public class FtcLiftTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
-        lift = new FtcLift(null);
+        lift = new FtcLift();
         lift.init(hardwareMap, telemetry);
         FtcLogger.exit();
     }
