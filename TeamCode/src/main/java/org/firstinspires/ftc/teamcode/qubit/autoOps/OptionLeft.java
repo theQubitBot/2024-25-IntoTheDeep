@@ -143,12 +143,12 @@ public class OptionLeft extends OptionBase {
                                     // Move towards submersible
                                     a1,
                                     // Extend RNP
-                                    new InstantAction(() -> robot.relay.rnpExtend(false))
+                                    new InstantAction(() -> robot.relay.rnpExtend())
                             ),
                             // Wait for RNP extension
                             new SleepAction(0.5),
                             // Deliver specimen by retracting RNP
-                            new InstantAction(() -> robot.relay.rnpRetract(true)),
+                            new InstantAction(() -> robot.relay.rnpRetract()),
                             new ParallelAction(
                                     new InstantAction(() -> robot.relay.spinStop()),
                                     new InstantAction(() -> robot.relay.rnpStop()),
@@ -167,18 +167,18 @@ public class OptionLeft extends OptionBase {
                             a2,
                             new ParallelAction(
                                     new InstantAction(() -> robot.relay.spinIn()),
-                                    new InstantAction(() -> robot.relay.rnpExtend(true))
+                                    new InstantAction(() -> robot.relay.rnpExtend())
                             ),
                             new ParallelAction(
                                     new InstantAction(() -> robot.relay.spinHold()),
-                                    new InstantAction(() -> robot.relay.rnpRetract(true))
+                                    new InstantAction(() -> robot.relay.rnpRetract())
                             ),
                             a3,
                             // Deliver sample to high basket
                             new ParallelAction(
                                     new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
                                     new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.rnpExtend(true))
+                                    new InstantAction(() -> robot.relay.rnpExtend())
                             ),
                             new ParallelAction(
                                     new InstantAction(() -> robot.relay.rnpStop()),
@@ -188,7 +188,7 @@ public class OptionLeft extends OptionBase {
                             new ParallelAction(
                                     new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
                                     new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpRetract(true))
+                                    new InstantAction(() -> robot.relay.rnpRetract())
                             )
                     )
             );

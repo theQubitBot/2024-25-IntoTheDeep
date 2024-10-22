@@ -52,6 +52,7 @@ public final class FtcUtils {
     public static final double EPSILON3 = 1e-3;
     public static final double EPSILON4 = 1e-4;
     public static final int AUTO_OP_DURATION = 30;
+    public static final int AUTO_2_TELE_OP_TRANSITION_TIME = 8;
     public static final int TELE_OP_DURATION = 120;
     public static final int END_GAME_DURATION = 30;
     public static final int BUZZER_DURATION = 3;
@@ -261,16 +262,13 @@ public final class FtcUtils {
     }
 
     /**
-     * Sleep untill given deadline.
+     * Sleep until given deadline expires.
      *
-     * @param deadline The duration to sleep until.
+     * @param deadline The remaining duration to sleep until.
      */
     public static void sleep(Deadline deadline) {
-        try {
-            if (deadline != null && !deadline.hasExpired()) {
-                Thread.sleep(deadline.timeRemaining(TimeUnit.MILLISECONDS));
-            }
-        } catch (InterruptedException ignored) {
+        if (deadline != null && !deadline.hasExpired()) {
+            sleep(deadline.timeRemaining(TimeUnit.MILLISECONDS));
         }
     }
 

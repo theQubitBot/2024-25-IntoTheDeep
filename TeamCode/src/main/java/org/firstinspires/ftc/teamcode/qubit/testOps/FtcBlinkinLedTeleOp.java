@@ -68,7 +68,7 @@ public class FtcBlinkinLedTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        blinkinLed = new FtcBlinkinLed();
+        blinkinLed = new FtcBlinkinLed(null);
         blinkinLed.init(hardwareMap, telemetry);
         blinkinLed.telemetryEnabled = FtcUtils.DEBUG;
         FtcLogger.exit();

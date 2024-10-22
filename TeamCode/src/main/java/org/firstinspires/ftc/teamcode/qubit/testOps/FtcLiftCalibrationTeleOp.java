@@ -26,7 +26,6 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -40,7 +39,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 import java.util.Locale;
 
-@Disabled
+//@Disabled
 @TeleOp(group = "TestOp")
 public class FtcLiftCalibrationTeleOp extends OpMode {
     private static final String TAG = "Lift";
@@ -73,6 +72,7 @@ public class FtcLiftCalibrationTeleOp extends OpMode {
         rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
 

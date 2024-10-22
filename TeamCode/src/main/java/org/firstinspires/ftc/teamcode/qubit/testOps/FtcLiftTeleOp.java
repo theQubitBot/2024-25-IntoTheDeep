@@ -54,6 +54,7 @@ public class FtcLiftTeleOp extends OpMode {
         telemetry.update();
         lift = new FtcLift();
         lift.init(hardwareMap, telemetry);
+        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
 

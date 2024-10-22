@@ -42,6 +42,7 @@ public class FtcBot extends FtcSubSystem {
     private static final String TAG = "FtcBot";
     private boolean telemetryEnabled = true;
     public FtcBulkRead bulkRead = null;
+    public FtcBlinkinLed blinkinLed = null;
     public FtcDriveTrain driveTrain = null;
 
     // robot sub systems
@@ -59,6 +60,7 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.enter();
         telemetryEnabled = false;
         driveTrain.telemetryEnabled = false;
+        blinkinLed.telemetryEnabled = false;
         imu.telemetryEnabled = false;
         lift.telemetryEnabled = false;
         relay.telemetryEnabled = false;
@@ -69,6 +71,7 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.enter();
         telemetryEnabled = true;
         driveTrain.telemetryEnabled = true;
+        blinkinLed.telemetryEnabled = true;
         imu.telemetryEnabled = true;
         lift.telemetryEnabled = true;
         relay.telemetryEnabled = true;
@@ -90,6 +93,10 @@ public class FtcBot extends FtcSubSystem {
 
         bulkRead = new FtcBulkRead();
         bulkRead.init(hardwareMap, telemetry);
+
+        blinkinLed = new FtcBlinkinLed(this);
+        blinkinLed.init(hardwareMap, telemetry);
+
         config = new MatchConfig();
         config.init(hardwareMap, telemetry);
 
@@ -117,6 +124,7 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.enter();
 
         bulkRead.clearBulkCache();
+        blinkinLed.operate(gamePad1, gamePad2, runtime);
 
         // Drive operation
         driveTrain.operate(gamePad1, gamePad2, loopTime);
@@ -125,6 +133,7 @@ public class FtcBot extends FtcSubSystem {
         relay.operate(gamePad1, gamePad2, runtime);
         lift.operate(gamePad1, gamePad2, runtime);
         if (telemetryEnabled) {
+            blinkinLed.showTelemetry();
             imu.showTelemetry();
             showGamePadTelemetry(gamePad1);
             driveTrain.showTelemetry();
@@ -157,7 +166,10 @@ public class FtcBot extends FtcSubSystem {
      */
     public void start() {
         FtcLogger.enter();
-        relay.start();
+        if (relay != null) {
+            relay.start();
+        }
+
         FtcLogger.exit();
     }
 
@@ -168,6 +180,10 @@ public class FtcBot extends FtcSubSystem {
         FtcLogger.enter();
         if (imu != null) {
             imu.stop();
+        }
+
+        if (blinkinLed != null) {
+            blinkinLed.stop();
         }
 
         if (driveTrain != null) {

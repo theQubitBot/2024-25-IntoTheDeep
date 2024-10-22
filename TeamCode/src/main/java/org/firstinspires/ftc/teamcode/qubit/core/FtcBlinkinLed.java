@@ -28,9 +28,12 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.qubit.core.enumerations.AllianceColorEnum;
 
 import java.util.Locale;
 
@@ -47,6 +50,11 @@ public class FtcBlinkinLed extends FtcSubSystem {
     // Start with LED strip being off.
     BlinkinPattern currentPattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
     Telemetry telemetry;
+    private FtcBot parent = null;
+
+    public FtcBlinkinLed(FtcBot robot) {
+        parent = robot;
+    }
 
     /**
      * Initialize standard Hardware interfaces
@@ -62,6 +70,28 @@ public class FtcBlinkinLed extends FtcSubSystem {
             telemetry.addData(TAG, "initialized");
         } else {
             telemetry.addData(TAG, "not enabled");
+        }
+    }
+
+    public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
+        if (FtcUtils.gameOver(runtime)) {
+            stop();
+        } else if (runtime.seconds() >= (FtcUtils.TELE_OP_DURATION - 10)) {
+            if (parent != null) {
+                if (parent.config.allianceColor == AllianceColorEnum.BLUE) {
+                    if (currentPattern != BlinkinPattern.HEARTBEAT_BLUE) {
+                        set(BlinkinPattern.HEARTBEAT_BLUE);
+                    }
+                } else {
+                    if (currentPattern != BlinkinPattern.HEARTBEAT_RED) {
+                        set(BlinkinPattern.HEARTBEAT_RED);
+                    }
+                }
+            } else {
+                if (currentPattern != BlinkinPattern.BEATS_PER_MINUTE_LAVA_PALETTE) {
+                    set(BlinkinPattern.BEATS_PER_MINUTE_LAVA_PALETTE);
+                }
+            }
         }
     }
 

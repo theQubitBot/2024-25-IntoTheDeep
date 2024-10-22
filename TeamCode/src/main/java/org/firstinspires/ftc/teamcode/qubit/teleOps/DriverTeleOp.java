@@ -123,7 +123,7 @@ public class DriverTeleOp extends OpMode {
         // in the middle of the match and FOD is enabled.
         FtcImu.endAutoOpHeading = 0;
         FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
-        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_FORWARD_POSITION;
+        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_MINIMUM_POSITION;
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

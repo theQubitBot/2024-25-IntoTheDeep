@@ -55,6 +55,7 @@ public class FtcImuTeleOp extends OpMode {
         imu = new FtcImu();
         imu.init(hardwareMap, telemetry);
         imu.telemetryEnabled = FtcUtils.DEBUG;
+        FtcImu.endAutoOpHeading = 0;
         imu.showTelemetry();
 
         // Inform the driver that initialization is complete.

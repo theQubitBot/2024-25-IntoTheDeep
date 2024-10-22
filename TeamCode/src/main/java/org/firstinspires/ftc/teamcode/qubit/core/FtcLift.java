@@ -47,7 +47,8 @@ public class FtcLift extends FtcSubSystem {
     public static final String RIGHT_MOTOR_NAME = "rightLiftMotor";
     public static final int POSITION_HIGH = 2000;
     public static final int POSITION_MEDIUM = 450;
-    public static final int POSITION_HANG = 950;
+    public static final int POSITION_HANG = 1221;
+
     public static final int POSITION_LOW = 5;
     public static final int POSITION_MINIMUM = 0;
     public static final int POSITION_ERROR_MARGIN = 20;
@@ -174,9 +175,6 @@ public class FtcLift extends FtcSubSystem {
             if (gamePad1.a || gamePad2.a) {
                 leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-            } else if (gamePad1.x || gamePad2.x || gamePad1.b || gamePad2.b) {
-                leftTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;

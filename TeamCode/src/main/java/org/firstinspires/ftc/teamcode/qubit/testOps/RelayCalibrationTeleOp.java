@@ -71,6 +71,7 @@ public class RelayCalibrationTeleOp extends OpMode {
         armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         armPosition = FtcRelay.ARM_FORWARD_POSITION;
+        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_MINIMUM_POSITION;
 
         rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.RACK_N_PINION_SERVO_NAME));
         rackNPinionServo.setDirection(Servo.Direction.REVERSE);
@@ -125,27 +126,29 @@ public class RelayCalibrationTeleOp extends OpMode {
         int targetPosition = currentPosition;
 
         if (gamepad1.right_trigger > 0.5) {
-            spinPower += FtcServo.LARGE_INCREMENT;
-            servo = spinServo;
-            servoPosition = spinPower;
+            spinServo.setPosition(FtcRelay.SPIN_IN_POWER);
         } else if (gamepad1.right_bumper) {
-            spinPower -= FtcServo.LARGE_INCREMENT;
-            servo = spinServo;
-            servoPosition = spinPower;
-        } else if (gamepad1.dpad_up) {
-            rackNPinionPosition += FtcServo.LARGE_INCREMENT;
-            servo = rackNPinionServo;
-            servoPosition = rackNPinionPosition;
+            spinServo.setPosition(FtcRelay.SPIN_OUT_POWER);
+        } else {
+            spinServo.setPosition(FtcRelay.SPIN_STOP_POWER);
+        }
+
+        if (gamepad1.dpad_up) {
+            rackNPinionServo.setPosition(FtcRelay.RACK_N_PINION_EXTEND_POWER);
         } else if (gamepad1.dpad_down) {
-            rackNPinionPosition -= FtcServo.LARGE_INCREMENT;
-            servo = rackNPinionServo;
-            servoPosition = rackNPinionPosition;
-        } else if (gamepad1.left_trigger > 0.5) {
+            rackNPinionServo.setPosition(FtcRelay.RACK_N_PINION_RETRACT_POWER);
+        } else {
+            rackNPinionServo.setPosition(FtcRelay.RACK_N_PINION_STOP_POWER);
+        }
+
+        if (gamepad1.left_trigger > 0.5) {
             targetPosition = currentPosition - 10;
             motor = armMotor;
         } else if (gamepad1.left_bumper) {
             targetPosition = currentPosition + 10;
             motor = armMotor;
+        } else {
+            targetPosition = currentPosition;
         }
 
         if (servo != null) {

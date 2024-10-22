@@ -10,13 +10,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcGoBoDriver;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 import java.util.Locale;
 
-@TeleOp(group = "TestOp")
 @Disabled
+@TeleOp(group = "TestOp")
 public class GoBoDriverTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
@@ -38,6 +39,7 @@ public class GoBoDriverTeleOp extends OpMode {
         telemetry.addData(">", "Initializing, please wait...");
         ftcGoBoDriver = new FtcGoBoDriver();
         ftcGoBoDriver.init(hardwareMap, telemetry);
+        FtcImu.endAutoOpHeading = 0;
         telemetry.update();
         FtcLogger.exit();
     }

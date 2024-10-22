@@ -26,10 +26,15 @@
 
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
@@ -43,6 +48,17 @@ public class OptionRight extends OptionBase {
 
     public OptionRight init() {
         super.initialize();
+
+        // preloaded specimen
+        v1 = new Vector2d(14, 6);
+        tab1 = drive.actionBuilder(startPose)
+                .strafeToConstantHeading(v1);
+        a1 = tab1.build();
+
+        v2 = new Vector2d(-16, -42);
+        tab2 = tab1.fresh()
+                .strafeToConstantHeading(v2);
+        a2 = tab2.build();
         return this;
     }
 
@@ -51,16 +67,26 @@ public class OptionRight extends OptionBase {
      */
     public void execute() {
         FtcLogger.enter();
+        Actions.runBlocking(
+                new ParallelAction(
+                        a1, // Move towards submersible
+                        new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_POSITION_CHAMBER_HIGH)),
+                        new InstantAction(() -> robot.relay.rnpExtend())
+                )
+        );
+
+        // Wait for RNP extension
+        robot.relay.rnpWaitAndStop();
+        Actions.runBlocking(new InstantAction(() -> robot.relay.rnpRetract()));
+        robot.relay.rnpWaitAndStop();
 
         if (!autoOpMode.opModeIsActive()) return;
-
-        if (!autoOpMode.opModeIsActive()) return;
-
-        if (!autoOpMode.opModeIsActive()) return;
-
-        if (!autoOpMode.opModeIsActive()) return;
-
-        if (!autoOpMode.opModeIsActive()) return;
+        Actions.runBlocking(
+                new ParallelAction(
+                        a2,
+                        new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION))
+                )
+        );
 
         FtcLogger.exit();
     }

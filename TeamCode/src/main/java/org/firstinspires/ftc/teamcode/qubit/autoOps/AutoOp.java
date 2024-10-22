@@ -65,6 +65,9 @@ public class AutoOp extends LinearOpMode {
         telemetry.update();
 
         if (!opModeIsActive()) return;
+
+        // Enable and stop servos
+        robot.start();
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
             new OptionLeft(this, robot, drive).init().execute();
         } else {
@@ -82,15 +85,14 @@ public class AutoOp extends LinearOpMode {
         telemetry.addData(">", "Initializing. Please wait...");
         telemetry.update();
 
-        // Initialize robot.
-        robot = new FtcBot();
-        robot.init(hardwareMap, telemetry, true);
-        robot.start();
-
         // Clear out any previous end heading of the robot.
         FtcImu.endAutoOpHeading = 0;
         FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
-        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_FORWARD_POSITION;
+        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_MINIMUM_POSITION;
+
+        // Initialize robot.
+        robot = new FtcBot();
+        robot.init(hardwareMap, telemetry, true);
 
         if (FtcUtils.DEBUG) {
             robot.enableTelemetry();
@@ -103,7 +105,7 @@ public class AutoOp extends LinearOpMode {
         // Must initialize this after robot.driveTrain initialization since driveTrain
         // sets the motors to run without encoders.
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-
+        
         FtcLogger.exit();
     }
 
@@ -143,16 +145,13 @@ public class AutoOp extends LinearOpMode {
                     robot.driveTrain.driveTypeEnum == DriveTypeEnum.FIELD_ORIENTED_DRIVE) {
                 robot.imu.read();
                 FtcImu.endAutoOpHeading = robot.imu.getHeading();
-                telemetry.addData(">", "endGyro=%.1f, endLift=%d, endArm=%d",
-                        FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition, FtcRelay.endAutoOpArmPosition);
-                telemetry.addData(">", "Waiting for auto Op to end.");
-                telemetry.update();
-                FtcUtils.sleep(5);
-            } else {
-                // End Auto Op so that we can switch to Tele Op ASAP.
-                // Ending soon also stops the robot and saves on battery.
-                break;
             }
+
+            telemetry.addData(">", "endGyro=%.1f, endLift=%d, endArm=%d",
+                    FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition, FtcRelay.endAutoOpArmPosition);
+            telemetry.addData(">", "Waiting for auto Op to end.");
+            telemetry.update();
+            FtcUtils.sleep(5);
         } while (opModeIsActive());
 
         robot.stop();
