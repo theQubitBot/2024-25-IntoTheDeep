@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -66,6 +67,8 @@ public class FtcLift extends FtcSubSystem {
     private Telemetry telemetry = null;
     public FtcMotor leftLiftMotor = null;
     public FtcMotor rightLiftMotor = null;
+    DigitalChannel touch1;
+    DigitalChannel touch2;
 
     /**
      * Estimate approximate time (in milliseconds) the lift will take
@@ -110,6 +113,11 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (liftEnabled) {
+            touch1 = hardwareMap.get(DigitalChannel.class, "touch_sensor1");
+            touch1.setMode(DigitalChannel.Mode.INPUT);
+            touch2 = hardwareMap.get(DigitalChannel.class, "touch_sensor2");
+            touch2.setMode(DigitalChannel.Mode.INPUT);
+
             rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_MOTOR_NAME));
             rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
             rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -170,6 +178,12 @@ public class FtcLift extends FtcSubSystem {
 
             int leftTargetPosition = leftCurrentPosition;
             int rightTargetPosition = rightcurrentPosition;
+
+            if (!touch1.getState() && !touch2.getState()) {
+                // both buttons are being pressed
+                leftCurrentPosition = POSITION_LOW;
+                rightcurrentPosition = POSITION_LOW;
+            }
 
             // If lift zero is being reset, we want lower the lift physically as well.
             if (gamePad1.a || gamePad2.a) {
