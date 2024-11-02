@@ -67,8 +67,8 @@ public class FtcLift extends FtcSubSystem {
     private Telemetry telemetry = null;
     public FtcMotor leftLiftMotor = null;
     public FtcMotor rightLiftMotor = null;
-    DigitalChannel touch1;
-    DigitalChannel touch2;
+    DigitalChannel leftLiftTouch;
+    DigitalChannel rightLiftTouch;
 
     /**
      * Estimate approximate time (in milliseconds) the lift will take
@@ -113,10 +113,10 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (liftEnabled) {
-            touch1 = hardwareMap.get(DigitalChannel.class, "touch_sensor1");
-            touch1.setMode(DigitalChannel.Mode.INPUT);
-            touch2 = hardwareMap.get(DigitalChannel.class, "touch_sensor2");
-            touch2.setMode(DigitalChannel.Mode.INPUT);
+            leftLiftTouch = hardwareMap.get(DigitalChannel.class, "leftLiftTouch");
+            leftLiftTouch.setMode(DigitalChannel.Mode.INPUT);
+            rightLiftTouch = hardwareMap.get(DigitalChannel.class, "rightLiftTouch");
+            rightLiftTouch.setMode(DigitalChannel.Mode.INPUT);
 
             rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_MOTOR_NAME));
             rightLiftMotor.setDirection(DcMotorEx.Direction.REVERSE);
@@ -179,19 +179,23 @@ public class FtcLift extends FtcSubSystem {
             int leftTargetPosition = leftCurrentPosition;
             int rightTargetPosition = rightcurrentPosition;
 
-            if (!touch1.getState() && !touch2.getState()) {
-                // both buttons are being pressed
-                leftCurrentPosition = POSITION_LOW;
+            if (leftLiftTouch.getState() == false) {
+                // left touch sensor is being pressed
+                leftCurrentPosition = POSITION_LOW;;
+            }
+
+            if (rightLiftTouch.getState() == false) {
+                // right touch sensor is being pressed
                 rightcurrentPosition = POSITION_LOW;
             }
 
             // If lift zero is being reset, we want lower the lift physically as well.
             if (gamePad1.a || gamePad2.a) {
                 leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
+              //  rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
+               // rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
                 leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
