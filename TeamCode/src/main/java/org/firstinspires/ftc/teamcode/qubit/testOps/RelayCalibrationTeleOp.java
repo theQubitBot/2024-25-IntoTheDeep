@@ -49,10 +49,16 @@ public class RelayCalibrationTeleOp extends OpMode {
     static final int CYCLE_MS = 50;           // period of each cycle
     static final String SERVO_NAME = "";
 
-    FtcServo spinServo;
-    double spinPower;
+    FtcServo leftSpinServo;
+    FtcServo rightSpinServo;
+    FtcServo leftFlipServo;
+    FtcServo rightFlipServo;
+    FtcServo liftServo;
     FtcServo rackNPinionServo;
     double rackNPinionPosition;
+    double spinPower;
+    double flipPower;
+    double liftServoPower;
     FtcMotor armMotor;
     int armPosition;
 
@@ -78,10 +84,28 @@ public class RelayCalibrationTeleOp extends OpMode {
         rackNPinionPosition = FtcRelay.RACK_N_PINION_STOP_POWER;
         rackNPinionServo.setPosition(rackNPinionPosition);
 
-        spinServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.SPIN_SERVO_NAME));
-        spinServo.setDirection(Servo.Direction.FORWARD);
+        leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.LEFT_FLIP_SERVO_NAME));
+        leftFlipServo.setDirection(Servo.Direction.REVERSE);
+        rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.RIGHT_FLIP_SERVO_NAME));
+        rightFlipServo.setDirection(Servo.Direction.REVERSE);
+
+        flipPower = FtcRelay.FLIP_STOP_POWER;
+        leftFlipServo.setPosition(flipPower);
+        rightFlipServo.setPosition(flipPower);
+
+        leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.LEFT_SPIN_SERVO_NAME));
+        leftSpinServo.setDirection(Servo.Direction.FORWARD);
+        rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.RIGHT_SPIN_SERVO_NAME));
+        rightSpinServo.setDirection(Servo.Direction.FORWARD);
+
         spinPower = FtcRelay.SPIN_STOP_POWER;
-        spinServo.setPosition(spinPower);
+        leftSpinServo.setPosition(spinPower);
+        rightSpinServo.setPosition(spinPower);
+
+        liftServo = new FtcServo(hardwareMap.get(Servo.class, FtcRelay.LIFT_SERVO_NAME));
+        liftServo.setDirection(Servo.Direction.REVERSE);
+        liftServoPower = FtcRelay.LIFT_SERVO_STOP_POWER;
+        liftServo.setPosition(liftServoPower);
 
         FtcLogger.exit();
     }
@@ -126,12 +150,17 @@ public class RelayCalibrationTeleOp extends OpMode {
         int targetPosition = currentPosition;
 
         if (gamepad1.right_trigger > 0.5) {
-            spinServo.setPosition(FtcRelay.SPIN_IN_POWER);
+            leftSpinServo.setPosition(FtcRelay.SPIN_IN_POWER);
+            rightSpinServo.setPosition(FtcRelay.SPIN_IN_POWER);
         } else if (gamepad1.right_bumper) {
-            spinServo.setPosition(FtcRelay.SPIN_OUT_POWER);
+            leftSpinServo.setPosition(FtcRelay.SPIN_OUT_POWER);
+            rightSpinServo.setPosition(FtcRelay.SPIN_OUT_POWER);
         } else {
-            spinServo.setPosition(FtcRelay.SPIN_STOP_POWER);
+            leftSpinServo.setPosition(FtcRelay.SPIN_STOP_POWER);
+            rightSpinServo.setPosition(FtcRelay.SPIN_STOP_POWER);
         }
+
+        // have not coded any gamepad functions for leftFlipServo, rightFlipServo, or liftServo
 
         if (gamepad1.dpad_up) {
             rackNPinionServo.setPosition(FtcRelay.RACK_N_PINION_EXTEND_POWER);

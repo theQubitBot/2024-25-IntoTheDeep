@@ -55,15 +55,19 @@ public class FtcRelay extends FtcSubSystem {
     public static final double ARM_FORWARD_POWER = 0.80;
     public static final double ARM_BACKWARD_POWER = -ARM_FORWARD_POWER;
     public static final String RACK_N_PINION_SERVO_NAME = "rackAndPinionServo";
+    public static final String LEFT_FLIP_SERVO_NAME = "leftFlipServo";
+    public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
     public static final double RACK_N_PINION_EXTEND_POWER = 1.0;
     public static final double RACK_N_PINION_RETRACT_POWER = 0.0;
     public static final double RACK_N_PINION_STOP_POWER = FtcServo.MID_POSITION;
     public static final int RACK_N_PINION_TRAVEL_TIME = 2000; // milliseconds
-    public static final String SPIN_SERVO_NAME = "spinServo";
+    public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
+    public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
     public static final double SPIN_IN_POWER = 0.5700;
     public static final double SPIN_OUT_POWER = 0.0000;
     public static final double SPIN_HOLD_POWER = 0.5280;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
+    public static final String LIFT_SERVO_NAME = "liftServo";
     private final boolean relayEnabled = true;
     public boolean telemetryEnabled = true;
     Deadline rnpTravelDeadline = null;
@@ -71,7 +75,11 @@ public class FtcRelay extends FtcSubSystem {
     private Telemetry telemetry = null;
     public FtcMotor armMotor = null;
     public FtcServo rackNPinionServo = null;
-    public FtcServo spinServo = null;
+    public FtcServo leftSpinServo = null;
+    public FtcServo rightSpinServo = null;
+    public FtcServo leftFlipServo = null;
+    public FtcServo rightFlipServo = null;
+    public FtcServo liftServo = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -93,8 +101,19 @@ public class FtcRelay extends FtcSubSystem {
             rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RACK_N_PINION_SERVO_NAME));
             rackNPinionServo.setDirection(Servo.Direction.REVERSE);
 
-            spinServo = new FtcServo(hardwareMap.get(Servo.class, SPIN_SERVO_NAME));
-            spinServo.setDirection(Servo.Direction.FORWARD);
+            leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_SPIN_SERVO_NAME));
+            leftSpinServo.setDirection(Servo.Direction.FORWARD);
+            rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_SPIN_SERVO_NAME));
+            rightSpinServo.setDirection(Servo.Direction.FORWARD);
+
+            leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_FLIP_SERVO_NAME));
+            leftFlipServo.setDirection(Servo.Direction.FORWARD);
+            rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_FLIP_SERVO_NAME));
+            rightFlipServo.setDirection(Servo.Direction.FORWARD);
+
+            liftServo = new FtcServo(hardwareMap.get(Servo.class, LIFT_SERVO_NAME));
+            liftServo.setDirection(Servo.Direction.FORWARD);
+
             rnpTravelDeadline = new Deadline(2, TimeUnit.SECONDS);
 
             showTelemetry();
@@ -220,7 +239,8 @@ public class FtcRelay extends FtcSubSystem {
     public void spinIn() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinServo.setPosition(SPIN_IN_POWER);
+            leftSpinServo.setPosition(SPIN_IN_POWER);
+            rightSpinServo.setPosition(SPIN_IN_POWER);
         }
 
         FtcLogger.exit();
@@ -232,7 +252,8 @@ public class FtcRelay extends FtcSubSystem {
     public void spinOut() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinServo.setPosition(SPIN_OUT_POWER);
+            leftSpinServo.setPosition(SPIN_OUT_POWER);
+            rightSpinServo.setPosition(SPIN_OUT_POWER);
         }
 
         FtcLogger.exit();
@@ -244,7 +265,8 @@ public class FtcRelay extends FtcSubSystem {
     public void spinHold() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinServo.setPosition(SPIN_HOLD_POWER);
+            leftSpinServo.setPosition(SPIN_HOLD_POWER);
+            rightSpinServo.setPosition(SPIN_HOLD_POWER);
         }
 
         FtcLogger.exit();
@@ -256,7 +278,8 @@ public class FtcRelay extends FtcSubSystem {
     public void spinStop() {
         FtcLogger.enter();
         if (relayEnabled) {
-            spinServo.setPosition(SPIN_STOP_POWER);
+            leftSpinServo.setPosition(SPIN_STOP_POWER);
+            rightSpinServo.setPosition(SPIN_STOP_POWER);
         }
 
         FtcLogger.exit();
@@ -268,9 +291,12 @@ public class FtcRelay extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (relayEnabled && telemetryEnabled) {
-            if (spinServo != null && rackNPinionServo != null && armMotor != null) {
+            if (leftSpinServo != null && rightSpinServo != null && leftFlipServo != null && rightFlipServo != null
+                    && liftServo != null && rackNPinionServo != null && armMotor != null) {
                 telemetry.addData(TAG, String.format(Locale.US, "spin: %.4f, rnp: %.4f, arm: %d",
-                        spinServo.getPosition(), rackNPinionServo.getPosition(), armMotor.getCurrentPosition()));
+                        leftSpinServo.getPosition(), rightSpinServo.getPosition(), leftFlipServo.getPosition(),
+                        rightFlipServo.getPosition(), liftServo.getPosition(), rackNPinionServo.getPosition(),
+                        armMotor.getCurrentPosition()));
             }
         }
 
@@ -284,7 +310,11 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.enter();
         if (relayEnabled) {
             moveArm(FtcRelay.ARM_FORWARD_POSITION - endAutoOpArmPosition);
-            spinServo.getController().pwmEnable();
+            leftSpinServo.getController().pwmEnable();
+            rightSpinServo.getController().pwmEnable();
+            leftFlipServo.getController().pwmEnable();
+            rightFlipServo.getController().pwmEnable();
+            liftServo.getController().pwmEnable();
             rackNPinionServo.getController().pwmEnable();
             rnpStop();
             spinStop();
@@ -299,8 +329,20 @@ public class FtcRelay extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (relayEnabled) {
-            if (spinServo != null) {
-                spinServo.getController().pwmDisable();
+            if (leftSpinServo != null) {
+                leftSpinServo.getController().pwmDisable();
+            }
+            if (rightSpinServo != null) {
+                rightSpinServo.getController().pwmDisable();
+            }
+            if (leftFlipServo != null) {
+                leftFlipServo.getController().pwmDisable();
+            }
+            if (rightFlipServo != null) {
+                rightFlipServo.getController().pwmDisable();
+            }
+            if (liftServo != null) {
+                liftServo.getController().pwmDisable();
             }
 
             if (rackNPinionServo != null) {
