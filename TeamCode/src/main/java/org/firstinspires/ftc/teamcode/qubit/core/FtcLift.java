@@ -279,6 +279,8 @@ public class FtcLift extends FtcSubSystem {
             rightLiftMotor.setPower(0.4);
             leftLiftMotor.setPower(0.2);
             rightLiftMotor.setPower(0.2);
+            leftLiftMotor.setPower(0.1);
+            rightLiftMotor.setPower(0.1);
             leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
             rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
         }
