@@ -271,6 +271,14 @@ public class FtcLift extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (liftEnabled) {
+            leftLiftMotor.setPower(0.8);
+            rightLiftMotor.setPower(0.8);
+            leftLiftMotor.setPower(0.6);
+            rightLiftMotor.setPower(0.6);
+            leftLiftMotor.setPower(0.4);
+            rightLiftMotor.setPower(0.4);
+            leftLiftMotor.setPower(0.2);
+            rightLiftMotor.setPower(0.2);
             leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
             rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
         }
