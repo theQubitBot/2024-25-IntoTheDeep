@@ -76,46 +76,46 @@ public class OptionLeft extends OptionBase {
         a3 = tab3.build();
 
         // first yellow sample
-        v4 = new Vector2d(0, 0);
+        v4 = new Vector2d(5, -7);
         tab4 = tab3.fresh()
                 .setReversed(false)
                 .strafeToLinearHeading(v4, -RADIAN60);
         a4 = tab4.build();
 
-        v5 = new Vector2d(0, 0);
+        v5 = new Vector2d(-5, 7);
         tab5 = tab4.fresh()
                 .setReversed(true)
                 .strafeToConstantHeading(v5);
         a5 = tab5.build();
 
         // second yellow sample
-        v6 = new Vector2d(0, 0);
+        v6 = new Vector2d(5, -5);
         tab6 = tab5.fresh()
                 .setReversed(false)
                 .strafeToLinearHeading(v6, -RADIAN45);
         a6 = tab6.build();
 
-        v7 = new Vector2d(0, 0);
+        v7 = new Vector2d(-5, 5);
         tab7 = tab6.fresh()
                 .setReversed(true)
                 .strafeToConstantHeading(v7);
         a7 = tab7.build();
 
         // third yellow sample
-        v8 = new Vector2d(0, 0);
+        v8 = new Vector2d(5, -3);
         tab8 = tab7.fresh()
                 .setReversed(false)
                 .strafeToLinearHeading(v8, -RADIAN45);
         a8 = tab8.build();
 
-        v9 = new Vector2d(0, 0);
+        v9 = new Vector2d(-5, 3);
         tab9 = tab8.fresh()
                 .setReversed(true)
                 .strafeToConstantHeading(v9);
         a9 = tab9.build();
 
         // park
-        pose10 = new Pose2d(0, 0, -RADIAN90);
+        pose10 = new Pose2d(15, -10, -RADIAN90);
         tab10 = tab9.fresh()
                 .setReversed(false)
                 .splineToLinearHeading(pose10, -RADIAN90);
@@ -197,24 +197,108 @@ public class OptionLeft extends OptionBase {
         // Deliver first yellow sample
         if (!autoOpMode.opModeIsActive()) return;
         if (deliverFirstYellow) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            a4,
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinIn())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinHold())
+                            ),
+                            a5,
+                            // Deliver first yellow sample to high basket
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.rnpExtend())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.rnpStop()),
+                                    new InstantAction(() -> robot.relay.spinOut())
+                            ),
+                            new SleepAction(1.0),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.spinStop()),
+                                    new InstantAction(() -> robot.relay.rnpRetract())
+                            )
+                    )
+            );
 
         }
         // Deliver second yellow sample
         if (!autoOpMode.opModeIsActive()) return;
         if (deliverSecondYellow) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            a6,
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinIn())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinHold())
+                            ),
+                            a7,
+                            // Deliver second yellow sample to high basket
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.rnpExtend())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.rnpStop()),
+                                    new InstantAction(() -> robot.relay.spinOut())
+                            ),
+                            new SleepAction(1.0),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.spinStop()),
+                                    new InstantAction(() -> robot.relay.rnpRetract())
+                            )
+                    )
+            );
 
         }
 
         // Deliver third yellow sample
         if (!autoOpMode.opModeIsActive()) return;
         if (deliverThirdYellow) {
+            Actions.runBlocking(
+                    new SequentialAction(
+                            a8,
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinIn())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.spinHold())
+                            ),
+                            a9,
+                            // Deliver third yellow sample to high basket
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.rnpExtend())
+                            ),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.rnpStop()),
+                                    new InstantAction(() -> robot.relay.spinOut())
+                            ),
+                            new SleepAction(1.0),
+                            new ParallelAction(
+                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
+                                    new InstantAction(() -> robot.relay.spinStop()),
+                                    new InstantAction(() -> robot.relay.rnpRetract())
+                            )
+                    )
+            );
 
         }
 
         // Park
         if (!autoOpMode.opModeIsActive()) return;
         if (park) {
-
+            Actions.runBlocking(a10);
         }
 
         FtcLogger.exit();
