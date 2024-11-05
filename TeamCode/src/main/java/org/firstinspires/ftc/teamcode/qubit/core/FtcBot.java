@@ -44,6 +44,7 @@ public class FtcBot extends FtcSubSystem {
     public FtcBulkRead bulkRead = null;
     public FtcBlinkinLed blinkinLed = null;
     public FtcDriveTrain driveTrain = null;
+    public FtcFlag flag = null;
 
     // robot sub systems
     public FtcImu imu = null;
@@ -61,6 +62,7 @@ public class FtcBot extends FtcSubSystem {
         telemetryEnabled = false;
         driveTrain.telemetryEnabled = false;
         blinkinLed.telemetryEnabled = false;
+        flag.telemetryEnabled = false;
         imu.telemetryEnabled = false;
         lift.telemetryEnabled = false;
         relay.telemetryEnabled = false;
@@ -72,6 +74,7 @@ public class FtcBot extends FtcSubSystem {
         telemetryEnabled = true;
         driveTrain.telemetryEnabled = true;
         blinkinLed.telemetryEnabled = true;
+        flag.telemetryEnabled = true;
         imu.telemetryEnabled = true;
         lift.telemetryEnabled = true;
         relay.telemetryEnabled = true;
@@ -104,6 +107,9 @@ public class FtcBot extends FtcSubSystem {
         driveTrain.setDriveTypeAndMode(DriveTrainEnum.MECANUM_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
         driveTrain.init(hardwareMap, telemetry);
 
+        flag = new FtcFlag();
+        flag.init(hardwareMap, telemetry);
+
         imu = new FtcImu();
         imu.init(hardwareMap, telemetry);
 
@@ -128,6 +134,7 @@ public class FtcBot extends FtcSubSystem {
 
         // Drive operation
         driveTrain.operate(gamePad1, gamePad2, loopTime);
+        flag.operate(gamePad1, gamePad2);
 
         // Relay ideally operates before lift during hang (endgame).
         relay.operate(gamePad1, gamePad2, runtime);
