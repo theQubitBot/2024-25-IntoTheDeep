@@ -335,10 +335,10 @@ public class FtcDriveTrain extends FtcSubSystem {
         }
 
         // Handle precision drive mode
-        if (gamePad1.dpad_left || gamePad2.dpad_left) {
+        if (gamePad1.dpad_left) {
             // set global precision drive variable
             precisionDriveMode = true;
-        } else if (gamePad1.dpad_right || gamePad2.dpad_right) {
+        } else if (gamePad1.dpad_right) {
             // set global precision drive variable
             precisionDriveMode = false;
         } else {
@@ -380,8 +380,8 @@ public class FtcDriveTrain extends FtcSubSystem {
             // Scale can't be outside the wheel power limits.
             scaleFactor = Range.clip(scaleFactor, MINIMUM_FORWARD_TELE_OP_POWER, MAXIMUM_FORWARD_POWER);
 
-            // Power factor goes down with scale, but we need minimum power to move the bot.
-            scaleFactor = MINIMUM_FORWARD_TELE_OP_POWER + scaleFactor;
+            // Power factor goes down with scale, but we need minimum power to strafe.
+            scaleFactor = STRAFE_SLO_MO_POWER + scaleFactor;
 
             // Scale power for all wheels
             leftFrontPower *= scaleFactor;
