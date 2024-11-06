@@ -51,6 +51,7 @@ public class FtcBot extends FtcSubSystem {
     public FtcImu imu = null;
     public FtcLift lift = null;
     public FtcRelay relay = null;
+    public FtcRnp rnp = null;
     public MatchConfig config = null;
     private Telemetry telemetry = null;
 
@@ -68,6 +69,7 @@ public class FtcBot extends FtcSubSystem {
         imu.telemetryEnabled = false;
         lift.telemetryEnabled = false;
         relay.telemetryEnabled = false;
+        rnp.telemetryEnabled = false;
         FtcLogger.exit();
     }
 
@@ -81,6 +83,7 @@ public class FtcBot extends FtcSubSystem {
         imu.telemetryEnabled = true;
         lift.telemetryEnabled = true;
         relay.telemetryEnabled = true;
+        rnp.telemetryEnabled = true;
         FtcLogger.exit();
     }
 
@@ -125,6 +128,9 @@ public class FtcBot extends FtcSubSystem {
         relay = new FtcRelay();
         relay.init(hardwareMap, telemetry);
 
+        rnp = new FtcRnp();
+        rnp.init(hardwareMap, telemetry);
+
         telemetry.addData(TAG, "initialized");
         FtcLogger.exit();
     }
@@ -144,15 +150,19 @@ public class FtcBot extends FtcSubSystem {
         flag.operate(gamePad1, gamePad2);
 
         // Relay ideally operates before lift during hang (endgame).
-        relay.operate(gamePad1, gamePad2, runtime);
         lift.operate(gamePad1, gamePad2, runtime);
+        relay.operate(gamePad1, gamePad2, runtime);
+        rnp.operate(gamePad1, gamePad2);
         if (telemetryEnabled) {
+            arm.showTelemetry();
             blinkinLed.showTelemetry();
+            flag.showTelemetry();
             imu.showTelemetry();
             showGamePadTelemetry(gamePad1);
             driveTrain.showTelemetry();
             lift.showTelemetry();
             relay.showTelemetry();
+            rnp.showTelemetry();
         }
 
         FtcLogger.exit();
@@ -186,6 +196,10 @@ public class FtcBot extends FtcSubSystem {
 
         if (relay != null) {
             relay.start();
+        }
+
+        if (rnp != null) {
+            rnp.start();
         }
 
         FtcLogger.exit();
@@ -222,6 +236,10 @@ public class FtcBot extends FtcSubSystem {
 
         if (relay != null) {
             relay.stop();
+        }
+
+        if (rnp != null) {
+            rnp.stop();
         }
 
         FtcLogger.exit();

@@ -62,10 +62,6 @@ public class FtcRelay extends FtcSubSystem {
     public static final double RNP_RETRACT_POWER = 0.0;
     public static final double RNP_STOP_POWER = FtcServo.MID_POSITION;
     public static final int RNP_TRAVEL_TIME = 2000; // milliseconds
-    public static final String ARM_SERVO_NAME = "armServo";
-    public static final double ARM_FORWARD_POSITION = 0.5000;
-    public static final double ARM_BACKWARD_POSITION = 0.6100;
-    public static final int ARM_TRAVEL_TIME = 2000; // milliseconds
     private final boolean relayEnabled = true;
     public boolean telemetryEnabled = true;
     Deadline rnpTravelDeadline = null;
@@ -100,9 +96,6 @@ public class FtcRelay extends FtcSubSystem {
             rnpTravelDeadline = new Deadline(RNP_TRAVEL_TIME, TimeUnit.MILLISECONDS);
             rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
             rackNPinionServo.setDirection(Servo.Direction.REVERSE);
-
-            armServo = new FtcServo(hardwareMap.get(Servo.class, ARM_SERVO_NAME));
-            armServo.setDirection(Servo.Direction.FORWARD);
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -146,30 +139,6 @@ public class FtcRelay extends FtcSubSystem {
         if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
         } else if (gamePad1.left_trigger >= 0.5 || gamePad2.left_trigger >= 0.5) {
         } else if (gamePad1.left_bumper || gamePad2.left_bumper) {
-        }
-
-        FtcLogger.exit();
-    }
-
-    public void armBackward(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (relayEnabled) {
-            armServo.setPosition(ARM_BACKWARD_POSITION);
-            if (waitTillCompletion) {
-                FtcUtils.sleep(ARM_TRAVEL_TIME);
-            }
-        }
-
-        FtcLogger.exit();
-    }
-
-    public void armForward(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (relayEnabled) {
-            armServo.setPosition(ARM_FORWARD_POSITION);
-            if (waitTillCompletion) {
-                FtcUtils.sleep(ARM_TRAVEL_TIME);
-            }
         }
 
         FtcLogger.exit();
@@ -350,7 +319,6 @@ public class FtcRelay extends FtcSubSystem {
             spinStop();
             rnpStop(false);
             flipHorizontal(false);
-            armForward(false);
         }
 
         FtcLogger.exit();
