@@ -41,6 +41,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 public class FtcBot extends FtcSubSystem {
     private static final String TAG = "FtcBot";
     private boolean telemetryEnabled = true;
+    public FtcArm arm = null;
     public FtcBulkRead bulkRead = null;
     public FtcBlinkinLed blinkinLed = null;
     public FtcDriveTrain driveTrain = null;
@@ -60,6 +61,7 @@ public class FtcBot extends FtcSubSystem {
     public void disableTelemetry() {
         FtcLogger.enter();
         telemetryEnabled = false;
+        arm.telemetryEnabled = false;
         driveTrain.telemetryEnabled = false;
         blinkinLed.telemetryEnabled = false;
         flag.telemetryEnabled = false;
@@ -72,6 +74,7 @@ public class FtcBot extends FtcSubSystem {
     public void enableTelemetry() {
         FtcLogger.enter();
         telemetryEnabled = true;
+        arm.telemetryEnabled = true;
         driveTrain.telemetryEnabled = true;
         blinkinLed.telemetryEnabled = true;
         flag.telemetryEnabled = true;
@@ -93,6 +96,9 @@ public class FtcBot extends FtcSubSystem {
     public void init(HardwareMap hardwareMap, Telemetry telemetry, Boolean autoOp) {
         FtcLogger.enter();
         this.telemetry = telemetry;
+
+        arm = new FtcArm(this);
+        arm.init(hardwareMap, telemetry);
 
         bulkRead = new FtcBulkRead();
         bulkRead.init(hardwareMap, telemetry);
@@ -133,6 +139,7 @@ public class FtcBot extends FtcSubSystem {
         blinkinLed.operate(gamePad1, gamePad2, runtime);
 
         // Drive operation
+        arm.operate(gamePad1, gamePad2);
         driveTrain.operate(gamePad1, gamePad2, loopTime);
         flag.operate(gamePad1, gamePad2);
 
@@ -173,6 +180,10 @@ public class FtcBot extends FtcSubSystem {
      */
     public void start() {
         FtcLogger.enter();
+        if (arm != null) {
+            arm.start();
+        }
+
         if (relay != null) {
             relay.start();
         }
@@ -185,8 +196,8 @@ public class FtcBot extends FtcSubSystem {
      */
     public void stop() {
         FtcLogger.enter();
-        if (imu != null) {
-            imu.stop();
+        if (arm != null) {
+            arm.stop();
         }
 
         if (blinkinLed != null) {
@@ -195,6 +206,14 @@ public class FtcBot extends FtcSubSystem {
 
         if (driveTrain != null) {
             driveTrain.stop();
+        }
+
+        if (flag != null) {
+            flag.stop();
+        }
+
+        if (imu != null) {
+            imu.stop();
         }
 
         if (lift != null) {
