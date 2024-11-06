@@ -34,7 +34,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
@@ -77,15 +76,13 @@ public class OptionRight extends OptionBase {
             Actions.runBlocking(
                     new ParallelAction(
                             a1, // Move towards submersible
-                            new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_POSITION_CHAMBER_HIGH)),
-                            new InstantAction(() -> robot.relay.rnpExtend())
+                            new InstantAction(() -> robot.rnp.extend(false))
                     )
             );
 
             // Wait for RNP extension
-            robot.relay.rnpWaitAndStop();
-            Actions.runBlocking(new InstantAction(() -> robot.relay.rnpRetract()));
-            robot.relay.rnpWaitAndStop();
+            robot.rnp.stop(true);
+            robot.rnp.retract(true);
 
         }
 
@@ -94,8 +91,7 @@ public class OptionRight extends OptionBase {
         if (park) {
             Actions.runBlocking(
                     new ParallelAction(
-                            a2, // parking
-                            new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION))
+                            a2 // parking
                     )
             );
         }

@@ -38,7 +38,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
@@ -136,24 +135,20 @@ public class OptionLeft extends OptionBase {
             Actions.runBlocking(
                     new SequentialAction(
                             // Hold the specimen
-                            new InstantAction(() -> robot.relay.spinHold()),
+                            new InstantAction(() -> robot.intake.spinHold()),
                             new ParallelAction(
-                                    // Raise arm for high chamber
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_HANG_POSITION)),
                                     // Move towards submersible
                                     a1,
                                     // Extend RNP
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             // Wait for RNP extension
                             new SleepAction(0.5),
                             // Deliver specimen by retracting RNP
-                            new InstantAction(() -> robot.relay.rnpRetract()),
+                            new InstantAction(() -> robot.rnp.retract(false)),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpStop()),
-                                    // Lower arm
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION))
+                                    new InstantAction(() -> robot.intake.spinStop()),
+                                    new InstantAction(() -> robot.rnp.stop(false))
                             )
                     )
             );
@@ -166,29 +161,27 @@ public class OptionLeft extends OptionBase {
                     new SequentialAction(
                             a2,
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinIn()),
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.intake.spinIn()),
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinHold()),
-                                    new InstantAction(() -> robot.relay.rnpRetract())
+                                    new InstantAction(() -> robot.intake.spinHold()),
+                                    new InstantAction(() -> robot.rnp.retract(false))
                             ),
                             a3,
                             // Deliver sample to high basket
                             new ParallelAction(
                                     new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.rnpStop()),
-                                    new InstantAction(() -> robot.relay.spinOut())
+                                    new InstantAction(() -> robot.rnp.stop(false)),
+                                    new InstantAction(() -> robot.intake.spinOut())
                             ),
                             new SleepAction(1.0),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpRetract())
+                                    new InstantAction(() -> robot.intake.spinStop()),
+                                    new InstantAction(() -> robot.rnp.retract(false))
                             )
                     )
             );
@@ -201,27 +194,25 @@ public class OptionLeft extends OptionBase {
                     new SequentialAction(
                             a4,
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinIn())
+                                    new InstantAction(() -> robot.intake.spinIn())
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinHold())
+                                    new InstantAction(() -> robot.intake.spinHold())
                             ),
                             a5,
                             // Deliver first yellow sample to high basket
                             new ParallelAction(
                                     new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.rnpStop()),
-                                    new InstantAction(() -> robot.relay.spinOut())
+                                    new InstantAction(() -> robot.rnp.stop(false)),
+                                    new InstantAction(() -> robot.intake.spinOut())
                             ),
                             new SleepAction(1.0),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpRetract())
+                                    new InstantAction(() -> robot.intake.spinStop()),
+                                    new InstantAction(() -> robot.rnp.retract(false))
                             )
                     )
             );
@@ -234,27 +225,25 @@ public class OptionLeft extends OptionBase {
                     new SequentialAction(
                             a6,
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinIn())
+                                    new InstantAction(() -> robot.intake.spinIn())
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinHold())
+                                    new InstantAction(() -> robot.intake.spinHold())
                             ),
                             a7,
                             // Deliver second yellow sample to high basket
                             new ParallelAction(
                                     new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.rnpStop()),
-                                    new InstantAction(() -> robot.relay.spinOut())
+                                    new InstantAction(() -> robot.rnp.stop(false)),
+                                    new InstantAction(() -> robot.intake.spinOut())
                             ),
                             new SleepAction(1.0),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpRetract())
+                                    new InstantAction(() -> robot.intake.spinStop()),
+                                    new InstantAction(() -> robot.rnp.retract(false))
                             )
                     )
             );
@@ -268,27 +257,25 @@ public class OptionLeft extends OptionBase {
                     new SequentialAction(
                             a8,
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinIn())
+                                    new InstantAction(() -> robot.intake.spinIn())
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.spinHold())
+                                    new InstantAction(() -> robot.intake.spinHold())
                             ),
                             a9,
                             // Deliver third yellow sample to high basket
                             new ParallelAction(
                                     new InstantAction(() -> robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_HIGH, false)),
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_BACKWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.rnpExtend())
+                                    new InstantAction(() -> robot.rnp.extend(false))
                             ),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.rnpStop()),
-                                    new InstantAction(() -> robot.relay.spinOut())
+                                    new InstantAction(() -> robot.rnp.stop(false)),
+                                    new InstantAction(() -> robot.intake.spinOut())
                             ),
                             new SleepAction(1.0),
                             new ParallelAction(
-                                    new InstantAction(() -> robot.relay.moveArm(FtcRelay.ARM_FORWARD_POSITION)),
-                                    new InstantAction(() -> robot.relay.spinStop()),
-                                    new InstantAction(() -> robot.relay.rnpRetract())
+                                    new InstantAction(() -> robot.intake.spinStop()),
+                                    new InstantAction(() -> robot.rnp.retract(false))
                             )
                     )
             );

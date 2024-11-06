@@ -49,8 +49,8 @@ public class FtcBot extends FtcSubSystem {
 
     // robot sub systems
     public FtcImu imu = null;
+    public FtcIntake intake = null;
     public FtcLift lift = null;
-    public FtcRelay relay = null;
     public FtcRnp rnp = null;
     public MatchConfig config = null;
     private Telemetry telemetry = null;
@@ -67,8 +67,8 @@ public class FtcBot extends FtcSubSystem {
         blinkinLed.telemetryEnabled = false;
         flag.telemetryEnabled = false;
         imu.telemetryEnabled = false;
+        intake.telemetryEnabled = false;
         lift.telemetryEnabled = false;
-        relay.telemetryEnabled = false;
         rnp.telemetryEnabled = false;
         FtcLogger.exit();
     }
@@ -81,8 +81,8 @@ public class FtcBot extends FtcSubSystem {
         blinkinLed.telemetryEnabled = true;
         flag.telemetryEnabled = true;
         imu.telemetryEnabled = true;
+        intake.telemetryEnabled = true;
         lift.telemetryEnabled = true;
-        relay.telemetryEnabled = true;
         rnp.telemetryEnabled = true;
         FtcLogger.exit();
     }
@@ -122,11 +122,11 @@ public class FtcBot extends FtcSubSystem {
         imu = new FtcImu();
         imu.init(hardwareMap, telemetry);
 
+        intake = new FtcIntake();
+        intake.init(hardwareMap, telemetry);
+
         lift = new FtcLift();
         lift.init(hardwareMap, telemetry);
-
-        relay = new FtcRelay();
-        relay.init(hardwareMap, telemetry);
 
         rnp = new FtcRnp();
         rnp.init(hardwareMap, telemetry);
@@ -149,19 +149,18 @@ public class FtcBot extends FtcSubSystem {
         driveTrain.operate(gamePad1, gamePad2, loopTime);
         flag.operate(gamePad1, gamePad2);
 
-        // Relay ideally operates before lift during hang (endgame).
+        intake.operate(gamePad1, gamePad2, runtime);
         lift.operate(gamePad1, gamePad2, runtime);
-        relay.operate(gamePad1, gamePad2, runtime);
         rnp.operate(gamePad1, gamePad2);
         if (telemetryEnabled) {
             arm.showTelemetry();
             blinkinLed.showTelemetry();
             flag.showTelemetry();
             imu.showTelemetry();
+            intake.showTelemetry();
             showGamePadTelemetry(gamePad1);
             driveTrain.showTelemetry();
             lift.showTelemetry();
-            relay.showTelemetry();
             rnp.showTelemetry();
         }
 
@@ -194,8 +193,12 @@ public class FtcBot extends FtcSubSystem {
             arm.start();
         }
 
-        if (relay != null) {
-            relay.start();
+        if (flag != null) {
+            flag.start();
+        }
+
+        if (intake != null) {
+            intake.start();
         }
 
         if (rnp != null) {
@@ -234,8 +237,8 @@ public class FtcBot extends FtcSubSystem {
             lift.stop();
         }
 
-        if (relay != null) {
-            relay.stop();
+        if (intake != null) {
+            intake.stop();
         }
 
         if (rnp != null) {

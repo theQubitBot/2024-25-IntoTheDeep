@@ -32,16 +32,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A class to manage the robot sample/specimen delivery.
  */
-public class FtcRelay extends FtcSubSystem {
-    private static final String TAG = "FtcRelay";
+public class FtcIntake extends FtcSubSystem {
+    private static final String TAG = "FtcIntake";
     public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
     public static final double SPIN_IN_POWER = 0.5700;
@@ -52,26 +50,21 @@ public class FtcRelay extends FtcSubSystem {
     public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
     public static final double FLIP_OUT_LEFT_POSITION = 0.5;
     public static final double FLIP_OUT_RIGHT_POSITION = 0.5;
+
+    public static final double FLIP_HANG_LEFT_POSITION = 0.5;
+    public static final double FLIP_HANG_RIGHT_POSITION = 0.5;
     public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.5;
     public static final double FLIP_HORIZONTAL_RIGHT_POSITION = 0.5;
     public static final double FLIP_DELIVER_LEFT_POSITION = 0.5;
     public static final double FLIP_DELIVER_RIGHT_POSITION = 0.5;
     public static final int FLIP_TRAVEL_TIME = 2000; // milliseconds
-    public static final String RNP_SERVO_NAME = "rackAndPinionServo";
-    public static final double RNP_EXTEND_POWER = 1.0;
-    public static final double RNP_RETRACT_POWER = 0.0;
-    public static final double RNP_STOP_POWER = FtcServo.MID_POSITION;
-    public static final int RNP_TRAVEL_TIME = 2000; // milliseconds
-    private final boolean relayEnabled = true;
+    private final boolean intakeEnabled = true;
     public boolean telemetryEnabled = true;
-    Deadline rnpTravelDeadline = null;
     private Telemetry telemetry = null;
     public FtcServo leftSpinServo = null;
     public FtcServo rightSpinServo = null;
     public FtcServo leftFlipServo = null;
     public FtcServo rightFlipServo = null;
-    public FtcServo rackNPinionServo = null;
-    public FtcServo armServo = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -82,7 +75,7 @@ public class FtcRelay extends FtcSubSystem {
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         FtcLogger.enter();
         this.telemetry = telemetry;
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_SPIN_SERVO_NAME));
             leftSpinServo.setDirection(Servo.Direction.FORWARD);
             rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_SPIN_SERVO_NAME));
@@ -92,10 +85,6 @@ public class FtcRelay extends FtcSubSystem {
             leftFlipServo.setDirection(Servo.Direction.FORWARD);
             rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_FLIP_SERVO_NAME));
             rightFlipServo.setDirection(Servo.Direction.FORWARD);
-
-            rnpTravelDeadline = new Deadline(RNP_TRAVEL_TIME, TimeUnit.MILLISECONDS);
-            rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
-            rackNPinionServo.setDirection(Servo.Direction.REVERSE);
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -107,7 +96,7 @@ public class FtcRelay extends FtcSubSystem {
     }
 
     /**
-     * Operates the relay using the gamePads.
+     * Operates the intake using the gamePads.
      *
      * @param gamePad1 The first gamePad to use.
      * @param gamePad2 The second gamePad to use.
@@ -117,23 +106,13 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.enter();
         if (FtcUtils.gameOver(runtime) || FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
             spinStop();
+            flipHang(false);
         } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
             spinIn();
         } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
             spinOut();
         } else {
             spinHold();
-        }
-
-        if (FtcUtils.gameOver(runtime)) {
-            rnpStop(false);
-        } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            rnpExtend(false);
-        } else if (gamePad1.dpad_down || gamePad2.dpad_down ||
-                FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
-            rnpRetract(false);
-        } else {
-            rnpStop(false);
         }
 
         if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
@@ -146,7 +125,7 @@ public class FtcRelay extends FtcSubSystem {
 
     public void flipDelivery(boolean waitTillCompletion) {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftFlipServo.setPosition(FLIP_DELIVER_LEFT_POSITION);
             rightFlipServo.setPosition(FLIP_DELIVER_RIGHT_POSITION);
             if (waitTillCompletion) {
@@ -157,9 +136,22 @@ public class FtcRelay extends FtcSubSystem {
         FtcLogger.exit();
     }
 
+    public void flipHang(boolean waitTillCompletion) {
+        FtcLogger.enter();
+        if (intakeEnabled) {
+            leftFlipServo.setPosition(FLIP_HANG_LEFT_POSITION);
+            rightFlipServo.setPosition(FLIP_HANG_RIGHT_POSITION);
+            if (waitTillCompletion) {
+                FtcUtils.sleep(FLIP_TRAVEL_TIME);
+            }
+        }
+
+        FtcLogger.exit();
+    }
+
     public void flipHorizontal(boolean waitTillCompletion) {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftFlipServo.setPosition(FLIP_HORIZONTAL_LEFT_POSITION);
             rightFlipServo.setPosition(FLIP_HORIZONTAL_RIGHT_POSITION);
             if (waitTillCompletion) {
@@ -172,7 +164,7 @@ public class FtcRelay extends FtcSubSystem {
 
     public void flipOut(boolean waitTillCompletion) {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftFlipServo.setPosition(FLIP_OUT_LEFT_POSITION);
             rightFlipServo.setPosition(FLIP_OUT_RIGHT_POSITION);
             if (waitTillCompletion) {
@@ -184,60 +176,11 @@ public class FtcRelay extends FtcSubSystem {
     }
 
     /**
-     * Extend the intake.
-     */
-    public void rnpExtend(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (relayEnabled) {
-            rackNPinionServo.setPosition(RNP_EXTEND_POWER);
-            if (waitTillCompletion) {
-                rnpStop(true);
-            }
-        }
-
-        FtcLogger.exit();
-    }
-
-    /**
-     * Retract the intake.
-     */
-    public void rnpRetract(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (relayEnabled) {
-            rackNPinionServo.setPosition(RNP_RETRACT_POWER);
-            if (waitTillCompletion) {
-                rnpStop(true);
-            }
-        }
-
-        FtcLogger.exit();
-    }
-
-    /**
-     * Stops the rack and pinion motion.
-     *
-     * @param waitTillCompletion When true, waits for the extension/retraction operation to complete
-     */
-    public void rnpStop(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (relayEnabled) {
-            // Wait for previous extension/retraction operation to complete.
-            if (waitTillCompletion) {
-                FtcUtils.sleep(RNP_TRAVEL_TIME);
-            }
-
-            rackNPinionServo.setPosition(RNP_STOP_POWER);
-        }
-
-        FtcLogger.exit();
-    }
-
-    /**
      * Spin slowly inwards to hold the sample.
      */
     public void spinHold() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_HOLD_POWER);
             rightSpinServo.setPosition(SPIN_HOLD_POWER);
         }
@@ -250,7 +193,7 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void spinIn() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_IN_POWER);
             rightSpinServo.setPosition(SPIN_IN_POWER);
         }
@@ -263,7 +206,7 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void spinOut() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_OUT_POWER);
             rightSpinServo.setPosition(SPIN_OUT_POWER);
         }
@@ -276,7 +219,7 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void spinStop() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_STOP_POWER);
             rightSpinServo.setPosition(SPIN_STOP_POWER);
         }
@@ -289,14 +232,12 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void showTelemetry() {
         FtcLogger.enter();
-        if (relayEnabled && telemetryEnabled) {
-            if (leftSpinServo != null && rightSpinServo != null && leftFlipServo != null && rightFlipServo != null
-                    && rackNPinionServo != null && armServo != null) {
+        if (intakeEnabled && telemetryEnabled) {
+            if (leftSpinServo != null && rightSpinServo != null && leftFlipServo != null && rightFlipServo != null) {
                 telemetry.addData(TAG, String.format(Locale.US,
-                        "spin: %5.4f, %5.4f, flip: %5.4f, %5.4f, rnp: %5.4f, arm: %5.4f",
+                        "spin: %5.4f, %5.4f, flip: %5.4f, %5.4f",
                         leftSpinServo.getPosition(), rightSpinServo.getPosition(),
-                        leftFlipServo.getPosition(), rightFlipServo.getPosition(),
-                        rackNPinionServo.getPosition(), armServo.getPosition()));
+                        leftFlipServo.getPosition(), rightFlipServo.getPosition()));
             }
         }
 
@@ -308,16 +249,13 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void start() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             leftSpinServo.getController().pwmEnable();
             rightSpinServo.getController().pwmEnable();
             leftFlipServo.getController().pwmEnable();
             rightFlipServo.getController().pwmEnable();
-            rackNPinionServo.getController().pwmEnable();
-            armServo.getController().pwmEnable();
 
             spinStop();
-            rnpStop(false);
             flipHorizontal(false);
         }
 
@@ -329,7 +267,7 @@ public class FtcRelay extends FtcSubSystem {
      */
     public void stop() {
         FtcLogger.enter();
-        if (relayEnabled) {
+        if (intakeEnabled) {
             if (leftSpinServo != null) {
                 leftSpinServo.getController().pwmDisable();
             }
@@ -344,14 +282,6 @@ public class FtcRelay extends FtcSubSystem {
 
             if (rightFlipServo != null) {
                 rightFlipServo.getController().pwmDisable();
-            }
-
-            if (armServo != null) {
-                armServo.getController().pwmDisable();
-            }
-
-            if (rackNPinionServo != null) {
-                rackNPinionServo.getController().pwmDisable();
             }
         }
 

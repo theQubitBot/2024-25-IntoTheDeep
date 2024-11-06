@@ -40,8 +40,8 @@ import java.util.Locale;
 public class FtcFlag extends FtcSubSystem {
     private static final String TAG = "FtcFlag";
     public static final String FLAG_SERVO_NAME = "flagServo";
-    public static final double FLAG_UP_POSITION = 0.6100;
-    public static final double FLAG_DOWN_POSITION = 0.4800;
+    public static final double FLAG_UP_POSITION = 0.5600;
+    public static final double FLAG_DOWN_POSITION = 0.5000;
     public static final int FLAG_TRAVEL_TIME = 1200; // milliseconds
     private final boolean flagEnabled = true;
     public boolean telemetryEnabled = true;

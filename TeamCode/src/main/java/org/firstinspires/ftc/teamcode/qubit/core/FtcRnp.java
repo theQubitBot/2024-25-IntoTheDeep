@@ -48,7 +48,7 @@ public class FtcRnp extends FtcSubSystem {
     private final boolean rnpEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
-    public FtcServo rackNPinionServo = null;
+    public FtcServo rnpServo = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -60,8 +60,8 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (rnpEnabled) {
-            rackNPinionServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
-            rackNPinionServo.setDirection(Servo.Direction.REVERSE);
+            rnpServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
+            rnpServo.setDirection(Servo.Direction.REVERSE);
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -73,7 +73,7 @@ public class FtcRnp extends FtcSubSystem {
     }
 
     /**
-     * Operates the relay using the gamePads.
+     * Operates the rack and pinion using the gamePads.
      *
      * @param gamePad1 The first gamePad to use.
      * @param gamePad2 The second gamePad to use.
@@ -83,14 +83,14 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
 
         if (FtcUtils.gameOver(runtime)) {
-            rnpStop(false);
+            stop(false);
         } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            rnpExtend(false);
+            extend(false);
         } else if (gamePad1.dpad_down || gamePad2.dpad_down ||
                 FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
-            rnpRetract(false);
+            retract(false);
         } else {
-            rnpStop(false);
+            stop(false);
         }
 
         FtcLogger.exit();
@@ -99,12 +99,12 @@ public class FtcRnp extends FtcSubSystem {
     /**
      * Extend the intake.
      */
-    public void rnpExtend(boolean waitTillCompletion) {
+    public void extend(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rackNPinionServo.setPosition(RNP_EXTEND_POWER);
+            rnpServo.setPosition(RNP_EXTEND_POWER);
             if (waitTillCompletion) {
-                rnpStop(true);
+                stop(true);
             }
         }
 
@@ -114,32 +114,13 @@ public class FtcRnp extends FtcSubSystem {
     /**
      * Retract the intake.
      */
-    public void rnpRetract(boolean waitTillCompletion) {
+    public void retract(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rackNPinionServo.setPosition(RNP_RETRACT_POWER);
+            rnpServo.setPosition(RNP_RETRACT_POWER);
             if (waitTillCompletion) {
-                rnpStop(true);
+                stop(true);
             }
-        }
-
-        FtcLogger.exit();
-    }
-
-    /**
-     * Stops the rack and pinion motion.
-     *
-     * @param waitTillCompletion When true, waits for the extension/retraction operation to complete
-     */
-    public void rnpStop(boolean waitTillCompletion) {
-        FtcLogger.enter();
-        if (rnpEnabled) {
-            // Wait for previous extension/retraction operation to complete.
-            if (waitTillCompletion) {
-                FtcUtils.sleep(RNP_TRAVEL_TIME);
-            }
-
-            rackNPinionServo.setPosition(RNP_STOP_POWER);
         }
 
         FtcLogger.exit();
@@ -150,9 +131,9 @@ public class FtcRnp extends FtcSubSystem {
      */
     public void showTelemetry() {
         FtcLogger.enter();
-        if (rnpEnabled && telemetryEnabled && rackNPinionServo != null) {
+        if (rnpEnabled && telemetryEnabled && rnpServo != null) {
             telemetry.addData(TAG, String.format(Locale.US, "rnp: %5.4f",
-                    rackNPinionServo.getPosition()));
+                    rnpServo.getPosition()));
         }
 
         FtcLogger.exit();
@@ -164,22 +145,27 @@ public class FtcRnp extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rackNPinionServo.getController().pwmEnable();
-            rnpStop(false);
+            rnpServo.getController().pwmEnable();
+            stop(false);
         }
 
         FtcLogger.exit();
     }
 
     /**
-     * Stops the Relay.
+     * Stops the rack and pinion motion.
+     *
+     * @param waitTillCompletion When true, waits for the extension/retraction operation to complete
      */
-    public void stop() {
+    public void stop(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            if (rackNPinionServo != null) {
-                rackNPinionServo.getController().pwmDisable();
+            // Wait for previous extension/retraction operation to complete.
+            if (waitTillCompletion) {
+                FtcUtils.sleep(RNP_TRAVEL_TIME);
             }
+
+            rnpServo.setPosition(RNP_STOP_POWER);
         }
 
         FtcLogger.exit();

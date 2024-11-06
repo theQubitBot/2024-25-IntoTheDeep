@@ -32,7 +32,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcRnp;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
@@ -97,11 +96,11 @@ public class RnpCalibrationTeleOp extends OpMode {
         loopTime.reset();
 
         if (gamepad1.dpad_up) {
-            this.servo.setPosition(FtcRelay.RNP_EXTEND_POWER);
+            servo.setPosition(FtcRnp.RNP_EXTEND_POWER);
         } else if (gamepad1.dpad_down) {
-            this.servo.setPosition(FtcRelay.RNP_RETRACT_POWER);
+            servo.setPosition(FtcRnp.RNP_RETRACT_POWER);
         } else {
-            this.servo.setPosition(FtcRelay.RNP_STOP_POWER);
+            servo.setPosition(FtcRnp.RNP_STOP_POWER);
         }
 
         telemetry.addData("RnP", "dPad up/down");

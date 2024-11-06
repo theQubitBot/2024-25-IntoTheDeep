@@ -27,17 +27,15 @@
 package org.firstinspires.ftc.teamcode.qubit.core;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A class to manage the robot lift.
@@ -49,26 +47,25 @@ public class FtcLift extends FtcSubSystem {
     public static final int POSITION_HIGH = 2000;
     public static final int POSITION_MEDIUM = 450;
     public static final int POSITION_HANG = 1221;
-
-    public static final int POSITION_LOW = 5;
+    public static final int POSITION_LOW = 0;
     public static final int POSITION_MINIMUM = 0;
     public static final int POSITION_ERROR_MARGIN = 20;
     public static final int POSITION_INVALID = Integer.MIN_VALUE;
+
     public static final double UP_POWER = 1.0;
     public static final double DOWN_POWER = -UP_POWER;
     public static final double TRAVEL_TIME_MAX_MS = 3000;
     public static final long TRAVEL_TIME_LOW2MID_MS = 1000;
     public static final long TRAVEL_TIME_LOW2HIGH_MS = 2000;
     public static final long TRAVEL_TIME_MID2HIGH_MS = 1000;
-    Deadline low2MidTravelDeadline, low2HighTravelDeadline, mid2HighTravelDeadline;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     public static int endAutoOpLiftPosition = POSITION_MINIMUM;
     private Telemetry telemetry = null;
     public FtcMotor leftLiftMotor = null;
     public FtcMotor rightLiftMotor = null;
-    DigitalChannel leftLiftTouch;
-    DigitalChannel rightLiftTouch;
+    DigitalChannel leftLiftTouch = null;
+    DigitalChannel rightLiftTouch = null;
 
     /**
      * Estimate approximate time (in milliseconds) the lift will take
@@ -137,14 +134,6 @@ public class FtcLift extends FtcSubSystem {
             leftLiftMotor.setTargetPosition(POSITION_LOW);
             leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
 
-            low2MidTravelDeadline = new Deadline(TRAVEL_TIME_LOW2MID_MS, TimeUnit.MILLISECONDS);
-            low2HighTravelDeadline = new Deadline(TRAVEL_TIME_LOW2HIGH_MS, TimeUnit.MILLISECONDS);
-            mid2HighTravelDeadline = new Deadline(TRAVEL_TIME_MID2HIGH_MS, TimeUnit.MILLISECONDS);
-
-            low2MidTravelDeadline.reset();
-            mid2HighTravelDeadline.reset();
-            mid2HighTravelDeadline.reset();
-
             showTelemetry();
             telemetry.addData(TAG, "initialized");
         } else {
@@ -165,6 +154,24 @@ public class FtcLift extends FtcSubSystem {
         return FtcUtils.areEqual(currentPosition, targetPosition, POSITION_ERROR_MARGIN);
     }
 
+    public boolean leftTouchPressed() {
+        boolean touchPressed = false;
+        if (liftEnabled && leftLiftTouch != null) {
+            touchPressed = !leftLiftTouch.getState();
+        }
+
+        return touchPressed;
+    }
+
+    public boolean rightTouchPressed() {
+        boolean touchPressed = false;
+        if (liftEnabled && rightLiftTouch != null) {
+            touchPressed = !rightLiftTouch.getState();
+        }
+
+        return touchPressed;
+    }
+
     /**
      * Operates lift based on gamePad inputs.
      *
@@ -173,29 +180,29 @@ public class FtcLift extends FtcSubSystem {
      */
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         if (liftEnabled) {
+            if (leftTouchPressed()) {
+                leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            }
+
+            if (rightTouchPressed()) {
+                rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            }
+
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
             int rightcurrentPosition = rightLiftMotor.getCurrentPosition();
 
             int leftTargetPosition = leftCurrentPosition;
             int rightTargetPosition = rightcurrentPosition;
 
-            if (leftLiftTouch.getState() == false) {
-                // left touch sensor is being pressed
-                leftCurrentPosition = POSITION_LOW;;
-            }
-
-            if (rightLiftTouch.getState() == false) {
-                // right touch sensor is being pressed
-                rightcurrentPosition = POSITION_LOW;
-            }
-
             // If lift zero is being reset, we want lower the lift physically as well.
             if (gamePad1.a || gamePad2.a) {
                 leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-              //  rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
+                //  rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
-               // rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
+                // rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
                 leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
@@ -271,18 +278,13 @@ public class FtcLift extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (liftEnabled) {
-            leftLiftMotor.setPower(0.8);
-            rightLiftMotor.setPower(0.8);
-            leftLiftMotor.setPower(0.6);
-            rightLiftMotor.setPower(0.6);
-            leftLiftMotor.setPower(0.4);
-            rightLiftMotor.setPower(0.4);
-            leftLiftMotor.setPower(0.2);
-            rightLiftMotor.setPower(0.2);
-            leftLiftMotor.setPower(0.1);
-            rightLiftMotor.setPower(0.1);
-            leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
-            rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
+            if (leftLiftMotor != null) {
+                leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
+            }
+
+            if (rightLiftMotor != null) {
+                rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
+            }
         }
 
         FtcLogger.exit();

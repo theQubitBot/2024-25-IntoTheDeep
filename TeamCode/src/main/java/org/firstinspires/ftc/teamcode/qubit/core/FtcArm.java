@@ -36,7 +36,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.Locale;
 
 /**
- * A class to manage the robot sample/specimen delivery.
+ * A class to manage the sample delivery.
  */
 public class FtcArm extends FtcSubSystem {
     private static final String TAG = "FtcArm";
@@ -77,7 +77,7 @@ public class FtcArm extends FtcSubSystem {
     }
 
     /**
-     * Operates the relay using the gamePads.
+     * Operates the arm using the gamePads.
      *
      * @param gamePad1 The first gamePad to use.
      * @param gamePad2 The second gamePad to use.
@@ -123,7 +123,7 @@ public class FtcArm extends FtcSubSystem {
     }
 
     /**
-     * Displays intake telemetry. Helps with debugging.
+     * Displays telemetry. Helps with debugging.
      */
     public void showTelemetry() {
         FtcLogger.enter();

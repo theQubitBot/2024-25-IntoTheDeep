@@ -55,7 +55,7 @@ public final class FtcUtils {
     public static final int AUTO_2_TELE_OP_TRANSITION_TIME = 8;
     public static final int TELE_OP_DURATION = 120;
     public static final int END_GAME_DURATION = 30;
-    public static final int BUZZER_DURATION = 3;
+    public static final int BUZZER_DURATION = 8;
 
     /* Constructor */
     public FtcUtils() {

@@ -32,20 +32,24 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcArm;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcIntake;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 //@Disabled
 @TeleOp(group = "TestOp")
-public class ArmCalibrationTeleOp extends OpMode {
+public class IntakeCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private static final int CYCLE_MS = 50; // period of each cycle
-    FtcServo servo = null;
-    double position;
+    static final int CYCLE_MS = 50;           // period of each cycle
+
+    FtcServo leftSpinServo = null;
+    FtcServo rightSpinServo = null;
+    FtcServo leftFlipServo = null;
+    FtcServo rightFlipServo = null;
+    double leftFlipPosition, rightFlipPosition, spinPower;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -56,11 +60,24 @@ public class ArmCalibrationTeleOp extends OpMode {
         telemetry.addData(">", "Initializing, please wait...");
         telemetry.update();
 
-        servo = new FtcServo(hardwareMap.get(Servo.class, FtcArm.ARM_SERVO_NAME));
-        servo.getController().pwmEnable();
-        servo.setDirection(Servo.Direction.REVERSE);
-        position = FtcServo.MID_POSITION;
-        servo.setPosition(position);
+        spinPower = FtcIntake.SPIN_STOP_POWER;
+        leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.LEFT_SPIN_SERVO_NAME));
+        leftSpinServo.setDirection(Servo.Direction.FORWARD);
+        leftSpinServo.setPosition(spinPower);
+
+        rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.RIGHT_SPIN_SERVO_NAME));
+        rightSpinServo.setDirection(Servo.Direction.FORWARD);
+        rightSpinServo.setPosition(spinPower);
+
+        leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.LEFT_FLIP_SERVO_NAME));
+        leftFlipServo.setDirection(Servo.Direction.REVERSE);
+        leftFlipPosition = FtcServo.MID_POSITION;
+        leftFlipServo.setPosition(leftFlipPosition);
+
+        rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.RIGHT_FLIP_SERVO_NAME));
+        rightFlipServo.setDirection(Servo.Direction.REVERSE);
+        rightFlipPosition = FtcServo.MID_POSITION;
+        rightFlipServo.setPosition(rightFlipPosition);
 
         FtcLogger.exit();
     }
@@ -72,7 +89,7 @@ public class ArmCalibrationTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(50);
     }
 
     /*
@@ -96,18 +113,38 @@ public class ArmCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         // Show the elapsed game time and wheel power.
         loopTime.reset();
+        FtcServo servo = null;
+        double position = FtcServo.MID_POSITION;
 
-        if (gamepad1.right_trigger > 0.5) {
-            position -= FtcServo.LARGE_INCREMENT;
-        } else if (gamepad1.right_bumper) {
-            position += FtcServo.LARGE_INCREMENT;
+        if (gamepad1.left_trigger > 0.5) {
+            leftFlipPosition -= FtcServo.LARGE_INCREMENT;
+            position = leftFlipPosition;
+            servo = leftFlipServo;
+        } else if (gamepad1.left_bumper) {
+            leftFlipPosition += FtcServo.LARGE_INCREMENT;
+            position = leftFlipPosition;
+            servo = leftFlipServo;
         }
 
-        position = Range.clip(position, Servo.MIN_POSITION, Servo.MAX_POSITION);
-        servo.setPosition(position);
+        if (gamepad1.right_trigger > 0.5) {
+            rightFlipPosition -= FtcServo.LARGE_INCREMENT;
+            position = rightFlipPosition;
+            servo = rightFlipServo;
+        } else if (gamepad1.right_bumper) {
+            rightFlipPosition += FtcServo.LARGE_INCREMENT;
+            position = rightFlipPosition;
+            servo = rightFlipServo;
+        }
 
-        telemetry.addData("Arm", "right trigger/bumper");
-        telemetry.addData("Position", "%5.4f", position);
+        if (servo != null) {
+            position = Range.clip(position, Servo.MIN_POSITION, Servo.MAX_POSITION);
+            servo.setPosition(position);
+        }
+
+        telemetry.addData("Right flip", "right trigger/bumper");
+        telemetry.addData("Left flip", "left trigger/bumper");
+        telemetry.addData("Position", "Lflip %5.4f Rflip %5.4f",
+                leftFlipPosition, rightFlipPosition);
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();

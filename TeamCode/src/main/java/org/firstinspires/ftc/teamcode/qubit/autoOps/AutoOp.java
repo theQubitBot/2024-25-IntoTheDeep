@@ -34,7 +34,6 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcRelay;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
@@ -88,7 +87,6 @@ public class AutoOp extends LinearOpMode {
         // Clear out any previous end heading of the robot.
         FtcImu.endAutoOpHeading = 0;
         FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
-        FtcRelay.endAutoOpArmPosition = FtcRelay.ARM_MINIMUM_POSITION;
 
         // Initialize robot.
         robot = new FtcBot();
@@ -105,7 +103,7 @@ public class AutoOp extends LinearOpMode {
         // Must initialize this after robot.driveTrain initialization since driveTrain
         // sets the motors to run without encoders.
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-        
+
         FtcLogger.exit();
     }
 
@@ -140,15 +138,14 @@ public class AutoOp extends LinearOpMode {
         do {
             // Save settings for use by TeleOp
             FtcLift.endAutoOpLiftPosition = robot.lift.getPosition();
-            FtcRelay.endAutoOpArmPosition = robot.relay.getArmPosition();
             if (robot.driveTrain.driveTrainEnum == DriveTrainEnum.MECANUM_WHEEL_DRIVE &&
                     robot.driveTrain.driveTypeEnum == DriveTypeEnum.FIELD_ORIENTED_DRIVE) {
                 robot.imu.read();
                 FtcImu.endAutoOpHeading = robot.imu.getHeading();
             }
 
-            telemetry.addData(">", "endGyro=%.1f, endLift=%d, endArm=%d",
-                    FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition, FtcRelay.endAutoOpArmPosition);
+            telemetry.addData(">", "endGyro=%.1f, endLift=%d",
+                    FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition);
             telemetry.addData(">", "Waiting for auto Op to end.");
             telemetry.update();
             FtcUtils.sleep(5);
