@@ -31,23 +31,34 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcColorSensor;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 @Disabled
 @TeleOp(group = "TestOp")
-public class FtcColorSensorTeleOp extends OpMode {
+public class ImuTeleOp extends OpMode {
+    // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcColorSensor colorSensor;
+    FtcImu imu = null;
+    double targetHeading = 0;
 
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
     @Override
     public void init() {
         FtcLogger.enter();
-        colorSensor = new FtcColorSensor();
-        colorSensor.init(hardwareMap, telemetry);
-        colorSensor.telemetryEnabled = true;
+        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.update();
+        imu = new FtcImu();
+        imu.init(hardwareMap, telemetry);
+        imu.telemetryEnabled = FtcUtils.DEBUG;
+        FtcImu.endAutoOpHeading = 0;
+        imu.showTelemetry();
+
+        // Inform the driver that initialization is complete.
         telemetry.update();
         FtcLogger.exit();
     }
@@ -82,8 +93,19 @@ public class FtcColorSensorTeleOp extends OpMode {
     public void loop() {
         FtcLogger.enter();
         loopTime.reset();
-        colorSensor.read();
-        colorSensor.showTelemetry();
+
+        imu.read();
+        imu.showTelemetry();
+        if (gamepad1.y)
+            targetHeading = 0;
+        else if (gamepad1.b)
+            targetHeading = -90;
+        else if (gamepad1.x)
+            targetHeading = 90;
+        else if (gamepad1.a)
+            targetHeading = -180;
+        telemetry.addData(">", "Target %.1f, Heading %.1f, Offset %.1f",
+                targetHeading, imu.getHeading(), imu.getHeadingOffset(targetHeading));
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
@@ -96,6 +118,7 @@ public class FtcColorSensorTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
+        imu.stop();
         telemetry.addData(">", "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();

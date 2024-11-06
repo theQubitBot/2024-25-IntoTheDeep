@@ -31,30 +31,24 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcColorSensor;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
 @Disabled
 @TeleOp(group = "TestOp")
-public class FtcLiftTeleOp extends OpMode {
-    private static final String TAG = "Lift";
-    // Declare OpMode members
+public class ColorSensorTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    public FtcLift lift = null;
+    FtcColorSensor colorSensor;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        colorSensor = new FtcColorSensor();
+        colorSensor.init(hardwareMap, telemetry);
+        colorSensor.telemetryEnabled = true;
         telemetry.update();
-        lift = new FtcLift();
-        lift.init(hardwareMap, telemetry);
-        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
 
@@ -88,12 +82,12 @@ public class FtcLiftTeleOp extends OpMode {
     public void loop() {
         FtcLogger.enter();
         loopTime.reset();
-        lift.operate(gamepad1, gamepad2);
-        telemetry.addData(">", "Use gamePad to move lift");
+        colorSensor.read();
+        colorSensor.showTelemetry();
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
-        lift.showTelemetry();
         telemetry.update();
+        FtcLogger.exit();
     }
 
     /*

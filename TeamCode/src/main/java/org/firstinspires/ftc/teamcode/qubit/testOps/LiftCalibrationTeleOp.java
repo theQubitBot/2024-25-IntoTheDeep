@@ -41,7 +41,7 @@ import java.util.Locale;
 
 //@Disabled
 @TeleOp(group = "TestOp")
-public class FtcLiftCalibrationTeleOp extends OpMode {
+public class LiftCalibrationTeleOp extends OpMode {
     private static final String TAG = "Lift";
     // Declare OpMode members
     private ElapsedTime runtime = null;

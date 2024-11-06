@@ -31,18 +31,36 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcBlinkinLed;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
+import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DisplayMode;
+
+import java.util.concurrent.TimeUnit;
 
 @Disabled
 @TeleOp(group = "TestOp")
-public class FtcImuTeleOp extends OpMode {
+public class BlinkinLedTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    FtcImu imu = null;
-    double targetHeading = 0;
+
+    /*
+     * Change the pattern every LED_PERIOD seconds in AUTO mode.
+     */
+    private final static int LED_PERIOD = 3;
+
+    /*
+     * Rate limit gamepad button presses to every 500ms.
+     */
+    private final static int GAMEPAD_LOCKOUT = 500;
+
+    FtcBlinkinLed blinkinLed = null;
+    DisplayMode displayMode = DisplayMode.AUTO;
+
+    Deadline ledCycleDeadline;
+    Deadline gamepadRateLimit;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -50,16 +68,9 @@ public class FtcImuTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
-        telemetry.update();
-        imu = new FtcImu();
-        imu.init(hardwareMap, telemetry);
-        imu.telemetryEnabled = FtcUtils.DEBUG;
-        FtcImu.endAutoOpHeading = 0;
-        imu.showTelemetry();
-
-        // Inform the driver that initialization is complete.
-        telemetry.update();
+        blinkinLed = new FtcBlinkinLed(null);
+        blinkinLed.init(hardwareMap, telemetry);
+        blinkinLed.telemetryEnabled = FtcUtils.DEBUG;
         FtcLogger.exit();
     }
 
@@ -70,7 +81,7 @@ public class FtcImuTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(">", "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(50);
+        FtcUtils.sleep(10);
     }
 
     /*
@@ -83,44 +94,75 @@ public class FtcImuTeleOp extends OpMode {
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+        ledCycleDeadline = new Deadline(LED_PERIOD, TimeUnit.SECONDS);
+        gamepadRateLimit = new Deadline(GAMEPAD_LOCKOUT, TimeUnit.MILLISECONDS);
+
         FtcLogger.exit();
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
     @Override
     public void loop() {
         FtcLogger.enter();
         loopTime.reset();
+        telemetry.addData(">", "a: Auto, b: Manual");
+        telemetry.addLine();
+        handleGamepad();
 
-        imu.read();
-        imu.showTelemetry();
-        if (gamepad1.y)
-            targetHeading = 0;
-        else if (gamepad1.b)
-            targetHeading = -90;
-        else if (gamepad1.x)
-            targetHeading = 90;
-        else if (gamepad1.a)
-            targetHeading = -180;
-        telemetry.addData(">", "Target %.1f, Heading %.1f, Offset %.1f",
-                targetHeading, imu.getHeading(), imu.getHeadingOffset(targetHeading));
+        if (displayMode == DisplayMode.AUTO) {
+            doAutoDisplay();
+        } else {
+            /*
+             * MANUAL mode: Pattern already set by game pad handler.
+             */
+        }
+
+        telemetry.addData(">", "Display: %s", displayMode.toString());
+        if (displayMode == DisplayMode.MANUAL) {
+            telemetry.addData(">", "Left bumper: previous, Right bumper: next");
+        }
+
+        blinkinLed.showTelemetry();
         telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
-        telemetry.update();
         FtcLogger.exit();
     }
 
     /*
-     * Code to run ONCE after the driver hits STOP
+     * handleGamepad
+     *
+     * Responds to a gamepad button press.  Demonstrates rate limiting for
+     * button presses.  If loop() is called every 10ms and and you don't rate
+     * limit, then any given button press may register as multiple button presses,
+     * which in this application is problematic.
+     *
+     * A: Manual mode, Right bumper displays the next pattern, left bumper displays the previous pattern.
+     * B: Auto mode, pattern cycles, changing every LED_PERIOD seconds.
      */
-    @Override
-    public void stop() {
-        FtcLogger.enter();
-        imu.stop();
-        telemetry.addData(">", "Tele Op stopped.");
-        telemetry.update();
-        FtcLogger.exit();
+    protected void handleGamepad() {
+        if (!gamepadRateLimit.hasExpired()) {
+            return;
+        }
+
+        if (gamepad1.a) {
+            displayMode = DisplayMode.AUTO;
+            gamepadRateLimit.reset();
+        } else if (gamepad1.b) {
+            displayMode = DisplayMode.MANUAL;
+            gamepadRateLimit.reset();
+        } else if ((displayMode == DisplayMode.MANUAL) && gamepad1.left_bumper) {
+            blinkinLed.setPreviousPattern();
+            gamepadRateLimit.reset();
+        } else if ((displayMode == DisplayMode.MANUAL) && gamepad1.right_bumper) {
+            blinkinLed.setNextPattern();
+            gamepadRateLimit.reset();
+        }
+    }
+
+    protected void doAutoDisplay() {
+        if (ledCycleDeadline.hasExpired()) {
+            blinkinLed.setNextPattern();
+            ledCycleDeadline.reset();
+        }
     }
 }
