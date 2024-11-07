@@ -42,7 +42,7 @@ public class FtcImu extends FtcSubSystem {
 
     private FtcBhi260apImu bhi260apImu = null;
     private FtcGoBoDriver ftcGoBoDriver = null;
-    private final boolean useBhi260apImu = false;
+    private final boolean useBhi260apImu = true;
     private final boolean useGoBoDriver = true;
     public static double endAutoOpHeading = 0;
     private double initialTeleOpHeading = 0.0;

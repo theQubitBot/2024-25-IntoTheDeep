@@ -88,8 +88,8 @@ public class FtcBlinkinLed extends FtcSubSystem {
                     }
                 }
             } else {
-                if (currentPattern != BlinkinPattern.BEATS_PER_MINUTE_LAVA_PALETTE) {
-                    set(BlinkinPattern.BEATS_PER_MINUTE_LAVA_PALETTE);
+                if (currentPattern != BlinkinPattern.HEARTBEAT_WHITE) {
+                    set(BlinkinPattern.HEARTBEAT_WHITE);
                 }
             }
         }

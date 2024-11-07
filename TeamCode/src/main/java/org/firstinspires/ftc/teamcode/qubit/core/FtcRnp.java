@@ -29,14 +29,17 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A class to manage the robot sample/specimen delivery.
+ * A class to manage the input extension/retraction.
  */
 public class FtcRnp extends FtcSubSystem {
     private static final String TAG = "FtcRnp";
@@ -49,6 +52,12 @@ public class FtcRnp extends FtcSubSystem {
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
     public FtcServo rnpServo = null;
+    public static final String EXTEND_LIMIT_SWITCH_NAME = "extendLimitSwitch";
+    public static final String RETRACT_LIMIT_SWITCH_NAME = "retractLimitSwitch";
+    private TouchSensor extendLimitSwitch = null;
+    private TouchSensor retractLimitSwitch = null;
+    private final boolean useLimitSwitches = false;
+    private Deadline travelDeadline = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -62,6 +71,14 @@ public class FtcRnp extends FtcSubSystem {
         if (rnpEnabled) {
             rnpServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
             rnpServo.setDirection(Servo.Direction.REVERSE);
+
+            travelDeadline = new Deadline(RNP_TRAVEL_TIME, TimeUnit.MILLISECONDS);
+            travelDeadline.expire();
+
+            if (useLimitSwitches) {
+                extendLimitSwitch = hardwareMap.get(TouchSensor.class, EXTEND_LIMIT_SWITCH_NAME);
+                retractLimitSwitch = hardwareMap.get(TouchSensor.class, RETRACT_LIMIT_SWITCH_NAME);
+            }
 
             showTelemetry();
             telemetry.addData(TAG, "initialized");
@@ -82,12 +99,21 @@ public class FtcRnp extends FtcSubSystem {
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         FtcLogger.enter();
 
+        if (!travelDeadline.hasExpired()) {
+            // Once travel deadline has been set, all operations are suspended.
+            // This ensures that RNP completes its operation. E.g.: Hang initiated.
+            return;
+        }
+
         if (FtcUtils.gameOver(runtime)) {
             stop(false);
+        } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+            retract(false);
+            // Must continue retracting once hang is initiated.
+            travelDeadline.reset();
         } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
             extend(false);
-        } else if (gamePad1.dpad_down || gamePad2.dpad_down ||
-                FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+        } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
             retract(false);
         } else {
             stop(false);
@@ -102,9 +128,27 @@ public class FtcRnp extends FtcSubSystem {
     public void extend(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rnpServo.setPosition(RNP_EXTEND_POWER);
+            if (useLimitSwitches) {
+                if (extendLimitSwitch.isPressed()) {
+                    rnpServo.setPosition(RNP_STOP_POWER);
+                } else {
+                    rnpServo.setPosition(RNP_EXTEND_POWER);
+                }
+            } else {
+                rnpServo.setPosition(RNP_EXTEND_POWER);
+            }
+
             if (waitTillCompletion) {
-                stop(true);
+                travelDeadline.reset();
+                while (!travelDeadline.hasExpired()) {
+                    if (useLimitSwitches) {
+                        if (extendLimitSwitch.isPressed()) {
+                            break;
+                        }
+                    }
+
+                    FtcUtils.sleep(FtcUtils.CYCLE_MS);
+                }
             }
         }
 
@@ -117,9 +161,27 @@ public class FtcRnp extends FtcSubSystem {
     public void retract(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rnpServo.setPosition(RNP_RETRACT_POWER);
+            if (useLimitSwitches) {
+                if (retractLimitSwitch.isPressed()) {
+                    rnpServo.setPosition(RNP_STOP_POWER);
+                } else {
+                    rnpServo.setPosition(RNP_RETRACT_POWER);
+                }
+            } else {
+                rnpServo.setPosition(RNP_RETRACT_POWER);
+            }
+
             if (waitTillCompletion) {
-                stop(true);
+                travelDeadline.reset();
+                while (!travelDeadline.hasExpired()) {
+                    if (useLimitSwitches) {
+                        if (retractLimitSwitch.isPressed()) {
+                            break;
+                        }
+                    }
+
+                    FtcUtils.sleep(FtcUtils.CYCLE_MS);
+                }
             }
         }
 
@@ -132,8 +194,14 @@ public class FtcRnp extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (rnpEnabled && telemetryEnabled && rnpServo != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "rnp: %5.4f",
-                    rnpServo.getPosition()));
+            String message = String.format(Locale.US, "rnp: %5.4f",
+                    rnpServo.getPosition());
+            if (useLimitSwitches) {
+                message += String.format(Locale.US, " extendLimitSwitch: %b, retractLimitSwitch: %b",
+                        extendLimitSwitch.isPressed(), retractLimitSwitch.isPressed());
+            }
+
+            telemetry.addData(TAG, message);
         }
 
         FtcLogger.exit();
@@ -146,7 +214,7 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
         if (rnpEnabled) {
             rnpServo.getController().pwmEnable();
-            stop(false);
+            rnpServo.setPosition(RNP_STOP_POWER);
         }
 
         FtcLogger.exit();
@@ -160,9 +228,17 @@ public class FtcRnp extends FtcSubSystem {
     public void stop(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            // Wait for previous extension/retraction operation to complete.
             if (waitTillCompletion) {
-                FtcUtils.sleep(RNP_TRAVEL_TIME);
+                travelDeadline.reset();
+                while (!travelDeadline.hasExpired()) {
+                    // Sleep before check to allow extension/retraction operation to commence
+                    FtcUtils.sleep(FtcUtils.CYCLE_MS);
+                    if (useLimitSwitches) {
+                        if (extendLimitSwitch.isPressed() || retractLimitSwitch.isPressed()) {
+                            break;
+                        }
+                    }
+                }
             }
 
             rnpServo.setPosition(RNP_STOP_POWER);

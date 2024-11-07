@@ -122,10 +122,10 @@ public class FtcBot extends FtcSubSystem {
         imu = new FtcImu();
         imu.init(hardwareMap, telemetry);
 
-        intake = new FtcIntake();
+        intake = new FtcIntake(this);
         intake.init(hardwareMap, telemetry);
 
-        lift = new FtcLift();
+        lift = new FtcLift(this);
         lift.init(hardwareMap, telemetry);
 
         rnp = new FtcRnp();
