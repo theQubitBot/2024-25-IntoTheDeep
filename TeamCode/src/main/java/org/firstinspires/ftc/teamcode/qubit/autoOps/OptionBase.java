@@ -33,7 +33,10 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcDriveTrain;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcMotor;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
@@ -45,7 +48,10 @@ public class OptionBase {
     public static final double RADIAN45;
     public static final double RADIAN60;
     public static final double RADIAN90;
+    public static final double RADIAN135;
     public static final double RADIAN180;
+    private final long CRAWL_TIME_TO_BUCKET = 100; // milliseconds
+    private final long CRAWL_TIME_TO_SUBMERSIBLE = 500; // milliseconds
     protected LinearOpMode autoOpMode;
     protected FtcBot robot;
     protected MecanumDrive drive;
@@ -63,6 +69,7 @@ public class OptionBase {
         RADIAN45 = Math.toRadians(45);
         RADIAN60 = Math.toRadians(60);
         RADIAN90 = Math.toRadians(90);
+        RADIAN135 = Math.toRadians(135);
         RADIAN180 = Math.toRadians(180);
     }
 
@@ -81,5 +88,19 @@ public class OptionBase {
         // Starting position
         startPose = new Pose2d(0, 0, 0);
         FtcLogger.exit();
+    }
+
+    protected void reverseCrawlToBucket(boolean waitTillCompletion) {
+        robot.driveTrain.setDrivePower(-FtcDriveTrain.FORWARD_SLO_MO_POWER, -FtcDriveTrain.FORWARD_SLO_MO_POWER,
+                -FtcDriveTrain.FORWARD_SLO_MO_POWER, -FtcDriveTrain.FORWARD_SLO_MO_POWER);
+        if (waitTillCompletion) {
+            FtcUtils.sleep(CRAWL_TIME_TO_BUCKET);
+            stopCrawling();
+        }
+    }
+
+    protected void stopCrawling() {
+        robot.driveTrain.setDrivePower(FtcMotor.ZERO_POWER, FtcMotor.ZERO_POWER,
+                FtcMotor.ZERO_POWER, FtcMotor.ZERO_POWER);
     }
 }

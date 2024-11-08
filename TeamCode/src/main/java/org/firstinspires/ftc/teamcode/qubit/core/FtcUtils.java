@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * Global utility functions
  */
 public final class FtcUtils {
+    public static final String TAG = ">";
     public static final boolean DEBUG = true;
     public static final double EPSILON1 = 1e-1;
     public static final double EPSILON2 = 1e-2;
@@ -56,6 +57,7 @@ public final class FtcUtils {
     public static final int TELE_OP_DURATION = 120;
     public static final int END_GAME_DURATION = 30;
     public static final int BUZZER_DURATION = 8;
+    public static final int CYCLE_MS = 50;
 
     /* Constructor */
     public FtcUtils() {

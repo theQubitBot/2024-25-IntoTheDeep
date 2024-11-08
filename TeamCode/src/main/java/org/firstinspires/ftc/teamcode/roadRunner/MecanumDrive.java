@@ -70,16 +70,16 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
         // drive model parameters
-        public double inPerTick = 0.00196495824463730145734403143933; // from ForwardPushTest
-        public double lateralInPerTick = 0.0013751644609237106; // from lateral ramp logger
+        public double inPerTick = 0.00194221898519058; // from ForwardPushTest
+        public double lateralInPerTick = 0.0012193110596954307; // from lateral ramp logger
 
         // Empirical value + 9.25 * 25.4 * 2000 / (32 * PI) = 4674.18
         // Physically measured Track width = 9.25", 2000 ticks per rotation of 32mm GoBilda dead wheel.
-        public double trackWidthTicks = 4800; // from dead wheel track width and wheel location
+        public double trackWidthTicks = 5000; // from dead wheel track width and wheel location
 
         // feedforward parameters (in tick units)
-        public double kS = 1.4624900764120219;
-        public double kV = 0.0002465304102939813;
+        public double kS = 1.4878659138539905;
+        public double kV = 0.0002429446797080193;
         public double kA = 0.0001;
 
         // path profile parameters (in inches)

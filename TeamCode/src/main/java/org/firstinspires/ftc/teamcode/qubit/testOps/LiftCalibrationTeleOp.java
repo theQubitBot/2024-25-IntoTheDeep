@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.testOps;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -42,12 +43,13 @@ import java.util.Locale;
 //@Disabled
 @TeleOp(group = "TestOp")
 public class LiftCalibrationTeleOp extends OpMode {
-    private static final String TAG = "Lift";
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    public FtcMotor leftLiftMotor = null;
-    public FtcMotor rightLiftMotor = null;
+    private FtcMotor leftLiftMotor = null;
+    private FtcMotor rightLiftMotor = null;
+    private TouchSensor leftLiftTouch = null;
+    private TouchSensor rightLiftTouch = null;
 
     // Start point for the lift
     int currentPosition = FtcLift.POSITION_MINIMUM;
@@ -59,8 +61,11 @@ public class LiftCalibrationTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
+        leftLiftTouch = hardwareMap.get(TouchSensor.class, "leftLiftTouch");
+        rightLiftTouch = hardwareMap.get(TouchSensor.class, "rightLiftTouch");
+
         leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_MOTOR_NAME));
         leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);
         leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -81,9 +86,9 @@ public class LiftCalibrationTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(50);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -92,7 +97,7 @@ public class LiftCalibrationTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -107,7 +112,6 @@ public class LiftCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         // Show the elapsed game time and wheel power.
         loopTime.reset();
-        telemetry.addData(">", "Use DPad up/down to move lift");
 
         // Lift operation
         currentPosition = leftLiftMotor.getCurrentPosition();
@@ -139,10 +143,16 @@ public class LiftCalibrationTeleOp extends OpMode {
 
         leftLiftMotor.setPower(liftPower);
         rightLiftMotor.setPower(liftPower);
-        telemetry.addData(TAG, String.format(Locale.US, "LLPower %.2f, LLDistance %d, RLPower %.2f, RLDistance %d",
+        telemetry.addData(FtcUtils.TAG, "Use DPad up/down to move lift");
+        telemetry.addLine();
+        telemetry.addData("targetPosition", "%d", targetPosition);
+        telemetry.addData(FtcUtils.TAG, String.format(Locale.US, "LLPower %.2f, LLDistance %d, RLPower %.2f, RLDistance %d",
                 leftLiftMotor.getPower(), leftLiftMotor.getCurrentPosition(),
                 rightLiftMotor.getPower(), rightLiftMotor.getCurrentPosition()));
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, String.format(Locale.US, "LeftTouch: %b, RightTouch: %b",
+                leftLiftTouch.isPressed(), rightLiftTouch.isPressed()));
+
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
     }
@@ -153,7 +163,7 @@ public class LiftCalibrationTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

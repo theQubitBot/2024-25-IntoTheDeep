@@ -194,7 +194,7 @@ public class FtcRnp extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (rnpEnabled && telemetryEnabled && rnpServo != null) {
-            String message = String.format(Locale.US, "rnp: %5.4f",
+            String message = String.format(Locale.US, "%5.4f",
                     rnpServo.getPosition());
             if (useLimitSwitches) {
                 message += String.format(Locale.US, " extendLimitSwitch: %b, retractLimitSwitch: %b",

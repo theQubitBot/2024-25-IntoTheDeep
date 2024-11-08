@@ -299,6 +299,10 @@ public class FtcImu extends FtcSubSystem {
             if (useBhi260apImu && bhi260apImu != null) {
                 bhi260apImu.showTelemetry();
             }
+
+            if (useGoBoDriver && ftcGoBoDriver != null) {
+                ftcGoBoDriver.showTelemetry();
+            }
         }
 
         FtcLogger.exit();

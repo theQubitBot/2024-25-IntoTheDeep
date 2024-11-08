@@ -145,13 +145,13 @@ public class FtcBot extends FtcSubSystem {
         blinkinLed.operate(gamePad1, gamePad2, runtime);
 
         // Drive operation
-        arm.operate(gamePad1, gamePad2);
+        arm.operate(gamePad1, gamePad2, runtime);
         driveTrain.operate(gamePad1, gamePad2, loopTime);
         flag.operate(gamePad1, gamePad2);
 
         intake.operate(gamePad1, gamePad2, runtime);
         lift.operate(gamePad1, gamePad2, runtime);
-        rnp.operate(gamePad1, gamePad2);
+        rnp.operate(gamePad1, gamePad2, runtime);
         if (telemetryEnabled) {
             arm.showTelemetry();
             blinkinLed.showTelemetry();
@@ -242,7 +242,7 @@ public class FtcBot extends FtcSubSystem {
         }
 
         if (rnp != null) {
-            rnp.stop();
+            rnp.stop(false);
         }
 
         FtcLogger.exit();

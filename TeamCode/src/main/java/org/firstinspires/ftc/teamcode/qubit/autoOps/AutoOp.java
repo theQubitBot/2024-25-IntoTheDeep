@@ -27,8 +27,10 @@
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
@@ -42,6 +44,7 @@ import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 @Autonomous(group = "Official", preselectTeleOp = "DriverTeleOp")
 public class AutoOp extends LinearOpMode {
+    private ElapsedTime runtime = null;
     FtcBot robot = null;
     MecanumDrive drive = null;
 
@@ -60,17 +63,33 @@ public class AutoOp extends LinearOpMode {
      */
     private void executeAutonomousOperation() {
         FtcLogger.enter();
-        telemetry.addData(">", "Auto Op started.");
+        if (robot.config.delayInSeconds > 0) {
+            long countDown = robot.config.delayInSeconds;
+            while (countDown > 0) {
+                if (!opModeIsActive()) return;
+                telemetry.addData(FtcUtils.TAG, "Delaying start by %d seconds",
+                        robot.config.delayInSeconds);
+                telemetry.addData(FtcUtils.TAG, "Countdown %d seconds", countDown);
+                telemetry.update();
+                FtcUtils.sleep(1000);
+                countDown--;
+            }
+        }
+
+        runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+        telemetry.addData(FtcUtils.TAG, "Auto Op started.");
         telemetry.update();
 
         if (!opModeIsActive()) return;
 
         // Enable and stop servos
         robot.start();
+
+        boolean executeRobotActions = false;
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-            new OptionLeft(this, robot, drive).init().execute();
+            new OptionLeft(this, robot, drive).init().execute(executeRobotActions);
         } else {
-            new OptionRight(this, robot, drive).init().execute();
+            new OptionRight(this, robot, drive).init().execute(executeRobotActions);
         }
 
         FtcLogger.exit();
@@ -81,7 +100,7 @@ public class AutoOp extends LinearOpMode {
      */
     private void initializeModules() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing. Please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing. Please wait...");
         telemetry.update();
 
         // Clear out any previous end heading of the robot.
@@ -91,6 +110,8 @@ public class AutoOp extends LinearOpMode {
         // Initialize robot.
         robot = new FtcBot();
         robot.init(hardwareMap, telemetry, true);
+        robot.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        robot.flag.lower(false);
 
         if (FtcUtils.DEBUG) {
             robot.enableTelemetry();
@@ -115,13 +136,13 @@ public class AutoOp extends LinearOpMode {
             telemetry.addLine();
             if (robot.imu.isGyroDrifting()) {
                 telemetry.addLine();
-                telemetry.addData(">", "Gyro %.1f is DRIFTING! STOP and ReInitialize.",
+                telemetry.addData(FtcUtils.TAG, "Gyro %.1f is DRIFTING! STOP and ReInitialize.",
                         robot.imu.getHeading());
             }
 
-            telemetry.addData(">", "Waiting for driver to press play.");
+            telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play.");
             telemetry.update();
-            FtcUtils.sleep(5);
+            FtcUtils.sleep(FtcUtils.CYCLE_MS);
         }
 
         FtcLogger.exit();
@@ -135,6 +156,8 @@ public class AutoOp extends LinearOpMode {
     private void waitForEnd() {
         FtcLogger.enter();
 
+        double autoOpExecutionDuration = runtime.seconds();
+
         do {
             // Save settings for use by TeleOp
             FtcLift.endAutoOpLiftPosition = robot.lift.getPosition();
@@ -144,9 +167,10 @@ public class AutoOp extends LinearOpMode {
                 FtcImu.endAutoOpHeading = robot.imu.getHeading();
             }
 
-            telemetry.addData(">", "endGyro=%.1f, endLift=%d",
+            telemetry.addData(FtcUtils.TAG, "endGyro=%.1f, endLift=%d",
                     FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition);
-            telemetry.addData(">", "Waiting for auto Op to end.");
+            telemetry.addData(FtcUtils.TAG, "Auto Op took %.0f seconds.", autoOpExecutionDuration);
+            telemetry.addData(FtcUtils.TAG, "Waiting for auto Op to end.");
             telemetry.update();
             FtcUtils.sleep(5);
         } while (opModeIsActive());

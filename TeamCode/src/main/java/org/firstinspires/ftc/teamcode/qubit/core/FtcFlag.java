@@ -120,7 +120,7 @@ public class FtcFlag extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (flagEnabled && telemetryEnabled && flagServo != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "flag: %.4f", flagServo.getPosition()));
+            telemetry.addData(TAG, String.format(Locale.US, "%.4f", flagServo.getPosition()));
         }
 
         FtcLogger.exit();

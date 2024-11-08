@@ -1,25 +1,29 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <Robot type="FirstInspires-FTC">
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
-        <LynxModule name="Expansion Hub 1" port="1">
-            <goBILDA5202SeriesMotor name="perpendicularEncoder" port="0" />
-            <goBILDA5202SeriesMotor name="hookMotor" port="1" />
-            <goBILDA5202SeriesMotor name="rightRearMotor" port="2" />
-            <goBILDA5202SeriesMotor name="rightFrontMotor" port="3" />
+        <LynxModule name="Expansion Hub 2" port="2">
+            <goBILDA5202SeriesMotor name="rightFrontMotor" port="0" />
+            <goBILDA5202SeriesMotor name="rightRearMotor" port="1" />
+            <goBILDA5202SeriesMotor name="perpendicularEncoder" port="2" />
+            <goBILDA5202SeriesMotor name="rightLiftMotor" port="3" />
+            <Servo name="rnpServo" port="0" />
+            <Servo name="flagServo" port="2" />
+            <RevTouchSensor name="rightLiftTouch" port="1" />
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
-            <goBILDA5202SeriesMotor name="parallelEncoder" port="0" />
-            <goBILDA5202SeriesMotor name="leftFrontMotor" port="1" />
-            <goBILDA5202SeriesMotor name="leftRearMotor" port="2" />
-            <goBILDA5202SeriesMotor name="liftMotor" port="3" />
-            <Servo name="clawGrabServo" port="0" />
-            <Servo name="clawDeliveryServo" port="1" />
-            <Servo name="tetrisServo" port="2" />
-            <Servo name="droneServo" port="4" />
-            <Servo name="nuclearSiloServo" port="5" />
+            <goBILDA5202SeriesMotor name="leftFrontMotor" port="0" />
+            <goBILDA5202SeriesMotor name="leftRearMotor" port="1" />
+            <goBILDA5202SeriesMotor name="leftLiftMotor" port="2" />
+            <goBILDA5202SeriesMotor name="parallelEncoder" port="3" />
+            <Servo name="leftSpinServo" port="0" />
+            <Servo name="leftFlipServo" port="1" />
+            <Servo name="rightSpinServo" port="2" />
+            <Servo name="rightFlipServo" port="3" />
+            <Servo name="armServo" port="4" />
+            <RevBlinkinLedDriver name="blinkinLed" port="5" />
+            <RevTouchSensor name="leftLiftTouch" port="1" />
             <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
-            <AdafruitBNO055IMU name="adafruitImu" port="0" bus="1" />
+            <goBILDAPinpoint name="goboDriver" port="0" bus="1" />
         </LynxModule>
     </LynxUsbDevice>
-    <Webcam name="Webcam 1" serialNumber="5B051B40" />
 </Robot>

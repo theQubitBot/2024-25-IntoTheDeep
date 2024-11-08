@@ -26,7 +26,6 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -35,10 +34,9 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
-@Disabled
+//@Disabled
 @TeleOp(group = "TestOp")
 public class LiftTeleOp extends OpMode {
-    private static final String TAG = "Lift";
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
@@ -50,10 +48,11 @@ public class LiftTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
-        lift = new FtcLift();
+        lift = new FtcLift(null);
         lift.init(hardwareMap, telemetry);
+        lift.telemetryEnabled = FtcUtils.DEBUG;
         FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
@@ -63,7 +62,7 @@ public class LiftTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
         FtcUtils.sleep(50);
     }
@@ -74,7 +73,7 @@ public class LiftTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -88,11 +87,13 @@ public class LiftTeleOp extends OpMode {
     public void loop() {
         FtcLogger.enter();
         loopTime.reset();
-        lift.operate(gamepad1, gamepad2);
-        telemetry.addData(">", "Use gamePad to move lift");
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
-                loopTime.milliseconds(), runtime.seconds());
+        lift.operate(gamepad1, gamepad2, runtime);
+        telemetry.addData(FtcUtils.TAG, "Use gamePad to move lift");
+        telemetry.addLine();
         lift.showTelemetry();
+        telemetry.addLine();
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
+                loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
     }
 
@@ -102,7 +103,7 @@ public class LiftTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

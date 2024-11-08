@@ -134,7 +134,7 @@ public class FtcIntake extends FtcSubSystem {
             // Use magnetic sensors
             spinIn();
             flipDelivery(false);
-        } else if(gamePad2.right_stick_y <= -0.5){
+        } else if (gamePad2.right_stick_y <= -0.5) {
             flipOut(false);
             spinOut();
         } else {

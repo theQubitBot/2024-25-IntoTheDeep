@@ -87,7 +87,7 @@ public class FtcArm extends FtcSubSystem {
         FtcLogger.enter();
 
         // Arm moves if lift is at medium or high position
-        // Arm moves if intake is out or horizontal
+        // OR if intake is out or horizontal
         if (gamePad1.left_bumper || gamePad2.left_bumper) {
             moveBackward(false);
         } else {
@@ -128,7 +128,7 @@ public class FtcArm extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (armEnabled && telemetryEnabled && armServo != null) {
-            telemetry.addData(TAG, String.format(Locale.US, "arm: %5.4f",
+            telemetry.addData(TAG, String.format(Locale.US, "%5.4f",
                     armServo.getPosition()));
         }
 

@@ -12,11 +12,14 @@ import java.util.concurrent.TimeUnit;
 
 public class FtcGoBoDriver extends FtcSubSystem {
     private static final String TAG = "FtcGoBoDriver";
+    public boolean telemetryEnabled = true;
+    Telemetry telemetry = null;
     private GoBoDriver goboDriver;
     private Deadline deadline;
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         FtcLogger.enter();
+        this.telemetry = telemetry;
         goboDriver = hardwareMap.get(GoBoDriver.class, "goboDriver");
         if (goboDriver != null) {
             goboDriver.setEncoderResolution(GoBoDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -117,5 +120,17 @@ public class FtcGoBoDriver extends FtcSubSystem {
             goboDriver.bulkUpdate();
             deadline.reset();
         }
+    }
+
+    /**
+     * Display IMU (gyro) telemetry.
+     */
+    public void showTelemetry() {
+        FtcLogger.enter();
+        if (telemetryEnabled) {
+            telemetry.addData("Heading/Yaw", "%.2f", getHeading(AngleUnit.DEGREES));
+        }
+
+        FtcLogger.exit();
     }
 }

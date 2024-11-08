@@ -12,10 +12,6 @@ configuring the dead wheel encoders.
 
 Update the following DriveConstants values. Note low velocity and acceleration values. High values
 gave me untold tuning grief and no real benefit of zipping the bot around at high speeds.
- TICKS_PER_REV = 537.6; // GoBilda: 28 * 19.2;
- MAX_RPM = 435; // GoBilda
- WHEEL_RADIUS = 52.0 / 25.4; // in; GoBilda 104mm Mecanum wheels
- GEAR_RATIO = 1.0; // output (wheel speed) / input (motor shaft speed)
  TRACK_WIDTH = 9.25; // Physically measured value
  kV = 1 / rpmToVelocity(MAX_RPM);
  kA = 0;
@@ -26,16 +22,10 @@ gave me untold tuning grief and no real benefit of zipping the bot around at hig
  MAX_ANG_ACCEL = Math.toRadians(90.0);
 
 Update the following TwoTrackingWheelLocalizer values
-TICKS_PER_REV = 2000.0; // GoBoilda encoder
-WHEEL_RADIUS = (32.0 / 2.0) / 25.4; // in; GoBilda 32 mm Omni encoder wheels
-GEAR_RATIO = 1.0; // output (wheel) speed / input (encoder) speed
 PARALLEL_X = 3.0; // X is the up and down direction
 PARALLEL_Y = 1.8755; // Y is the strafe direction
 PERPENDICULAR_X = -3.0;
 PERPENDICULAR_Y = -1.875;
-
-We will use motor encoders for velocity control and dead wheels for localization.
-Set DriveConstants.RUN_USING_ENCODER = true and SampleMecanumDrive.use2WheelTrackingLocalizer = true.
 
 Run LocalizationTest, update to show motor encoder values. Reverse the encoders, if needed, so that
 moving the bot forward increases the parallel encoder value. Strafing left increases the
@@ -47,15 +37,11 @@ TwoWheelTrackingLocalizer.Y_MULTIPLIER = measured (tape) / reported (telemetry) 
 Manually drive the bot back and forth, left to right and verify that the telemetry reported distance
 differs from the measured distance by less than 0.5". Now your tracking wheels are setup correctly.
 
-Run strafe and straight tests to fine tune the above multipliers.
-
 Run BackAndForth to tune SampleMecanumDrive.TRANSLATIONAL_PID and HEADING_PID.
 Set BackAndForth.DISTANCE = 24. A low value allows one to tune the PIDs without robot crashing into
 the perimeter. Follow the guide (the embedded video is very helpful). I used the lowest PID values
 that worked fine. Higher values that didn't produce significant gains resulted in bot being jittery
 at the start/end of the movement.
-
-Run DriveVelocityPIDTuner to tune DriveConstants.MOTOR_VELO_PID. Use Kf=11.0. Follow the tuning guide.
 
 Run TrackWidthTuner. Physically measure the track width. Use the track width reported by the tuner to
 adjust thd track width to what feels like a correct value. Physical track width measurement should

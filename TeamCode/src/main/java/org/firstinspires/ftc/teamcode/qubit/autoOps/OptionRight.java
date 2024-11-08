@@ -26,10 +26,7 @@
 
 package org.firstinspires.ftc.teamcode.qubit.autoOps;
 
-import com.acmerobotics.roadrunner.InstantAction;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
@@ -68,32 +65,16 @@ public class OptionRight extends OptionBase {
     /**
      * Executes the autonomous workflow.
      */
-    public void execute() {
+    public void execute(boolean executeRobotActions) {
         FtcLogger.enter();
 
         // Deliver preloaded specimen
         if (deliverPreloaded) {
-            Actions.runBlocking(
-                    new ParallelAction(
-                            a1, // Move towards submersible
-                            new InstantAction(() -> robot.rnp.extend(false))
-                    )
-            );
-
-            // Wait for RNP extension
-            robot.rnp.stop(true);
-            robot.rnp.retract(true);
-
         }
 
         // Park
         if (!autoOpMode.opModeIsActive()) return;
         if (park) {
-            Actions.runBlocking(
-                    new ParallelAction(
-                            a2 // parking
-                    )
-            );
         }
 
         FtcLogger.exit();
