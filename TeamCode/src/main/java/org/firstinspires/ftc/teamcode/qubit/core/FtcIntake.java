@@ -50,8 +50,8 @@ public class FtcIntake extends FtcSubSystem {
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
     public static final String LEFT_FLIP_SERVO_NAME = "leftFlipServo";
     public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
-    public static final double FLIP_OUT_LEFT_POSITION = 0.4000;
-    public static final double FLIP_OUT_RIGHT_POSITION = FLIP_OUT_LEFT_POSITION - 0.0085;
+    public static final double FLIP_DOWN_LEFT_POSITION = 0.4000;
+    public static final double FLIP_DOWN_RIGHT_POSITION = FLIP_DOWN_LEFT_POSITION - 0.0085;
 
     public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.4300;
     public static final double FLIP_HORIZONTAL_RIGHT_POSITION = FLIP_HORIZONTAL_LEFT_POSITION - 0.085;
@@ -128,14 +128,14 @@ public class FtcIntake extends FtcSubSystem {
             travelDeadline.reset();
         } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
             spinIn();
-            flipOut(false);
-        } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
-            // flip to delivery if rnp is retracted
+            flipDown(false);
+        } else if (gamepad1.dpad_down || gamepad1.a || gamepad2.a) {
+            // you cannot flip to delivery if rnp is retracted, bucket is down, and lift is down
             // Use magnetic sensors
             spinIn();
             flipDelivery(false);
         } else if (gamePad2.right_stick_y <= -0.5) {
-            flipOut(false);
+            flipDown(false);
             spinOut();
         } else {
             spinHold();
@@ -171,11 +171,11 @@ public class FtcIntake extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    public void flipOut(boolean waitTillCompletion) {
+    public void flipDown(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (intakeEnabled) {
-            leftFlipServo.setPosition(FLIP_OUT_LEFT_POSITION);
-            rightFlipServo.setPosition(FLIP_OUT_RIGHT_POSITION);
+            leftFlipServo.setPosition(FLIP_DOWN_LEFT_POSITION);
+            rightFlipServo.setPosition(FLIP_DOWN_RIGHT_POSITION);
             if (waitTillCompletion) {
                 FtcUtils.sleep(FLIP_TRAVEL_TIME);
             }
