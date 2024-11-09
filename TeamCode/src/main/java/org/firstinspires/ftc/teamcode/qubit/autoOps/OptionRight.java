@@ -38,7 +38,7 @@ import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
  */
 public class OptionRight extends OptionBase {
 
-    boolean deliverPreloaded = false, park = false;
+    boolean deliverPreloaded = false, park = true;
 
     public OptionRight(LinearOpMode autoOpMode, FtcBot robot, MecanumDrive drive) {
         super(autoOpMode, robot, drive);
@@ -53,8 +53,14 @@ public class OptionRight extends OptionBase {
                 .strafeToConstantHeading(v1);
         a1 = tab1.build();
 
-        // park
-        v2 = new Vector2d(-16, -42);
+        // original parking path if you did a preloaded specimen
+    /*    v2 = new Vector2d(-16, -42);
+        tab2 = tab1.fresh()
+                .strafeToConstantHeading(v2);
+        a2 = tab2.build();
+
+     */
+        v2 = new Vector2d(4, -20);
         tab2 = tab1.fresh()
                 .strafeToConstantHeading(v2);
         a2 = tab2.build();
