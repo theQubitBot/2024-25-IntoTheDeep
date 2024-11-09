@@ -43,7 +43,6 @@ public class FlagCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private static final int CYCLE_MS = 50; // period of each cycle
     FtcServo flagServo = null;
 
     /*
@@ -52,7 +51,7 @@ public class FlagCalibrationTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
         flagServo = new FtcServo(hardwareMap.get(Servo.class, FtcFlag.FLAG_SERVO_NAME));
@@ -68,9 +67,9 @@ public class FlagCalibrationTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -79,7 +78,7 @@ public class FlagCalibrationTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -107,10 +106,10 @@ public class FlagCalibrationTeleOp extends OpMode {
 
         telemetry.addData("flag", "right trigger/bumper");
         telemetry.addData("Position", "%5.4f", servoPosition);
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -119,7 +118,7 @@ public class FlagCalibrationTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

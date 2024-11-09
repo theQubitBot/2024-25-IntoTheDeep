@@ -47,7 +47,7 @@ public class MatchConfigTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
         config = new MatchConfig();
@@ -60,8 +60,8 @@ public class MatchConfigTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
-        FtcUtils.sleep(50);
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -70,7 +70,7 @@ public class MatchConfigTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -92,7 +92,7 @@ public class MatchConfigTeleOp extends OpMode {
         telemetry.addLine();
         config.showConfiguration();
         telemetry.addLine();
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         FtcLogger.exit();
     }
@@ -104,7 +104,7 @@ public class MatchConfigTeleOp extends OpMode {
     public void stop() {
         FtcLogger.enter();
         config.saveToFile();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

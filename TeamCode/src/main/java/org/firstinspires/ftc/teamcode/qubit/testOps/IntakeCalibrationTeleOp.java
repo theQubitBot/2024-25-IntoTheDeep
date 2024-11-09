@@ -43,7 +43,6 @@ public class IntakeCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    static final int CYCLE_MS = 50;           // period of each cycle
 
     FtcServo leftSpinServo = null;
     FtcServo rightSpinServo = null;
@@ -59,7 +58,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
         leftSpinPower = FtcIntake.SPIN_STOP_POWER;
@@ -90,9 +89,9 @@ public class IntakeCalibrationTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(50);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -101,7 +100,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -171,10 +170,10 @@ public class IntakeCalibrationTeleOp extends OpMode {
                 leftSpinPower, rightSpinPower);
         telemetry.addData("Position", "Lflip %5.4f Rflip %5.4f",
                 leftFlipPosition, rightFlipPosition);
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -183,7 +182,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

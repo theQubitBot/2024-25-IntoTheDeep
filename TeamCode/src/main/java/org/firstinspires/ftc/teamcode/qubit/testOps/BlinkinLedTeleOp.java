@@ -79,7 +79,7 @@ public class BlinkinLedTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
         FtcUtils.sleep(10);
     }
@@ -90,7 +90,7 @@ public class BlinkinLedTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -105,7 +105,7 @@ public class BlinkinLedTeleOp extends OpMode {
     public void loop() {
         FtcLogger.enter();
         loopTime.reset();
-        telemetry.addData(">", "a: Auto, b: Manual");
+        telemetry.addData(FtcUtils.TAG, "a: Auto, b: Manual");
         telemetry.addLine();
         handleGamepad();
 
@@ -117,13 +117,13 @@ public class BlinkinLedTeleOp extends OpMode {
              */
         }
 
-        telemetry.addData(">", "Display: %s", displayMode.toString());
+        telemetry.addData(FtcUtils.TAG, "Display: %s", displayMode.toString());
         if (displayMode == DisplayMode.MANUAL) {
-            telemetry.addData(">", "Left bumper: previous, Right bumper: next");
+            telemetry.addData(FtcUtils.TAG, "Left bumper: previous, Right bumper: next");
         }
 
         blinkinLed.showTelemetry();
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         FtcLogger.exit();
     }

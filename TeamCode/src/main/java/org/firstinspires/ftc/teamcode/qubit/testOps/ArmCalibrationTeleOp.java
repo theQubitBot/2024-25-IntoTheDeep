@@ -43,7 +43,6 @@ public class ArmCalibrationTeleOp extends OpMode {
     // Declare OpMode members
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
-    private static final int CYCLE_MS = 50; // period of each cycle
     FtcServo servo = null;
     double position;
 
@@ -53,7 +52,7 @@ public class ArmCalibrationTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
         servo = new FtcServo(hardwareMap.get(Servo.class, FtcArm.ARM_SERVO_NAME));
@@ -70,9 +69,9 @@ public class ArmCalibrationTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -81,7 +80,7 @@ public class ArmCalibrationTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -108,10 +107,10 @@ public class ArmCalibrationTeleOp extends OpMode {
 
         telemetry.addData("Arm", "right trigger/bumper");
         telemetry.addData("Position", "%5.4f", position);
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
-        FtcUtils.sleep(CYCLE_MS);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -120,7 +119,7 @@ public class ArmCalibrationTeleOp extends OpMode {
     @Override
     public void stop() {
         FtcLogger.enter();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

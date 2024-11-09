@@ -530,7 +530,7 @@ public class FtcDriveTrain extends FtcSubSystem {
                         rightRearMotor.getPower(), rightRearMotor.getCurrentPosition());
             }
 
-            telemetry.addData(">", "%s, %s", driveTrainEnum.name(),
+            telemetry.addData(FtcUtils.TAG, "%s, %s", driveTrainEnum.name(),
                     driveTypeEnum.name());
         }
 

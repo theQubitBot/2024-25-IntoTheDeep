@@ -53,7 +53,7 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
         robot = new FtcBot();
         robot.init(hardwareMap, telemetry, false);
@@ -66,7 +66,7 @@ public class DriveTrainTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
         FtcUtils.sleep(10);
     }
@@ -77,7 +77,7 @@ public class DriveTrainTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
         runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -99,7 +99,7 @@ public class DriveTrainTeleOp extends OpMode {
         // Show the elapsed game time and wheel power.
         loopTime.reset();
 
-        telemetry.addData(">", "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
+        telemetry.addData(FtcUtils.TAG, "a: FWD POV, b: RWD POV, x: MecanumDrive FOD, y: AWD POV");
         if (gamepad1.a) {
             robot.driveTrain.setDriveTypeAndMode(
                     DriveTrainEnum.FRONT_WHEEL_DRIVE, DriveTypeEnum.POINT_OF_VIEW_DRIVE);
@@ -119,7 +119,7 @@ public class DriveTrainTeleOp extends OpMode {
         robot.driveTrain.showTelemetry();
         robot.imu.showTelemetry();
         robot.showGamePadTelemetry(gamepad1);
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();
         lastLoopTime = loopTime.milliseconds();
@@ -133,7 +133,7 @@ public class DriveTrainTeleOp extends OpMode {
     public void stop() {
         FtcLogger.enter();
         robot.stop();
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

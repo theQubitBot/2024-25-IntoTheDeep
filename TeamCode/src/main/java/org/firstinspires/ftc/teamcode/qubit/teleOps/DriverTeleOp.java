@@ -51,7 +51,7 @@ public class DriverTeleOp extends OpMode {
     @Override
     public void init() {
         FtcLogger.enter();
-        telemetry.addData(">", "Initializing, please wait...");
+        telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
         robot = new FtcBot();
         robot.init(hardwareMap, telemetry, false);
@@ -64,8 +64,8 @@ public class DriverTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData(">", "Waiting for driver to press play");
-        FtcUtils.sleep(50);
+        telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*
@@ -74,7 +74,7 @@ public class DriverTeleOp extends OpMode {
     @Override
     public void start() {
         FtcLogger.enter();
-        telemetry.addData(">", "Starting...");
+        telemetry.addData(FtcUtils.TAG, "Starting...");
         telemetry.update();
 
         loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -100,7 +100,7 @@ public class DriverTeleOp extends OpMode {
         robot.operate(gamepad1, gamepad2, lastLoopTime, runtime);
 
         // Show the elapsed game time.
-        telemetry.addData(">", "Loop %.0f ms, cumulative %.0f seconds",
+        telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         lastLoopTime = loopTime.milliseconds();
         FtcLogger.exit();
@@ -122,7 +122,7 @@ public class DriverTeleOp extends OpMode {
         // in the middle of the match and FOD is enabled.
         FtcImu.endAutoOpHeading = 0;
         FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
-        telemetry.addData(">", "Tele Op stopped.");
+        telemetry.addData(FtcUtils.TAG, "Tele Op stopped.");
         telemetry.update();
         FtcLogger.exit();
     }

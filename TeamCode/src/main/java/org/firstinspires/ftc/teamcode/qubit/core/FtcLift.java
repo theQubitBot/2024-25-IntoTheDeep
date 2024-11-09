@@ -82,8 +82,8 @@ public class FtcLift extends FtcSubSystem {
      * @return Estimated lift travel time in milliseconds.
      */
     public double estimateTravelTime(int currentPosition, int targetPosition) {
-        // Factor is (LIFT_TIME_HIGH_JUNCTION_MS - LIFT_TIME_LOW_JUNCTION_MS) /
-        // (LIFT_TIME_HIGH_JUNCTION_MS - LIFT_TIME_LOW_JUNCTION_MS)
+        // Factor is LIFT_TIME_HIGH_MS * (target - LIFT_TIME_LOW_MS) /
+        // (LIFT_TIME_HIGH_MS - LIFT_TIME_LOW_MS)
         double estimate;
         int distance = Math.abs(Math.abs(targetPosition) - Math.abs(currentPosition));
         estimate = 750 + distance * 5.0 / 12.0;

@@ -64,7 +64,7 @@ public class LiftTeleOp extends OpMode {
     public void init_loop() {
         telemetry.addData(FtcUtils.TAG, "Waiting for driver to press play");
         telemetry.update();
-        FtcUtils.sleep(50);
+        FtcUtils.sleep(FtcUtils.CYCLE_MS);
     }
 
     /*

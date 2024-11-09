@@ -210,9 +210,9 @@ public class MatchConfig {
     public void showConfiguration() {
         if (configFeatureEnabled) {
             telemetry.addData("Match configuration", "");
-            telemetry.addData(">", "%s alliance, %s robot position",
+            telemetry.addData(FtcUtils.TAG, "%s alliance, %s robot position",
                     allianceColor, robotPosition);
-            telemetry.addData(">", "start delay %d seconds", delayInSeconds);
+            telemetry.addData(FtcUtils.TAG, "start delay %d seconds", delayInSeconds);
         }
     }
 

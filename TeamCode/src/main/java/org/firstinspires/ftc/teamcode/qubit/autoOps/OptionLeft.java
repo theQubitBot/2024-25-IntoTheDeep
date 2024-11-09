@@ -191,7 +191,8 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipDelivery(false);
             Actions.runBlocking(a8);
             robot.flag.raise(false);
-            if (executeRobotActions) robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
+            if (executeRobotActions)
+                robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
         }
 
         FtcLogger.exit();
