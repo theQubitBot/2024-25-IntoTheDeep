@@ -130,10 +130,10 @@ public class FtcIntake extends FtcSubSystem {
             spinIn();
             flipDown(false);
         } else if (gamepad1.dpad_down || gamepad1.a || gamepad2.a) {
-            // you cannot flip to delivery if rnp is retracted, bucket is down, and lift is down
+            // you cannot flip to delivery unless rnp is retracted, bucket is down, and lift is down
             // Use magnetic sensors
             spinIn();
-            flipDelivery(false);
+            flipDelivery(true);
         } else if (gamePad2.right_stick_y <= -0.5) {
             flipDown(false);
             spinOut();
