@@ -129,11 +129,17 @@ public class FtcIntake extends FtcSubSystem {
         } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
             spinIn();
             flipDown(false);
-        } else if (gamepad1.dpad_down || gamepad1.a || gamepad2.a) {
-            // you cannot flip to delivery unless rnp is retracted, bucket is down, and lift is down
-            // Use magnetic sensors
-            spinIn();
-            flipDelivery(true);
+        } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
+
+            if(parent.lift.getCurrentPostion() == FtcLift.POSITION_LOW &&
+                    parent.arm.armServo.getPosition() == FtcArm.ARM_FORWARD_POSITION &&
+                    parent.rnp.retractLimitSwitch.isPressed()) {
+                // you cannot flip to delivery unless rnp is retracted, bucket is down, and lift is down
+                // Use magnetic sensors
+                spinIn();
+                flipDelivery(true);
+
+            }
         } else if (gamePad2.right_stick_y <= -0.5) {
             flipDown(false);
             spinOut();
