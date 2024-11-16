@@ -29,13 +29,12 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A class to manage the robot sample/specimen delivery.
@@ -44,29 +43,29 @@ public class FtcIntake extends FtcSubSystem {
     private static final String TAG = "FtcIntake";
     public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
-    public static final double SPIN_IN_POWER = 1.0000;
-    public static final double SPIN_OUT_POWER = 0.0000;
-    public static final double SPIN_HOLD_POWER = 0.6000;
+    public static final double SPIN_IN_POWER = 0.6000;
+    public static final double SPIN_OUT_POWER = 0.4000;
+    public static final double SPIN_HOLD_POWER = 0.5350;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
     public static final String LEFT_FLIP_SERVO_NAME = "leftFlipServo";
     public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
-    public static final double FLIP_DOWN_LEFT_POSITION = 0.4000;
-    public static final double FLIP_DOWN_RIGHT_POSITION = FLIP_DOWN_LEFT_POSITION - 0.0085;
+    public static final double FLIP_DOWN_LEFT_POSITION = 0.4110;
+    public static final double FLIP_DOWN_RIGHT_POSITION = 0.4025;
 
-    public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.4300;
-    public static final double FLIP_HORIZONTAL_RIGHT_POSITION = FLIP_HORIZONTAL_LEFT_POSITION - 0.085;
-    public static final double FLIP_DELIVER_LEFT_POSITION = 0.4800;
-    public static final double FLIP_DELIVER_RIGHT_POSITION = FLIP_DELIVER_LEFT_POSITION - 0.085;
-    public static final int FLIP_TRAVEL_TIME = 2000; // milliseconds
+    public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.4305;
+    public static final double FLIP_HORIZONTAL_RIGHT_POSITION = 0.4365;
+    public static final double FLIP_DELIVER_LEFT_POSITION = 0.4765;
+    public static final double FLIP_DELIVER_RIGHT_POSITION = 0.4825;
+    public static final int FLIP_TRAVEL_TIME = 800; // milliseconds
+    public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
     private final boolean intakeEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
     private final FtcBot parent;
-    public FtcServo leftSpinServo = null;
-    public FtcServo rightSpinServo = null;
-    public FtcServo leftFlipServo = null;
-    public FtcServo rightFlipServo = null;
-    private Deadline travelDeadline = null;
+    private FtcServo leftSpinServo = null;
+    private FtcServo rightSpinServo = null;
+    private FtcServo leftFlipServo = null;
+    private FtcServo rightFlipServo = null;
 
     public FtcIntake(FtcBot robot) {
         parent = robot;
@@ -92,9 +91,6 @@ public class FtcIntake extends FtcSubSystem {
             rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_FLIP_SERVO_NAME));
             rightFlipServo.setDirection(Servo.Direction.REVERSE);
 
-            travelDeadline = new Deadline(FLIP_TRAVEL_TIME, TimeUnit.MILLISECONDS);
-            travelDeadline.expire();
-
             showTelemetry();
             telemetry.addData(TAG, "initialized");
         } else {
@@ -114,41 +110,82 @@ public class FtcIntake extends FtcSubSystem {
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         FtcLogger.enter();
 
-        if (!travelDeadline.hasExpired()) {
-            // Once travel deadline has been set, all operations are suspended.
-            // This ensures that flip completes its operation. E.g.: Hang initiated.
-            return;
-        }
-
-        if (FtcUtils.gameOver(runtime)) {
-            spinStop();
-        } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
-            spinStop();
-            flipDelivery(false);
-            travelDeadline.reset();
-        } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
-            spinIn();
-            flipDown(false);
-        } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
-
-            if(parent.lift.getCurrentPostion() == FtcLift.POSITION_LOW &&
-                    parent.arm.armServo.getPosition() == FtcArm.ARM_FORWARD_POSITION &&
-                    parent.rnp.retractLimitSwitch.isPressed()) {
-                // you cannot flip to delivery unless rnp is retracted, bucket is down, and lift is down
-                // Use magnetic sensors
-                spinIn();
-                flipDelivery(true);
-
+        if (intakeEnabled) {
+            if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
+                spinStop();
+            } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
+                flipHorizontal(false);
+                spinStop();
+            } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
+                spinIn(false);
+                flipDown(false);
+            } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
+                if (
+                    // Both drivers force manual override
+                        (gamePad1.right_bumper && gamePad2.right_bumper) ||
+                                // GamePad1 manual override
+                                (gamePad1.share && gamePad1.right_bumper) ||
+                                // GamePad2 manual override
+                                (gamePad2.share && gamePad2.right_bumper) ||
+                                // Testing mode, parent may not be specified
+                                parent == null) {
+                    spinIn(false);
+                    flipDelivery(false);
+                } else if (FtcUtils.areEqual(parent.lift.getPosition(), FtcLift.POSITION_LOW, FtcUtils.EPSILON1) &&
+                        parent.arm.isForward() &&
+                        parent.rnp.isRetracted()) {
+                    // Flip to delivery when lift is Low, bucket is forward and rnp is retracted
+                    spinIn(false);
+                    flipDelivery(false);
+                }
+            } else if (gamePad2.right_stick_y <= -0.5 ||
+                    // GamePad1 manual override
+                    gamePad1.share && gamePad1.right_stick_y <= -0.5) {
+                flipDown(false);
+                spinOut();
+            } else if (FtcUtils.lastNSeconds(runtime, 10)) {
+                spinStop();
+                flipHorizontal(false);
+            } else {
+                spinHold();
+                flipHorizontal(false);
             }
-        } else if (gamePad2.right_stick_y <= -0.5) {
-            flipDown(false);
-            spinOut();
-        } else {
-            spinHold();
-            flipHorizontal(false);
         }
 
         FtcLogger.exit();
+    }
+
+    public boolean isDelivering() {
+        FtcLogger.enter();
+        boolean delivering = false;
+        if (intakeEnabled) {
+            delivering = FtcUtils.areEqual(leftFlipServo.getPosition(), FLIP_DELIVER_LEFT_POSITION, FtcUtils.EPSILON3);
+        }
+
+        FtcLogger.exit();
+        return delivering;
+    }
+
+    public boolean isDown() {
+        FtcLogger.enter();
+        boolean down = false;
+        if (intakeEnabled) {
+            down = FtcUtils.areEqual(leftFlipServo.getPosition(), FLIP_DOWN_LEFT_POSITION, FtcUtils.EPSILON3);
+        }
+
+        FtcLogger.exit();
+        return down;
+    }
+
+    public boolean isHorizontal() {
+        FtcLogger.enter();
+        boolean horizontal = false;
+        if (intakeEnabled) {
+            horizontal = FtcUtils.areEqual(leftFlipServo.getPosition(), FLIP_HORIZONTAL_LEFT_POSITION, FtcUtils.EPSILON3);
+        }
+
+        FtcLogger.exit();
+        return horizontal;
     }
 
     public void flipDelivery(boolean waitTillCompletion) {
@@ -206,11 +243,15 @@ public class FtcIntake extends FtcSubSystem {
     /**
      * Spin inwards to intake the sample.
      */
-    public void spinIn() {
+    public void spinIn(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_IN_POWER);
             rightSpinServo.setPosition(SPIN_IN_POWER);
+        }
+
+        if (waitTillCompletion) {
+            FtcUtils.sleep(SPIN_TRAVEL_TIME);
         }
 
         FtcLogger.exit();
@@ -265,10 +306,25 @@ public class FtcIntake extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (intakeEnabled) {
-            leftSpinServo.getController().pwmEnable();
-            rightSpinServo.getController().pwmEnable();
-            leftFlipServo.getController().pwmEnable();
-            rightFlipServo.getController().pwmEnable();
+            if (leftSpinServo != null &&
+                    leftSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                leftSpinServo.getController().pwmEnable();
+            }
+
+            if (rightSpinServo != null &&
+                    rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                rightSpinServo.getController().pwmEnable();
+            }
+
+            if (leftFlipServo != null &&
+                    leftFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                leftFlipServo.getController().pwmEnable();
+            }
+
+            if (rightFlipServo != null &&
+                    rightFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                rightFlipServo.getController().pwmEnable();
+            }
 
             spinStop();
             flipHorizontal(false);
@@ -278,24 +334,28 @@ public class FtcIntake extends FtcSubSystem {
     }
 
     /**
-     * Stops the Relay.
+     * Stops the Intake.
      */
     public void stop() {
         FtcLogger.enter();
         if (intakeEnabled) {
-            if (leftSpinServo != null) {
+            if (leftSpinServo != null &&
+                    leftSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 leftSpinServo.getController().pwmDisable();
             }
 
-            if (rightSpinServo != null) {
+            if (rightSpinServo != null &&
+                    rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 rightSpinServo.getController().pwmDisable();
             }
 
-            if (leftFlipServo != null) {
+            if (leftFlipServo != null &&
+                    leftFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 leftFlipServo.getController().pwmDisable();
             }
 
-            if (rightFlipServo != null) {
+            if (rightFlipServo != null &&
+                    rightFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 rightFlipServo.getController().pwmDisable();
             }
         }

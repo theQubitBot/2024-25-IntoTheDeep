@@ -45,11 +45,11 @@ public class FtcBlinkinLed extends FtcSubSystem {
     private static final String BLINKIN_NAME = "blinkinLed";
     private final boolean blinkinLedEnabled = true;
     public boolean telemetryEnabled = true;
-    RevBlinkinLedDriver blinkinLedDriver = null;
+    private RevBlinkinLedDriver blinkinLedDriver = null;
 
     // Start with LED strip being off.
-    BlinkinPattern currentPattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-    Telemetry telemetry;
+    private BlinkinPattern currentPattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+    private Telemetry telemetry;
     private FtcBot parent = null;
 
     public FtcBlinkinLed(FtcBot robot) {
@@ -74,25 +74,50 @@ public class FtcBlinkinLed extends FtcSubSystem {
     }
 
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
-        if (FtcUtils.gameOver(runtime)) {
-            stop();
-        } else if (runtime.seconds() >= (FtcUtils.TELE_OP_DURATION - 10)) {
-            if (parent != null) {
-                if (parent.config.allianceColor == AllianceColorEnum.BLUE) {
-                    if (currentPattern != BlinkinPattern.HEARTBEAT_BLUE) {
-                        set(BlinkinPattern.HEARTBEAT_BLUE);
+        FtcLogger.enter();
+        if (blinkinLedEnabled) {
+            if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
+                stop();
+            } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
+                if (parent != null) {
+                    if (!parent.rnp.isRetracted() ||
+                            !parent.lift.atPosition(FtcLift.POSITION_LOW) ||
+                            !parent.arm.isForward()) {
+                        parent.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.FIRE_LARGE);
+                    } else {
+                        stop();
+                    }
+                }
+            } else if (gamePad1.left_bumper || gamePad2.left_bumper) {
+                if (parent != null) {
+                    if (parent.intake.isDelivering()) {
+                        parent.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.FIRE_LARGE);
+                    } else {
+                        stop();
+                    }
+                }
+            } else if (FtcUtils.lastNSeconds(runtime, 10)) {
+                if (parent != null) {
+                    if (parent.config.allianceColor == AllianceColorEnum.BLUE) {
+                        if (currentPattern != BlinkinPattern.HEARTBEAT_BLUE) {
+                            set(BlinkinPattern.HEARTBEAT_BLUE);
+                        }
+                    } else {
+                        if (currentPattern != BlinkinPattern.HEARTBEAT_RED) {
+                            set(BlinkinPattern.HEARTBEAT_RED);
+                        }
                     }
                 } else {
-                    if (currentPattern != BlinkinPattern.HEARTBEAT_RED) {
-                        set(BlinkinPattern.HEARTBEAT_RED);
+                    if (currentPattern != BlinkinPattern.HEARTBEAT_WHITE) {
+                        set(BlinkinPattern.HEARTBEAT_WHITE);
                     }
                 }
             } else {
-                if (currentPattern != BlinkinPattern.HEARTBEAT_WHITE) {
-                    set(BlinkinPattern.HEARTBEAT_WHITE);
-                }
+                stop();
             }
         }
+
+        FtcLogger.exit();
     }
 
     /**

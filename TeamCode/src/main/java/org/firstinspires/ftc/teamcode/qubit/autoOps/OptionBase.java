@@ -48,6 +48,7 @@ public class OptionBase {
     public static final double RADIAN45;
     public static final double RADIAN60;
     public static final double RADIAN90;
+    public static final double RADIAN120;
     public static final double RADIAN135;
     public static final double RADIAN180;
     private final long CRAWL_TIME_TO_BUCKET = 100; // milliseconds
@@ -69,6 +70,7 @@ public class OptionBase {
         RADIAN45 = Math.toRadians(45);
         RADIAN60 = Math.toRadians(60);
         RADIAN90 = Math.toRadians(90);
+        RADIAN120 = Math.toRadians(120);
         RADIAN135 = Math.toRadians(135);
         RADIAN180 = Math.toRadians(180);
     }

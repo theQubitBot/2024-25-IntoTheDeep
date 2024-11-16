@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -46,7 +47,7 @@ public class FtcFlag extends FtcSubSystem {
     private final boolean flagEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
-    public FtcServo flagServo = null;
+    private FtcServo flagServo = null;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -132,7 +133,10 @@ public class FtcFlag extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (flagEnabled) {
-            flagServo.getController().pwmEnable();
+            if (flagServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                flagServo.getController().pwmEnable();
+            }
+
             lower(false);
         }
 
@@ -145,7 +149,8 @@ public class FtcFlag extends FtcSubSystem {
     public void stop() {
         FtcLogger.enter();
         if (flagEnabled) {
-            if (flagServo != null) {
+            if (flagServo != null &&
+                    flagServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 flagServo.getController().pwmDisable();
             }
         }

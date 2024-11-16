@@ -119,7 +119,7 @@ public class MatchConfig {
             } catch (IOException e) {
                 reset();
             } catch (Exception e) {
-                // First time around, config file is absent. Do nothing
+                // First time around, config file doesn't exist. Do nothing
                 reset();
             }
         }

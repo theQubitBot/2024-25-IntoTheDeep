@@ -6,8 +6,8 @@
             <goBILDA5202SeriesMotor name="rightRearMotor" port="1" />
             <goBILDA5202SeriesMotor name="perpendicularEncoder" port="2" />
             <goBILDA5202SeriesMotor name="rightLiftMotor" port="3" />
-            <Servo name="rnpServo" port="0" />
-            <Servo name="flagServo" port="2" />
+            <Servo name="flagServo" port="0" />
+            <Servo name="rnpServo" port="2" />
             <RevTouchSensor name="rightLiftTouch" port="1" />
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
@@ -22,6 +22,8 @@
             <Servo name="armServo" port="4" />
             <RevBlinkinLedDriver name="blinkinLed" port="5" />
             <RevTouchSensor name="leftLiftTouch" port="1" />
+            <RevTouchSensor name="extendLimitSwitch" port="5" />
+            <RevTouchSensor name="retractLimitSwitch" port="7" />
             <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
             <goBILDAPinpoint name="goboDriver" port="0" bus="1" />
         </LynxModule>

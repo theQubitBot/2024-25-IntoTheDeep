@@ -63,8 +63,8 @@ public class LiftCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
-        leftLiftTouch = hardwareMap.get(TouchSensor.class, "leftLiftTouch");
-        rightLiftTouch = hardwareMap.get(TouchSensor.class, "rightLiftTouch");
+        leftLiftTouch = hardwareMap.get(TouchSensor.class, FtcLift.LEFT_TOUCH_SENSOR_NAME);
+        rightLiftTouch = hardwareMap.get(TouchSensor.class, FtcLift.RIGHT_TOUCH_SENSOR_NAME);
 
         leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, FtcLift.LEFT_MOTOR_NAME));
         leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);

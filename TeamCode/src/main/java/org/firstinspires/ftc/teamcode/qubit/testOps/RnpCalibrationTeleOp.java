@@ -29,6 +29,8 @@ package org.firstinspires.ftc.teamcode.qubit.testOps;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
@@ -43,6 +45,8 @@ public class RnpCalibrationTeleOp extends OpMode {
     private ElapsedTime runtime = null;
     private ElapsedTime loopTime = null;
 
+    private TouchSensor extendLimitSwitch = null;
+    private TouchSensor retractLimitSwitch = null;
     FtcServo servo = null;
     double position;
 
@@ -55,7 +59,14 @@ public class RnpCalibrationTeleOp extends OpMode {
         telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
+        extendLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.EXTEND_LIMIT_SWITCH_NAME);
+        retractLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.RETRACT_LIMIT_SWITCH_NAME);
+
         servo = new FtcServo(hardwareMap.get(Servo.class, FtcRnp.RNP_SERVO_NAME));
+        if (servo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            servo.getController().pwmEnable();
+        }
+
         servo.setDirection(Servo.Direction.REVERSE);
         position = FtcRnp.RNP_STOP_POWER;
         servo.setPosition(position);
@@ -95,16 +106,19 @@ public class RnpCalibrationTeleOp extends OpMode {
         FtcLogger.enter();
         loopTime.reset();
 
-        if (gamepad1.dpad_up) {
-            servo.setPosition(FtcRnp.RNP_EXTEND_POWER);
-        } else if (gamepad1.dpad_down) {
-            servo.setPosition(FtcRnp.RNP_RETRACT_POWER);
+        if (gamepad1.dpad_up && !extendLimitSwitch.isPressed()) {
+            position = FtcRnp.RNP_EXTEND_POWER;
+        } else if (gamepad1.dpad_down && !retractLimitSwitch.isPressed()) {
+            position = FtcRnp.RNP_RETRACT_POWER;
         } else {
-            servo.setPosition(FtcRnp.RNP_STOP_POWER);
+            position = FtcRnp.RNP_STOP_POWER;
         }
 
+        servo.setPosition(position);
         telemetry.addData("RnP", "dPad up/down");
         telemetry.addData("Position", "%5.4f", position);
+        telemetry.addData("Limits", "extended: %b, retracted: %b",
+                extendLimitSwitch.isPressed(), retractLimitSwitch.isPressed());
         telemetry.addData(FtcUtils.TAG, "Loop %.0f ms, cumulative %.0f seconds",
                 loopTime.milliseconds(), runtime.seconds());
         telemetry.update();

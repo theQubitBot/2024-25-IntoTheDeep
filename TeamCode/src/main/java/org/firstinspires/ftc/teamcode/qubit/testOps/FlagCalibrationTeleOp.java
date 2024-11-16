@@ -26,9 +26,11 @@
 
 package org.firstinspires.ftc.teamcode.qubit.testOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -37,7 +39,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
-//@Disabled
+@Disabled
 @TeleOp(group = "TestOp")
 public class FlagCalibrationTeleOp extends OpMode {
     // Declare OpMode members
@@ -55,7 +57,10 @@ public class FlagCalibrationTeleOp extends OpMode {
         telemetry.update();
 
         flagServo = new FtcServo(hardwareMap.get(Servo.class, FtcFlag.FLAG_SERVO_NAME));
-        flagServo.getController().pwmEnable();
+        if (flagServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            flagServo.getController().pwmEnable();
+        }
+
         flagServo.setDirection(Servo.Direction.REVERSE);
         flagServo.setPosition(FtcServo.MID_POSITION);
 

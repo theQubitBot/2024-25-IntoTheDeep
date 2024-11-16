@@ -63,6 +63,7 @@ public class AutoOp extends LinearOpMode {
      */
     private void executeAutonomousOperation() {
         FtcLogger.enter();
+        runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         if (robot.config.delayInSeconds > 0) {
             long countDown = robot.config.delayInSeconds;
             while (countDown > 0) {
@@ -76,20 +77,23 @@ public class AutoOp extends LinearOpMode {
             }
         }
 
-        runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+        if (!opModeIsActive()) return;
         telemetry.addData(FtcUtils.TAG, "Auto Op started.");
         telemetry.update();
-
         if (!opModeIsActive()) return;
 
-        // Enable and stop servos
+        // Enable and reset servos
+        robot.start();
         robot.start();
 
-        boolean executeRobotActions = false;
+        boolean executeTrajectories = true;
+        boolean executeRobotActions = true;
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-            new OptionLeft(this, robot, drive).init().execute(executeRobotActions);
+            new OptionLeft(this, robot, drive).init()
+                    .execute(executeTrajectories, executeRobotActions);
         } else {
-            new OptionRight(this, robot, drive).init().execute(executeRobotActions);
+            new OptionRight(this, robot, drive).init()
+                    .execute(executeTrajectories, executeRobotActions);
         }
 
         FtcLogger.exit();
@@ -111,7 +115,6 @@ public class AutoOp extends LinearOpMode {
         robot = new FtcBot();
         robot.init(hardwareMap, telemetry, true);
         robot.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.BLACK);
-        robot.flag.lower(false);
 
         if (FtcUtils.DEBUG) {
             robot.enableTelemetry();
@@ -156,7 +159,10 @@ public class AutoOp extends LinearOpMode {
     private void waitForEnd() {
         FtcLogger.enter();
 
-        double autoOpExecutionDuration = runtime.seconds();
+        double autoOpExecutionDuration = 0;
+        if (runtime != null) {
+            autoOpExecutionDuration = runtime.seconds();
+        }
 
         do {
             // Save settings for use by TeleOp
@@ -172,7 +178,7 @@ public class AutoOp extends LinearOpMode {
             telemetry.addData(FtcUtils.TAG, "Auto Op took %.0f seconds.", autoOpExecutionDuration);
             telemetry.addData(FtcUtils.TAG, "Waiting for auto Op to end.");
             telemetry.update();
-            FtcUtils.sleep(5);
+            FtcUtils.sleep(FtcUtils.CYCLE_MS);
         } while (opModeIsActive());
 
         robot.stop();

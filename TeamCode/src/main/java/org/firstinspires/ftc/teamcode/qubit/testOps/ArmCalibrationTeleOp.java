@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.testOps;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -56,7 +57,10 @@ public class ArmCalibrationTeleOp extends OpMode {
         telemetry.update();
 
         servo = new FtcServo(hardwareMap.get(Servo.class, FtcArm.ARM_SERVO_NAME));
-        servo.getController().pwmEnable();
+        if (servo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            servo.getController().pwmEnable();
+        }
+
         servo.setDirection(Servo.Direction.REVERSE);
         position = FtcServo.MID_POSITION;
         servo.setPosition(position);

@@ -146,7 +146,7 @@ public class FtcBot extends FtcSubSystem {
 
         // Drive operation
         arm.operate(gamePad1, gamePad2, runtime);
-        driveTrain.operate(gamePad1, gamePad2, loopTime);
+        driveTrain.operate(gamePad1, gamePad2, loopTime, runtime);
         flag.operate(gamePad1, gamePad2);
 
         intake.operate(gamePad1, gamePad2, runtime);

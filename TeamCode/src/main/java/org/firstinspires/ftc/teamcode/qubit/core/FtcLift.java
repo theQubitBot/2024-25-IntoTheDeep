@@ -44,33 +44,43 @@ public class FtcLift extends FtcSubSystem {
     private static final String TAG = "FtcLift";
     public static final String LEFT_MOTOR_NAME = "leftLiftMotor";
     public static final String RIGHT_MOTOR_NAME = "rightLiftMotor";
-    public static final int POSITION_HIGH = 2000;
-    public static final int POSITION_MEDIUM = 760;
+    public static final int POSITION_HIGH = 2025;
+    public static final int POSITION_MEDIUM = 630;
     public static final int POSITION_HANG = 900;
-    public static final int POSITION_LOW = 0;
+    public static final int POSITION_LOW = 5;
     public static final int POSITION_MINIMUM = 0;
-    public static final int POSITION_ERROR_MARGIN = 20;
+    public static final int POSITION_ERROR_MARGIN = 10;
     public static final int POSITION_INVALID = Integer.MIN_VALUE;
 
-    public static final double UP_POWER = 1.0;
+    public static final double UP_POWER = FtcMotor.MAX_POWER;
     public static final double DOWN_POWER = -UP_POWER;
-    public static final double TRAVEL_TIME_MAX_MS = 3000;
-    public static final long TRAVEL_TIME_LOW2MID_MS = 1000;
-    public static final long TRAVEL_TIME_LOW2HIGH_MS = 2000;
-    public static final long TRAVEL_TIME_MID2HIGH_MS = 1000;
+    public static final int TRAVEL_TIME_MAX_MS = 3000;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     public static int endAutoOpLiftPosition = POSITION_MINIMUM;
     private Telemetry telemetry = null;
     private final FtcBot parent;
-    public FtcMotor leftLiftMotor = null;
-    public FtcMotor rightLiftMotor = null;
+    private FtcMotor leftLiftMotor = null;
+    private FtcMotor rightLiftMotor = null;
+    public static final String LEFT_TOUCH_SENSOR_NAME = "leftLiftTouch";
+    public static final String RIGHT_TOUCH_SENSOR_NAME = "rightLiftTouch";
     private TouchSensor leftLiftTouch = null;
     private TouchSensor rightLiftTouch = null;
     private final boolean enableLiftTouchSensorReset = false;
 
     public FtcLift(FtcBot robot) {
         parent = robot;
+    }
+
+    public boolean atPosition(int position) {
+        FtcLogger.enter();
+        boolean atPosition = false;
+        if (liftEnabled) {
+            atPosition = FtcUtils.areEqual(getPosition(), position, POSITION_ERROR_MARGIN);
+        }
+
+        FtcLogger.exit();
+        return atPosition;
     }
 
     /**
@@ -81,12 +91,12 @@ public class FtcLift extends FtcSubSystem {
      * @param targetPosition  Target position of the lift encoder.
      * @return Estimated lift travel time in milliseconds.
      */
-    public double estimateTravelTime(int currentPosition, int targetPosition) {
-        // Factor is LIFT_TIME_HIGH_MS * (target - LIFT_TIME_LOW_MS) /
-        // (LIFT_TIME_HIGH_MS - LIFT_TIME_LOW_MS)
-        double estimate;
+    private long estimateTravelTime(int currentPosition, int targetPosition) {
+        int estimate;
         int distance = Math.abs(Math.abs(targetPosition) - Math.abs(currentPosition));
-        estimate = 750 + distance * 5.0 / 12.0;
+
+        // Minimum 1000 ms + distance ms
+        estimate = distance / 2;
         return Range.clip(estimate, 0, TRAVEL_TIME_MAX_MS);
     }
 
@@ -117,8 +127,8 @@ public class FtcLift extends FtcSubSystem {
         this.telemetry = telemetry;
         if (liftEnabled) {
             if (enableLiftTouchSensorReset) {
-                leftLiftTouch = hardwareMap.get(TouchSensor.class, "leftLiftTouch");
-                rightLiftTouch = hardwareMap.get(TouchSensor.class, "rightLiftTouch");
+                leftLiftTouch = hardwareMap.get(TouchSensor.class, LEFT_TOUCH_SENSOR_NAME);
+                rightLiftTouch = hardwareMap.get(TouchSensor.class, RIGHT_TOUCH_SENSOR_NAME);
             }
 
             rightLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, RIGHT_MOTOR_NAME));
@@ -156,7 +166,7 @@ public class FtcLift extends FtcSubSystem {
      * @param targetPosition  Lift's target position.
      * @return True if lift is close to its target position, false otherwise.
      */
-    public Boolean liftNearTarget(int currentPosition, int targetPosition) {
+    private Boolean liftNearTarget(int currentPosition, int targetPosition) {
         return FtcUtils.areEqual(currentPosition, targetPosition, POSITION_ERROR_MARGIN);
     }
 
@@ -171,6 +181,11 @@ public class FtcLift extends FtcSubSystem {
             if (FtcUtils.gameOver(runtime)) {
                 if (botIsHanging()) {
                     lowerBotSlowly();
+                } else {
+                    stop();
+                }
+
+                if (!FtcUtils.DEBUG) {
                     return;
                 }
             }
@@ -201,11 +216,7 @@ public class FtcLift extends FtcSubSystem {
 
             if (gamePad1.a || gamePad2.a) {
                 leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-
-                if (FtcUtils.endGame(runtime)) {
-                    // Allow lowering the right lift, if hang was initiated by mistake
-                    rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-                }
+                rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
             } else if (gamePad1.b || gamePad1.x || gamePad2.b || gamePad2.x) {
                 leftTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
                 // rightTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
@@ -276,13 +287,8 @@ public class FtcLift extends FtcSubSystem {
             }
 
             if (waitTillCompletion) {
-                double waitTime = estimateTravelTime(leftCurrentPosition, leftTargetPosition);
-                ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-                while (!liftNearTarget(leftLiftMotor.getCurrentPosition(), leftTargetPosition) &&
-                        !liftNearTarget(rightLiftMotor.getCurrentPosition(), rightTargetPosition) &&
-                        runtime.milliseconds() < waitTime) {
-                    FtcUtils.sleep(10);
-                }
+                long waitTime = estimateTravelTime(leftCurrentPosition, leftTargetPosition);
+                FtcUtils.sleep(waitTime);
             }
         }
     }

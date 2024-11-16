@@ -47,7 +47,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FtcUtils {
     public static final String TAG = ">";
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
+    public static final double EPSILON0 = 0;
     public static final double EPSILON1 = 1e-1;
     public static final double EPSILON2 = 1e-2;
     public static final double EPSILON3 = 1e-3;
@@ -132,6 +133,10 @@ public final class FtcUtils {
             destination.size.width = source.size.width;
             destination.angle = source.angle;
         }
+    }
+
+    public static boolean lastNSeconds(ElapsedTime runtime, int nSeconds) {
+        return runtime.seconds() >= (TELE_OP_DURATION - nSeconds);
     }
 
     public static boolean endGame(ElapsedTime runtime) {

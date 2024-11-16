@@ -30,6 +30,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -51,7 +52,7 @@ import java.util.List;
  */
 public class FtcDriveTrain extends FtcSubSystem {
     private static final String TAG = "FtcDriveTrain";
-    public static final double MAXIMUM_FORWARD_POWER = 1.00;
+    public static final double MAXIMUM_FORWARD_POWER = 0.80;
     public static final double MECANUM_POWER_BOOST_FACTOR = 1.00;
     public static final double MINIMUM_FORWARD_TELE_OP_POWER = 0.25;
 
@@ -59,7 +60,7 @@ public class FtcDriveTrain extends FtcSubSystem {
     // and noting the min power at which the robot begins to move/turn.
     // Robot weight distribution would impact rotational inertia, which would impact
     // the turn value most.
-    public static final double MAXIMUM_TURN_POWER = 0.90;
+    public static final double MAXIMUM_TURN_POWER = 0.80;
     public static final double MINIMUM_TURN_POWER = 0.25;
     public static final double FORWARD_SLO_MO_POWER = 0.25;
     public static final double STRAFE_SLO_MO_POWER = 0.40;
@@ -220,7 +221,7 @@ public class FtcDriveTrain extends FtcSubSystem {
      * @param loopTime The loopTime passed in by TeleOp that determines how fast the TeleOp loop
      *                 is executing. Shorter the loopTime, shorter the anti-skid braking power step.
      */
-    public void operate(Gamepad gamePad1, Gamepad gamePad2, double loopTime) {
+    public void operate(Gamepad gamePad1, Gamepad gamePad2, double loopTime, ElapsedTime runtime) {
         FtcLogger.enter();
 
         // Setup a variable for each side drive wheel to display power level for telemetry
@@ -237,6 +238,11 @@ public class FtcDriveTrain extends FtcSubSystem {
         double powerMagnitude = Math.max(yMagnitude, xMagnitude);
         double maxWheelPower;
         double joyStickHeading = 0;
+
+        if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
+            stop();
+            return;
+        }
 
         parent.imu.resetReadOnce();
         if (powerMagnitude > JITTER) {

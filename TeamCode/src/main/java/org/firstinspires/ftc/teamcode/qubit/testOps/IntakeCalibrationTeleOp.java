@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.testOps;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -61,22 +62,38 @@ public class IntakeCalibrationTeleOp extends OpMode {
         telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
-        leftSpinPower = FtcIntake.SPIN_STOP_POWER;
         leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.LEFT_SPIN_SERVO_NAME));
+        if (leftSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            leftSpinServo.getController().pwmEnable();
+        }
+
         leftSpinServo.setDirection(Servo.Direction.FORWARD);
+        leftSpinPower = FtcIntake.SPIN_STOP_POWER;
         leftSpinServo.setPosition(leftSpinPower);
 
-        rightSpinPower = FtcIntake.SPIN_STOP_POWER;
         rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.RIGHT_SPIN_SERVO_NAME));
+        if (rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            rightSpinServo.getController().pwmEnable();
+        }
+
         rightSpinServo.setDirection(Servo.Direction.FORWARD);
+        rightSpinPower = FtcIntake.SPIN_STOP_POWER;
         rightSpinServo.setPosition(rightSpinPower);
 
         leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.LEFT_FLIP_SERVO_NAME));
+        if (leftFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            leftFlipServo.getController().pwmEnable();
+        }
+
         leftFlipServo.setDirection(Servo.Direction.FORWARD);
         leftFlipPosition = FtcServo.MID_POSITION;
         leftFlipServo.setPosition(leftFlipPosition);
 
         rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.RIGHT_FLIP_SERVO_NAME));
+        if (rightFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            rightSpinServo.getController().pwmEnable();
+        }
+
         rightFlipServo.setDirection(Servo.Direction.REVERSE);
         rightFlipPosition = FtcServo.MID_POSITION;
         rightFlipServo.setPosition(rightFlipPosition);

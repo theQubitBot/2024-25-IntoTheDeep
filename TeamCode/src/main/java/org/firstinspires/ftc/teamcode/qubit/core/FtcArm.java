@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -41,14 +42,15 @@ import java.util.Locale;
 public class FtcArm extends FtcSubSystem {
     private static final String TAG = "FtcArm";
     public static final String ARM_SERVO_NAME = "armServo";
-    public static final double ARM_FORWARD_POSITION = 0.5000;
+    public static final double ARM_FORWARD_POSITION = 0.5050;
     public static final double ARM_BACKWARD_POSITION = 0.6100;
-    public static final int ARM_TRAVEL_TIME = 2000; // milliseconds
+    public static final int ARM_FORWARD_TRAVEL_TIME = 750; // milliseconds
+    public static final int ARM_BACKWARD_TRAVEL_TIME = 1250; // milliseconds
     private final boolean armEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
     private final FtcBot parent;
-    public FtcServo armServo = null;
+    private FtcServo armServo = null;
 
     public FtcArm(FtcBot robot) {
         parent = robot;
@@ -76,6 +78,28 @@ public class FtcArm extends FtcSubSystem {
         FtcLogger.exit();
     }
 
+    public boolean isBackward() {
+        FtcLogger.enter();
+        boolean backward = false;
+        if (armEnabled) {
+            backward = FtcUtils.areEqual(armServo.getPosition(), ARM_BACKWARD_POSITION, FtcUtils.EPSILON3);
+        }
+
+        FtcLogger.exit();
+        return backward;
+    }
+
+    public boolean isForward() {
+        FtcLogger.enter();
+        boolean forward = false;
+        if (armEnabled) {
+            forward = FtcUtils.areEqual(armServo.getPosition(), ARM_FORWARD_POSITION, FtcUtils.EPSILON3);
+        }
+
+        FtcLogger.exit();
+        return forward;
+    }
+
     /**
      * Operates the arm using the gamePads.
      *
@@ -86,13 +110,33 @@ public class FtcArm extends FtcSubSystem {
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         FtcLogger.enter();
 
-        // Arm moves if lift is at medium or high position
-        // OR if intake is out or horizontal
-        if (gamePad1.left_bumper || gamePad2.left_bumper) {
-            moveBackward(false);
-        } else {
-            // Automatically move arm forward when bumper is not pressed.
-            moveForward(false);
+        if (armEnabled) {
+            if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
+                return;
+            }
+
+            if (gamePad1.left_bumper || gamePad2.left_bumper) {
+                if (
+                    // Both drivers force manual override
+                        (gamePad1.left_bumper && gamePad2.left_bumper) ||
+                                // GamePad1 manual override
+                                (gamePad1.share && gamePad1.left_bumper) ||
+                                // GamePad2 manual override
+                                (gamePad2.share && gamePad2.left_bumper) ||
+                                // lift is at medium or high position
+                                (parent != null && (parent.lift.atPosition(FtcLift.POSITION_MEDIUM) ||
+                                        parent.lift.atPosition(FtcLift.POSITION_HIGH) ||
+                                        parent.lift.atPosition(FtcLift.POSITION_HANG) ||
+                                        // intake is down or horizontal
+                                        parent.intake.isHorizontal() || parent.intake.isDown()))) {
+                    moveBackward(false);
+                } else {
+                    moveForward(false);
+                }
+            } else {
+                // Automatically move arm forward when bumper is not pressed.
+                moveForward(false);
+            }
         }
 
         FtcLogger.exit();
@@ -103,7 +147,7 @@ public class FtcArm extends FtcSubSystem {
         if (armEnabled) {
             armServo.setPosition(ARM_BACKWARD_POSITION);
             if (waitTillCompletion) {
-                FtcUtils.sleep(ARM_TRAVEL_TIME);
+                FtcUtils.sleep(ARM_BACKWARD_TRAVEL_TIME);
             }
         }
 
@@ -115,7 +159,7 @@ public class FtcArm extends FtcSubSystem {
         if (armEnabled) {
             armServo.setPosition(ARM_FORWARD_POSITION);
             if (waitTillCompletion) {
-                FtcUtils.sleep(ARM_TRAVEL_TIME);
+                FtcUtils.sleep(ARM_FORWARD_TRAVEL_TIME);
             }
         }
 
@@ -141,7 +185,10 @@ public class FtcArm extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (armEnabled) {
-            armServo.getController().pwmEnable();
+            if (armServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                armServo.getController().pwmEnable();
+            }
+
             moveForward(false);
         }
 
@@ -149,12 +196,13 @@ public class FtcArm extends FtcSubSystem {
     }
 
     /**
-     * Stops the Relay.
+     * Stops the Arm.
      */
     public void stop() {
         FtcLogger.enter();
         if (armEnabled) {
-            if (armServo != null) {
+            if (armServo != null &&
+                    armServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 armServo.getController().pwmDisable();
             }
         }

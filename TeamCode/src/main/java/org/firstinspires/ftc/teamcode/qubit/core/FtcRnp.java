@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode.qubit.core;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -47,17 +48,17 @@ public class FtcRnp extends FtcSubSystem {
     public static final double RNP_EXTEND_POWER = 1.0;
     public static final double RNP_RETRACT_POWER = 0.0;
     public static final double RNP_STOP_POWER = FtcServo.MID_POSITION;
-    public static final int RNP_TRAVEL_TIME = 2000; // milliseconds
+    public static final int RNP_EXTEND_TRAVEL_TIME = 750; // milliseconds
+    public static final int RNP_RETRACT_TRAVEL_TIME = 2000; // milliseconds
     private final boolean rnpEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
-    public FtcServo rnpServo = null;
+    private FtcServo rnpServo = null;
     public static final String EXTEND_LIMIT_SWITCH_NAME = "extendLimitSwitch";
     public static final String RETRACT_LIMIT_SWITCH_NAME = "retractLimitSwitch";
     private TouchSensor extendLimitSwitch = null;
     private TouchSensor retractLimitSwitch = null;
-    private final boolean useLimitSwitches = false;
-    private Deadline travelDeadline = null;
+    private final boolean useLimitSwitches = true;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -71,9 +72,6 @@ public class FtcRnp extends FtcSubSystem {
         if (rnpEnabled) {
             rnpServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
             rnpServo.setDirection(Servo.Direction.REVERSE);
-
-            travelDeadline = new Deadline(RNP_TRAVEL_TIME, TimeUnit.MILLISECONDS);
-            travelDeadline.expire();
 
             if (useLimitSwitches) {
                 extendLimitSwitch = hardwareMap.get(TouchSensor.class, EXTEND_LIMIT_SWITCH_NAME);
@@ -99,21 +97,41 @@ public class FtcRnp extends FtcSubSystem {
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         FtcLogger.enter();
 
-        if (!travelDeadline.hasExpired()) {
-            // Once travel deadline has been set, all operations are suspended.
-            // This ensures that RNP completes its operation. E.g.: Hang initiated.
-            return;
-        }
-
-        if (FtcUtils.gameOver(runtime)) {
+        if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
             stop(false);
         } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
             retract(false);
-            // Must continue retracting once hang is initiated.
-            travelDeadline.reset();
         } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            extend(false);
+            if (
+                // Both drivers force manual override
+                    (gamePad1.dpad_up && gamePad2.dpad_up) ||
+                            // GamePad1 manual override
+                            (gamePad1.share && gamePad1.dpad_up) ||
+                            // GamePad2 manual override
+                            (gamePad2.share && gamePad2.dpad_up)) {
+                extend(false);
+            } else if (useLimitSwitches && extendLimitSwitch.isPressed()) {
+                // Already extended, stop operation
+                stop(false);
+            } else {
+                extend(false);
+            }
         } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
+            if (
+                // Both drivers force manual override
+                    (gamePad1.dpad_down && gamePad2.dpad_down) ||
+                            // GamePad1 manual override
+                            (gamePad1.share && gamePad1.dpad_down) ||
+                            // GamePad2 manual override
+                            (gamePad2.share && gamePad2.dpad_down)) {
+                retract(false);
+            } else if (useLimitSwitches && retractLimitSwitch.isPressed()) {
+                // Already retracted, stop operation
+                stop(false);
+            } else {
+                retract(false);
+            }
+        } else if (FtcUtils.lastNSeconds(runtime, 10)) {
             retract(false);
         } else {
             stop(false);
@@ -139,7 +157,7 @@ public class FtcRnp extends FtcSubSystem {
             }
 
             if (waitTillCompletion) {
-                travelDeadline.reset();
+                Deadline travelDeadline = new Deadline(RNP_EXTEND_TRAVEL_TIME, TimeUnit.MILLISECONDS);
                 while (!travelDeadline.hasExpired()) {
                     if (useLimitSwitches) {
                         if (extendLimitSwitch.isPressed()) {
@@ -149,10 +167,38 @@ public class FtcRnp extends FtcSubSystem {
 
                     FtcUtils.sleep(FtcUtils.CYCLE_MS);
                 }
+
+                rnpServo.setPosition(RNP_STOP_POWER);
             }
         }
 
         FtcLogger.exit();
+    }
+
+    public boolean isExtended() {
+        FtcLogger.enter();
+        boolean extended = false;
+        if (rnpEnabled) {
+            if (useLimitSwitches) {
+                extended = extendLimitSwitch.isPressed();
+            }
+        }
+
+        FtcLogger.exit();
+        return extended;
+    }
+
+    public boolean isRetracted() {
+        FtcLogger.enter();
+        boolean retracted = false;
+        if (rnpEnabled) {
+            if (useLimitSwitches) {
+                retracted = retractLimitSwitch.isPressed();
+            }
+        }
+
+        FtcLogger.exit();
+        return retracted;
     }
 
     /**
@@ -172,7 +218,7 @@ public class FtcRnp extends FtcSubSystem {
             }
 
             if (waitTillCompletion) {
-                travelDeadline.reset();
+                Deadline travelDeadline = new Deadline(RNP_RETRACT_TRAVEL_TIME, TimeUnit.MILLISECONDS);
                 while (!travelDeadline.hasExpired()) {
                     if (useLimitSwitches) {
                         if (retractLimitSwitch.isPressed()) {
@@ -182,6 +228,8 @@ public class FtcRnp extends FtcSubSystem {
 
                     FtcUtils.sleep(FtcUtils.CYCLE_MS);
                 }
+
+                rnpServo.setPosition(RNP_STOP_POWER);
             }
         }
 
@@ -197,7 +245,7 @@ public class FtcRnp extends FtcSubSystem {
             String message = String.format(Locale.US, "%5.4f",
                     rnpServo.getPosition());
             if (useLimitSwitches) {
-                message += String.format(Locale.US, " extendLimitSwitch: %b, retractLimitSwitch: %b",
+                message += String.format(Locale.US, " extended: %b, retracted: %b",
                         extendLimitSwitch.isPressed(), retractLimitSwitch.isPressed());
             }
 
@@ -213,7 +261,10 @@ public class FtcRnp extends FtcSubSystem {
     public void start() {
         FtcLogger.enter();
         if (rnpEnabled) {
-            rnpServo.getController().pwmEnable();
+            if (rnpServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                rnpServo.getController().pwmEnable();
+            }
+
             rnpServo.setPosition(RNP_STOP_POWER);
         }
 
@@ -229,7 +280,8 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
         if (rnpEnabled) {
             if (waitTillCompletion) {
-                travelDeadline.reset();
+                Deadline travelDeadline =
+                        new Deadline(Math.max(RNP_EXTEND_TRAVEL_TIME, RNP_RETRACT_TRAVEL_TIME), TimeUnit.MILLISECONDS);
                 while (!travelDeadline.hasExpired()) {
                     // Sleep before check to allow extension/retraction operation to commence
                     FtcUtils.sleep(FtcUtils.CYCLE_MS);
