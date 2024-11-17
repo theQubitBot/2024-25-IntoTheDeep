@@ -54,11 +54,11 @@ public class FtcRnp extends FtcSubSystem {
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
     private FtcServo rnpServo = null;
-    public static final String EXTEND_LIMIT_SWITCH_NAME = "extendLimitSwitch";
-    public static final String RETRACT_LIMIT_SWITCH_NAME = "retractLimitSwitch";
-    private TouchSensor extendLimitSwitch = null;
-    private TouchSensor retractLimitSwitch = null;
-    private final boolean useLimitSwitches = true;
+    public static final String EXTEND_TOUCH_SENSOR = "extendTouchSensor";
+    public static final String RETRACT_TOUCH_SENSOR = "retractTouchSensor";
+    private TouchSensor extendTouchSensor = null;
+    private TouchSensor retractTouchSensor = null;
+    private final boolean useTouchSensors = true;
 
     /**
      * Initialize standard Hardware interfaces.
@@ -73,9 +73,9 @@ public class FtcRnp extends FtcSubSystem {
             rnpServo = new FtcServo(hardwareMap.get(Servo.class, RNP_SERVO_NAME));
             rnpServo.setDirection(Servo.Direction.REVERSE);
 
-            if (useLimitSwitches) {
-                extendLimitSwitch = hardwareMap.get(TouchSensor.class, EXTEND_LIMIT_SWITCH_NAME);
-                retractLimitSwitch = hardwareMap.get(TouchSensor.class, RETRACT_LIMIT_SWITCH_NAME);
+            if (useTouchSensors) {
+                extendTouchSensor = hardwareMap.get(TouchSensor.class, EXTEND_TOUCH_SENSOR);
+                retractTouchSensor = hardwareMap.get(TouchSensor.class, RETRACT_TOUCH_SENSOR);
             }
 
             showTelemetry();
@@ -110,7 +110,7 @@ public class FtcRnp extends FtcSubSystem {
                             // GamePad2 manual override
                             (gamePad2.share && gamePad2.dpad_up)) {
                 extend(false);
-            } else if (useLimitSwitches && extendLimitSwitch.isPressed()) {
+            } else if (useTouchSensors && extendTouchSensor.isPressed()) {
                 // Already extended, stop operation
                 stop(false);
             } else {
@@ -125,7 +125,7 @@ public class FtcRnp extends FtcSubSystem {
                             // GamePad2 manual override
                             (gamePad2.share && gamePad2.dpad_down)) {
                 retract(false);
-            } else if (useLimitSwitches && retractLimitSwitch.isPressed()) {
+            } else if (useTouchSensors && retractTouchSensor.isPressed()) {
                 // Already retracted, stop operation
                 stop(false);
             } else {
@@ -146,8 +146,8 @@ public class FtcRnp extends FtcSubSystem {
     public void extend(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            if (useLimitSwitches) {
-                if (extendLimitSwitch.isPressed()) {
+            if (useTouchSensors) {
+                if (extendTouchSensor.isPressed()) {
                     rnpServo.setPosition(RNP_STOP_POWER);
                 } else {
                     rnpServo.setPosition(RNP_EXTEND_POWER);
@@ -159,8 +159,8 @@ public class FtcRnp extends FtcSubSystem {
             if (waitTillCompletion) {
                 Deadline travelDeadline = new Deadline(RNP_EXTEND_TRAVEL_TIME, TimeUnit.MILLISECONDS);
                 while (!travelDeadline.hasExpired()) {
-                    if (useLimitSwitches) {
-                        if (extendLimitSwitch.isPressed()) {
+                    if (useTouchSensors) {
+                        if (extendTouchSensor.isPressed()) {
                             break;
                         }
                     }
@@ -179,8 +179,8 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
         boolean extended = false;
         if (rnpEnabled) {
-            if (useLimitSwitches) {
-                extended = extendLimitSwitch.isPressed();
+            if (useTouchSensors) {
+                extended = extendTouchSensor.isPressed();
             }
         }
 
@@ -192,8 +192,8 @@ public class FtcRnp extends FtcSubSystem {
         FtcLogger.enter();
         boolean retracted = false;
         if (rnpEnabled) {
-            if (useLimitSwitches) {
-                retracted = retractLimitSwitch.isPressed();
+            if (useTouchSensors) {
+                retracted = retractTouchSensor.isPressed();
             }
         }
 
@@ -207,8 +207,8 @@ public class FtcRnp extends FtcSubSystem {
     public void retract(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (rnpEnabled) {
-            if (useLimitSwitches) {
-                if (retractLimitSwitch.isPressed()) {
+            if (useTouchSensors) {
+                if (retractTouchSensor.isPressed()) {
                     rnpServo.setPosition(RNP_STOP_POWER);
                 } else {
                     rnpServo.setPosition(RNP_RETRACT_POWER);
@@ -220,8 +220,8 @@ public class FtcRnp extends FtcSubSystem {
             if (waitTillCompletion) {
                 Deadline travelDeadline = new Deadline(RNP_RETRACT_TRAVEL_TIME, TimeUnit.MILLISECONDS);
                 while (!travelDeadline.hasExpired()) {
-                    if (useLimitSwitches) {
-                        if (retractLimitSwitch.isPressed()) {
+                    if (useTouchSensors) {
+                        if (retractTouchSensor.isPressed()) {
                             break;
                         }
                     }
@@ -244,9 +244,9 @@ public class FtcRnp extends FtcSubSystem {
         if (rnpEnabled && telemetryEnabled && rnpServo != null) {
             String message = String.format(Locale.US, "%5.4f",
                     rnpServo.getPosition());
-            if (useLimitSwitches) {
+            if (useTouchSensors) {
                 message += String.format(Locale.US, " extended: %b, retracted: %b",
-                        extendLimitSwitch.isPressed(), retractLimitSwitch.isPressed());
+                        extendTouchSensor.isPressed(), retractTouchSensor.isPressed());
             }
 
             telemetry.addData(TAG, message);
@@ -285,8 +285,8 @@ public class FtcRnp extends FtcSubSystem {
                 while (!travelDeadline.hasExpired()) {
                     // Sleep before check to allow extension/retraction operation to commence
                     FtcUtils.sleep(FtcUtils.CYCLE_MS);
-                    if (useLimitSwitches) {
-                        if (extendLimitSwitch.isPressed() || retractLimitSwitch.isPressed()) {
+                    if (useTouchSensors) {
+                        if (extendTouchSensor.isPressed() || retractTouchSensor.isPressed()) {
                             break;
                         }
                     }
