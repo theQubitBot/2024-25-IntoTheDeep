@@ -47,6 +47,7 @@ public class FtcLift extends FtcSubSystem {
     public static final int POSITION_HIGH = 2025;
     public static final int POSITION_MEDIUM = 630;
     public static final int POSITION_HANG = 900;
+    public static final int POSITION_SPECIMEN = 1240; // this is an estimate height, probably need to be changed
     public static final int POSITION_LOW = 5;
     public static final int POSITION_MINIMUM = 0;
     public static final int POSITION_ERROR_MARGIN = 10;
@@ -217,9 +218,13 @@ public class FtcLift extends FtcSubSystem {
             if (gamePad1.a || gamePad2.a) {
                 leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-            } else if (gamePad1.b || gamePad1.x || gamePad2.b || gamePad2.x) {
+            } else if (gamePad1.x || gamePad2.x) {
                 leftTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
                 // rightTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
+
+            } else if (gamePad1.b || gamePad2.b) {
+                leftTargetPosition = FtcLift.POSITION_SPECIMEN - endAutoOpLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_SPECIMEN - endAutoOpLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
                 // rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
