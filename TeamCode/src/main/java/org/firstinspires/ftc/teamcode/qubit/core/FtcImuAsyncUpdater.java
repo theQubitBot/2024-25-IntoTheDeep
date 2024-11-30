@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -69,4 +69,3 @@ public class FtcImuAsyncUpdater implements Runnable {
         FtcLogger.info(TAG, "Async thread stopped.");
     }
 }
-

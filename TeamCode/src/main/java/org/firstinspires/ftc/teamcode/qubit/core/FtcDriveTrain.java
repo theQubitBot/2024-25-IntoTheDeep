@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -379,9 +379,9 @@ public class FtcDriveTrain extends FtcSubSystem {
             int liftPosition = parent.lift.getPosition();
 
             // Scale reduces as lift rises
-            double scaleFactor = (FtcLift.POSITION_HIGH - liftPosition) *
+            double scaleFactor = (FtcLift.POSITION_HIGH_BASKET - liftPosition) *
                     (MAXIMUM_FORWARD_POWER - MINIMUM_FORWARD_TELE_OP_POWER) /
-                    (FtcLift.POSITION_HIGH - FtcLift.POSITION_LOW);
+                    (FtcLift.POSITION_HIGH_BASKET - FtcLift.POSITION_FLOOR);
 
             // Scale can't be outside the wheel power limits.
             scaleFactor = Range.clip(scaleFactor, MINIMUM_FORWARD_TELE_OP_POWER, MAXIMUM_FORWARD_POWER);

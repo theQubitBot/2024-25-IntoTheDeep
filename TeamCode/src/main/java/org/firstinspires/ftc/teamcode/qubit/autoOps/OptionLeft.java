@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -119,11 +119,11 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeTrajectories) Actions.runBlocking(a1);
             if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_LOW, true);
+                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
             if (executeRobotActions) robot.arm.moveBackward(true);
             if (executeRobotActions) robot.arm.moveForward(true);
             if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
+                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver first yellow sample
@@ -138,12 +138,15 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeTrajectories) Actions.runBlocking(a3);
-            if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_LOW, true);
+            if (executeRobotActions) {
+                robot.lift.resetLiftIfTouchPressed();
+                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            }
+
             if (executeRobotActions) robot.arm.moveBackward(true);
             if (executeRobotActions) robot.arm.moveForward(true);
             if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
+                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver second yellow sample
@@ -158,12 +161,15 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeTrajectories) Actions.runBlocking(a5);
-            if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_LOW, true);
+            if (executeRobotActions) {
+                robot.lift.resetLiftIfTouchPressed();
+                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            }
+
             if (executeRobotActions) robot.arm.moveBackward(true);
             if (executeRobotActions) robot.arm.moveForward(true);
             if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
+                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver third yellow sample
@@ -178,12 +184,15 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions) robot.intake.flipHorizontal(false);
             if (executeTrajectories) Actions.runBlocking(a7);
-            if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH, FtcLift.POSITION_LOW, true);
+            if (executeRobotActions) {
+                robot.lift.resetLiftIfTouchPressed();
+                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            }
+
             if (executeRobotActions) robot.arm.moveBackward(true);
             if (executeRobotActions) robot.arm.moveForward(true);
             if (executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_LOW, FtcLift.POSITION_LOW, false);
+                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Park
@@ -192,6 +201,9 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipHorizontal(false);
             if (executeTrajectories) Actions.runBlocking(a8);
             if (executeRobotActions) robot.flag.raise(false);
+            if (executeRobotActions) {
+                robot.lift.resetLiftIfTouchPressed();
+            }
         }
 
         FtcLogger.exit();

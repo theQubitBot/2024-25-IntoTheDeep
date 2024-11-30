@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -102,35 +102,9 @@ public class FtcRnp extends FtcSubSystem {
         } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
             retract(false);
         } else if (gamePad1.dpad_up || gamePad2.dpad_up) {
-            if (
-                // Both drivers force manual override
-                    (gamePad1.dpad_up && gamePad2.dpad_up) ||
-                            // GamePad1 manual override
-                            (gamePad1.share && gamePad1.dpad_up) ||
-                            // GamePad2 manual override
-                            (gamePad2.share && gamePad2.dpad_up)) {
-                extend(false);
-            } else if (useTouchSensors && extendTouchSensor.isPressed()) {
-                // Already extended, stop operation
-                stop(false);
-            } else {
-                extend(false);
-            }
+            extend(false);
         } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
-            if (
-                // Both drivers force manual override
-                    (gamePad1.dpad_down && gamePad2.dpad_down) ||
-                            // GamePad1 manual override
-                            (gamePad1.share && gamePad1.dpad_down) ||
-                            // GamePad2 manual override
-                            (gamePad2.share && gamePad2.dpad_down)) {
-                retract(false);
-            } else if (useTouchSensors && retractTouchSensor.isPressed()) {
-                // Already retracted, stop operation
-                stop(false);
-            } else {
-                retract(false);
-            }
+            retract(false);
         } else if (FtcUtils.lastNSeconds(runtime, 10)) {
             retract(false);
         } else {

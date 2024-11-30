@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -59,8 +59,8 @@ public class RnpCalibrationTeleOp extends OpMode {
         telemetry.addData(FtcUtils.TAG, "Initializing, please wait...");
         telemetry.update();
 
-        extendLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.EXTEND_LIMIT_SWITCH_NAME);
-        retractLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.RETRACT_LIMIT_SWITCH_NAME);
+        extendLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.EXTEND_TOUCH_SENSOR);
+        retractLimitSwitch = hardwareMap.get(TouchSensor.class, FtcRnp.RETRACT_TOUCH_SENSOR);
 
         servo = new FtcServo(hardwareMap.get(Servo.class, FtcRnp.RNP_SERVO_NAME));
         if (servo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {

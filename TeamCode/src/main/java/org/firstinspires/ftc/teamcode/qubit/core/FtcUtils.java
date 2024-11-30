@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FtcUtils {
     public static final String TAG = ">";
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final double EPSILON0 = 0;
     public static final double EPSILON1 = 1e-1;
     public static final double EPSILON2 = 1e-2;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -43,19 +43,21 @@ public class FtcIntake extends FtcSubSystem {
     private static final String TAG = "FtcIntake";
     public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
-    public static final double SPIN_IN_POWER = 0.6000;
-    public static final double SPIN_OUT_POWER = 0.4000;
-    public static final double SPIN_HOLD_POWER = 0.5350;
+    public static final double SPIN_IN_POWER = 0.9000;
+    public static final double SPIN_OUT_POWER = 0.3000;
+    public static final double SPIN_HOLD_POWER = 0.5400;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
     public static final String LEFT_FLIP_SERVO_NAME = "leftFlipServo";
     public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
-    public static final double FLIP_DOWN_LEFT_POSITION = 0.4110;
-    public static final double FLIP_DOWN_RIGHT_POSITION = 0.4025;
+    public static final double FLIP_DOWN_LEFT_POSITION = 0.5000;
+    public static final double FLIP_DOWN_RIGHT_POSITION = 0.5000;
 
-    public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.4305;
-    public static final double FLIP_HORIZONTAL_RIGHT_POSITION = 0.4365;
-    public static final double FLIP_DELIVER_LEFT_POSITION = 0.4765;
-    public static final double FLIP_DELIVER_RIGHT_POSITION = 0.4825;
+    public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.5345;
+    public static final double FLIP_HORIZONTAL_RIGHT_POSITION = 0.5320;
+    public static final double FLIP_HANG_LEFT_POSITION = 0.5365;
+    public static final double FLIP_HANG_RIGHT_POSITION = 0.5405;
+    public static final double FLIP_DELIVER_LEFT_POSITION = 0.5700;
+    public static final double FLIP_DELIVER_RIGHT_POSITION = 0.5655;
     public static final int FLIP_TRAVEL_TIME = 800; // milliseconds
     public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
     private final boolean intakeEnabled = true;
@@ -131,7 +133,7 @@ public class FtcIntake extends FtcSubSystem {
                                 parent == null) {
                     spinIn(false);
                     flipDelivery(false);
-                } else if (FtcUtils.areEqual(parent.lift.getPosition(), FtcLift.POSITION_LOW, FtcUtils.EPSILON1) &&
+                } else if (parent.lift.atPosition(FtcLift.POSITION_FLOOR) &&
                         parent.arm.isForward() &&
                         parent.rnp.isRetracted()) {
                     // Flip to delivery when lift is Low, bucket is forward and rnp is retracted

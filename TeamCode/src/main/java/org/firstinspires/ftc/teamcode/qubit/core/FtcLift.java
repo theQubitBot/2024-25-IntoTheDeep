@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -44,17 +44,21 @@ public class FtcLift extends FtcSubSystem {
     private static final String TAG = "FtcLift";
     public static final String LEFT_MOTOR_NAME = "leftLiftMotor";
     public static final String RIGHT_MOTOR_NAME = "rightLiftMotor";
-    public static final int POSITION_HIGH = 2025;
-    public static final int POSITION_MEDIUM = 630;
-    public static final int POSITION_HANG = 900;
-    public static final int POSITION_LOW = 5;
+    public static final int TARGET_POSITION_TOLERANCE = 5;
+    public static final int POSITION_HIGH_BASKET = 2025;
+    public static final int POSITION_LOW_BASKET = 650;
+    public static final int POSITION_HANG = 1000;
+    public static final int POSITION_HIGH_RUNG = POSITION_HIGH_BASKET;
+    public static final int POSITION_LOW_RUNG = POSITION_HANG;
+    public static final int POSITION_HIGH_CHAMBER = 1525;
+    public static final int POSITION_LOW_CHAMBER = 475;
+    public static final int POSITION_FLOOR = 5;
     public static final int POSITION_MINIMUM = 0;
-    public static final int POSITION_ERROR_MARGIN = 10;
     public static final int POSITION_INVALID = Integer.MIN_VALUE;
 
     public static final double UP_POWER = FtcMotor.MAX_POWER;
     public static final double DOWN_POWER = -UP_POWER;
-    public static final int TRAVEL_TIME_MAX_MS = 3000;
+    public static final int TRAVEL_TIME_MAX_MS = 2000;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     public static int endAutoOpLiftPosition = POSITION_MINIMUM;
@@ -66,7 +70,7 @@ public class FtcLift extends FtcSubSystem {
     public static final String RIGHT_TOUCH_SENSOR_NAME = "rightLiftTouch";
     private TouchSensor leftLiftTouch = null;
     private TouchSensor rightLiftTouch = null;
-    private final boolean enableLiftTouchSensorReset = false;
+    private final boolean enableLiftResetOnTouch = true;
 
     public FtcLift(FtcBot robot) {
         parent = robot;
@@ -76,11 +80,15 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         boolean atPosition = false;
         if (liftEnabled) {
-            atPosition = FtcUtils.areEqual(getPosition(), position, POSITION_ERROR_MARGIN);
+            atPosition = FtcUtils.areEqual(getPosition(), position, TARGET_POSITION_TOLERANCE);
         }
 
         FtcLogger.exit();
         return atPosition;
+    }
+
+    private boolean botIsHanging() {
+        return parent != null && parent.imu != null && parent.imu.getPitch() <= 10.0;
     }
 
     /**
@@ -95,7 +103,6 @@ public class FtcLift extends FtcSubSystem {
         int estimate;
         int distance = Math.abs(Math.abs(targetPosition) - Math.abs(currentPosition));
 
-        // Minimum 1000 ms + distance ms
         estimate = distance / 2;
         return Range.clip(estimate, 0, TRAVEL_TIME_MAX_MS);
     }
@@ -126,7 +133,7 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         this.telemetry = telemetry;
         if (liftEnabled) {
-            if (enableLiftTouchSensorReset) {
+            if (enableLiftResetOnTouch) {
                 leftLiftTouch = hardwareMap.get(TouchSensor.class, LEFT_TOUCH_SENSOR_NAME);
                 rightLiftTouch = hardwareMap.get(TouchSensor.class, RIGHT_TOUCH_SENSOR_NAME);
             }
@@ -136,18 +143,20 @@ public class FtcLift extends FtcSubSystem {
             rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            rightLiftMotor.setTargetPositionTolerance(TARGET_POSITION_TOLERANCE);
 
             leftLiftMotor = new FtcMotor(hardwareMap.get(DcMotorEx.class, LEFT_MOTOR_NAME));
             leftLiftMotor.setDirection(DcMotorEx.Direction.FORWARD);
             leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
             leftLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            leftLiftMotor.setTargetPositionTolerance(TARGET_POSITION_TOLERANCE);
 
             // Initialize lift
-            rightLiftMotor.setTargetPosition(POSITION_LOW);
+            rightLiftMotor.setTargetPosition(POSITION_FLOOR);
             rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
 
-            leftLiftMotor.setTargetPosition(POSITION_LOW);
+            leftLiftMotor.setTargetPosition(POSITION_FLOOR);
             leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
 
             showTelemetry();
@@ -167,7 +176,7 @@ public class FtcLift extends FtcSubSystem {
      * @return True if lift is close to its target position, false otherwise.
      */
     private Boolean liftNearTarget(int currentPosition, int targetPosition) {
-        return FtcUtils.areEqual(currentPosition, targetPosition, POSITION_ERROR_MARGIN);
+        return FtcUtils.areEqual(currentPosition, targetPosition, TARGET_POSITION_TOLERANCE);
     }
 
     /**
@@ -190,47 +199,47 @@ public class FtcLift extends FtcSubSystem {
                 }
             }
 
-            // Must get current position before evaluating lift encoder reset.
+            resetLiftIfTouchPressed();
+
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
-            int rightcurrentPosition = rightLiftMotor.getCurrentPosition();
+            int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
 
             int leftTargetPosition = leftCurrentPosition;
-            int rightTargetPosition = rightcurrentPosition;
-
-            if (enableLiftTouchSensorReset) {
-                // Reset lift encoder if lift is not at low position (belt is slipping)
-                if (leftLiftTouch.isPressed() && !liftNearTarget(leftCurrentPosition, POSITION_LOW)) {
-                    leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                    leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                    leftCurrentPosition = leftTargetPosition = leftLiftMotor.getCurrentPosition();
-                    endAutoOpLiftPosition = 0;
-                }
-
-                if (rightLiftTouch.isPressed() && !liftNearTarget(rightcurrentPosition, POSITION_LOW)) {
-                    rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                    rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                    rightcurrentPosition = rightTargetPosition = rightLiftMotor.getCurrentPosition();
-                    endAutoOpLiftPosition = 0;
-                }
-            }
+            int rightTargetPosition = rightCurrentPosition;
 
             if (gamePad1.a || gamePad2.a) {
-                leftTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_LOW - endAutoOpLiftPosition;
-            } else if (gamePad1.b || gamePad1.x || gamePad2.b || gamePad2.x) {
-                leftTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
-                // rightTargetPosition = FtcLift.POSITION_MEDIUM - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
+            } else if (gamePad1.b || gamePad2.b) {
+                leftTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLiftPosition;
+            } else if (gamePad1.x || gamePad2.x) {
+                leftTargetPosition = FtcLift.POSITION_LOW_BASKET - endAutoOpLiftPosition;
+
+                // Right lift may be at chamber level, lower it.
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
-                leftTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
-                // rightTargetPosition = FtcLift.POSITION_HIGH - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpLiftPosition;
+
+                // Right lift may be at chamber level, lower it.
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
                 leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
             }
 
-            if (leftTargetPosition != leftCurrentPosition ||
-                    rightTargetPosition != rightcurrentPosition) {
+            if (!liftNearTarget(leftCurrentPosition, leftTargetPosition) ||
+                    !liftNearTarget(rightCurrentPosition, rightTargetPosition)) {
                 move(leftTargetPosition, rightTargetPosition, false);
+            } else {
+                // If lift is at LOW position, set motor power to be zero
+                if (liftNearTarget(leftCurrentPosition, POSITION_MINIMUM - endAutoOpLiftPosition)) {
+                    leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                }
+
+                if (liftNearTarget(rightCurrentPosition, POSITION_MINIMUM - endAutoOpLiftPosition)) {
+                    rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                }
             }
         }
     }
@@ -238,20 +247,23 @@ public class FtcLift extends FtcSubSystem {
     public void lowerBotSlowly() {
         if (liftEnabled) {
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
-            int rightcurrentPosition = rightLiftMotor.getCurrentPosition();
-
             int leftTargetPosition = leftCurrentPosition;
-            int rightTargetPosition = rightcurrentPosition;
 
-            if (leftCurrentPosition < POSITION_MEDIUM) {
-                leftTargetPosition++;
+            if (leftCurrentPosition < POSITION_LOW_RUNG) {
+                leftTargetPosition = leftTargetPosition + TARGET_POSITION_TOLERANCE;
             }
 
-            if (rightcurrentPosition < POSITION_MEDIUM) {
-                rightTargetPosition++;
+            int rightcurrentPosition = rightLiftMotor.getCurrentPosition();
+            int rightTargetPosition = rightcurrentPosition;
+            if (rightcurrentPosition < POSITION_LOW_RUNG) {
+                rightTargetPosition = rightTargetPosition + TARGET_POSITION_TOLERANCE;
             }
 
             move(leftTargetPosition, rightTargetPosition, false);
+
+            // 5 ticks in 25 ms
+            // 1000 ticks in 25 * 1000 / 5 =5000ms = 5 seconds
+            FtcUtils.sleep(25);
         }
     }
 
@@ -265,9 +277,9 @@ public class FtcLift extends FtcSubSystem {
         if (liftEnabled) {
             double liftPower;
             leftTargetPosition = Range.clip(leftTargetPosition,
-                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH - endAutoOpLiftPosition);
+                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH_BASKET - endAutoOpLiftPosition);
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
-            if (leftTargetPosition != leftCurrentPosition) {
+            if (!liftNearTarget(leftCurrentPosition, leftTargetPosition)) {
                 // Must set motor position before setting motor mode.
                 leftLiftMotor.setTargetPosition(leftTargetPosition);
                 leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -276,9 +288,9 @@ public class FtcLift extends FtcSubSystem {
             }
 
             rightTargetPosition = Range.clip(rightTargetPosition,
-                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH - endAutoOpLiftPosition);
+                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH_BASKET - endAutoOpLiftPosition);
             int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
-            if (rightTargetPosition != rightCurrentPosition) {
+            if (!liftNearTarget(rightCurrentPosition, rightTargetPosition)) {
                 // Must set motor position before setting motor mode.
                 rightLiftMotor.setTargetPosition(rightTargetPosition);
                 rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -293,8 +305,39 @@ public class FtcLift extends FtcSubSystem {
         }
     }
 
-    private boolean botIsHanging() {
-        return parent != null && parent.imu != null && parent.imu.getPitch() <= 10.0;
+    public void resetLiftIfTouchPressed() {
+        FtcLogger.enter();
+
+        if (enableLiftResetOnTouch) {
+            // Must get current position before evaluating lift encoder reset.
+            int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
+            int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
+
+            // Reset lift encoder if lift is not at low position (belt is slipping)
+            if (leftLiftTouch.isPressed() &&
+                    (!liftNearTarget(leftCurrentPosition, POSITION_FLOOR) &&
+                            !liftNearTarget(leftCurrentPosition, POSITION_MINIMUM))) {
+                leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                leftLiftMotor.setTargetPosition(POSITION_FLOOR);
+                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                endAutoOpLiftPosition = 0;
+            }
+
+            if (rightLiftTouch.isPressed() &&
+                    (!liftNearTarget(rightCurrentPosition, POSITION_FLOOR) &&
+                            !liftNearTarget(rightCurrentPosition, POSITION_MINIMUM))) {
+                rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                rightLiftMotor.setTargetPosition(POSITION_FLOOR);
+                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                endAutoOpLiftPosition = 0;
+            }
+        }
+
+        FtcLogger.exit();
     }
 
     /**
@@ -306,7 +349,7 @@ public class FtcLift extends FtcSubSystem {
             String message = String.format(Locale.US, "LLPower %.2f, LLPosition %d, RLPower %.2f, RLPosition %d",
                     leftLiftMotor.getPower(), leftLiftMotor.getCurrentPosition(),
                     rightLiftMotor.getPower(), rightLiftMotor.getCurrentPosition());
-            if (enableLiftTouchSensorReset) {
+            if (enableLiftResetOnTouch) {
                 message += String.format(Locale.US, "LeftTouch: %b, RightTouch: %b",
                         leftLiftTouch.isPressed(), rightLiftTouch.isPressed());
             }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -81,7 +81,7 @@ public class FtcBlinkinLed extends FtcSubSystem {
             } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
                 if (parent != null) {
                     if (!parent.rnp.isRetracted() ||
-                            !parent.lift.atPosition(FtcLift.POSITION_LOW) ||
+                            !parent.lift.atPosition(FtcLift.POSITION_FLOOR) ||
                             !parent.arm.isForward()) {
                         parent.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.FIRE_LARGE);
                     } else {

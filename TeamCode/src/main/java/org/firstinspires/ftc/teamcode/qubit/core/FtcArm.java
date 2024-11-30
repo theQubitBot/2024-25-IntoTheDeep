@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 The Qubit Bot. All rights reserved.
+/* Copyright (c) 2024 The Qubit Bot. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -124,8 +124,8 @@ public class FtcArm extends FtcSubSystem {
                                 // GamePad2 manual override
                                 (gamePad2.share && gamePad2.left_bumper) ||
                                 // lift is at medium or high position
-                                (parent != null && (parent.lift.atPosition(FtcLift.POSITION_MEDIUM) ||
-                                        parent.lift.atPosition(FtcLift.POSITION_HIGH) ||
+                                (parent != null && (parent.lift.atPosition(FtcLift.POSITION_LOW_BASKET) ||
+                                        parent.lift.atPosition(FtcLift.POSITION_HIGH_BASKET) ||
                                         parent.lift.atPosition(FtcLift.POSITION_HANG) ||
                                         // intake is down or horizontal
                                         parent.intake.isHorizontal() || parent.intake.isDown()))) {
