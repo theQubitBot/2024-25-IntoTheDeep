@@ -47,17 +47,17 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FtcUtils {
     public static final String TAG = ">";
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final double EPSILON0 = 0;
     public static final double EPSILON1 = 1e-1;
     public static final double EPSILON2 = 1e-2;
     public static final double EPSILON3 = 1e-3;
     public static final double EPSILON4 = 1e-4;
-    public static final int AUTO_OP_DURATION = 30;
-    public static final int AUTO_2_TELE_OP_TRANSITION_TIME = 8;
-    public static final int TELE_OP_DURATION = 120;
-    public static final int END_GAME_DURATION = 30;
-    public static final int BUZZER_DURATION = 8;
+    public static final int AUTO_OP_DURATION = 30; // seconds
+    public static final int AUTO_2_TELE_OP_TRANSITION_TIME = 8; // seconds
+    public static final int TELE_OP_DURATION = 120; // seconds
+    public static final int END_GAME_DURATION = 30; // seconds
+    public static final int BUZZER_DURATION = 8; // seconds
     public static final int CYCLE_MS = 50;
 
     /* Constructor */

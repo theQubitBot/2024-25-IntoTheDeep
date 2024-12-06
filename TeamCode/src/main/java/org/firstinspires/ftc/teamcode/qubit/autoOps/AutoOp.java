@@ -85,8 +85,7 @@ public class AutoOp extends LinearOpMode {
         // Enable and reset servos
         robot.start();
 
-        boolean executeTrajectories = true;
-        boolean executeRobotActions = true;
+        boolean executeTrajectories = true, executeRobotActions = true;
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
             new OptionLeft(this, robot, drive).init()
                     .execute(executeTrajectories, executeRobotActions);
@@ -114,6 +113,8 @@ public class AutoOp extends LinearOpMode {
         robot = new FtcBot();
         robot.init(hardwareMap, telemetry, true);
         robot.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        robot.intake.spinStop();
+        robot.rnp.stop(false);
 
         if (FtcUtils.DEBUG) {
             robot.enableTelemetry();

@@ -70,31 +70,32 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
         // drive model parameters
-        public double inPerTick = 0.00194221898519058; // from ForwardPushTest
-        public double lateralInPerTick = 0.0012193110596954307; // from lateral ramp logger
+        // Theoretical value = (32 * 3.14 / 25.4 ) / 2000 = 0.00197895600226128707934654701309
+        public double inPerTick = 0.0019566280776129; // from ForwardPushTest
+        public double lateralInPerTick = 0.0013248930920327867; // from lateral ramp logger 0.0013248930920327867
 
         // Empirical value + 9.25 * 25.4 * 2000 / (32 * PI) = 4674.18
         // Physically measured Track width = 9.25", 2000 ticks per rotation of 32mm GoBilda dead wheel.
-        public double trackWidthTicks = 5000; // from dead wheel track width and wheel location
+        public double trackWidthTicks = 5115; // from dead wheel track width and wheel location
 
         // feedforward parameters (in tick units)
-        public double kS = 1.4878659138539905;
-        public double kV = 0.0002429446797080193;
+        public double kS = 1.9075386668752743;
+        public double kV = 0.00023410112875715334;
         public double kA = 0.0001;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
+        public double maxWheelVel = 36;
         public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        public double maxProfileAccel = 36;
 
         // turn profile parameters (in radians)
-        public double maxAngVel = Math.PI; // shared with path
-        public double maxAngAccel = Math.PI;
+        public double maxAngVel = Math.PI / 2; // shared with path
+        public double maxAngAccel = Math.PI / 2;
 
         // path controller gains
         public double axialGain = 0.035;
         public double lateralGain = 0.001;
-        public double headingGain = 10.0; // shared with turn
+        public double headingGain = 11.0; // shared with turn
 
         public double axialVelGain = 0.001;
         public double lateralVelGain = 0.001;

@@ -51,6 +51,7 @@ public class FtcLift extends FtcSubSystem {
     public static final int POSITION_HIGH_RUNG = POSITION_HIGH_BASKET;
     public static final int POSITION_LOW_RUNG = POSITION_HANG;
     public static final int POSITION_HIGH_CHAMBER = 1525;
+    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 1050;
     public static final int POSITION_LOW_CHAMBER = 475;
     public static final int POSITION_FLOOR = 5;
     public static final int POSITION_MINIMUM = 0;

@@ -27,15 +27,8 @@ PARALLEL_Y = 1.8755; // Y is the strafe direction
 PERPENDICULAR_X = -3.0;
 PERPENDICULAR_Y = -1.875;
 
-Run LocalizationTest, update to show motor encoder values. Reverse the encoders, if needed, so that
-moving the bot forward increases the parallel encoder value. Strafing left increases the
-perpendicular encoder values. Drive forward a large distance and then set
-TwoWheelTrackingLocalizer.X_MULTIPLIER = measured distance (via measuring
-tape) / reported distance (reported by telemetry).
-Similarly, strafe a large distance and set
-TwoWheelTrackingLocalizer.Y_MULTIPLIER = measured (tape) / reported (telemetry) distance.
-Manually drive the bot back and forth, left to right and verify that the telemetry reported distance
-differs from the measured distance by less than 0.5". Now your tracking wheels are setup correctly.
+Run LocalizationTest, the coordinates and heading displayed should match fairly accurately with the
+measured values on the field.
 
 Run BackAndForth to tune SampleMecanumDrive.TRANSLATIONAL_PID and HEADING_PID.
 Set BackAndForth.DISTANCE = 24. A low value allows one to tune the PIDs without robot crashing into

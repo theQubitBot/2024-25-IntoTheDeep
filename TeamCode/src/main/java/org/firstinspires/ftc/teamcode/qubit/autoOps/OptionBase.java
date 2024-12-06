@@ -43,21 +43,26 @@ import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
  * A base class to provide common variables and methods.
  */
 public class OptionBase {
-    public static final double RADIAN0;
-    public static final double RADIAN30;
-    public static final double RADIAN45;
-    public static final double RADIAN60;
-    public static final double RADIAN90;
-    public static final double RADIAN120;
-    public static final double RADIAN135;
-    public static final double RADIAN180;
-    private final long CRAWL_TIME_TO_BUCKET = 100; // milliseconds
+    protected static final double RADIAN0;
+    protected static final double RADIAN15;
+    protected static final double RADIAN20;
+    protected static final double RADIAN30;
+    protected static final double RADIAN45;
+    protected static final double RADIAN60;
+    protected static final double RADIAN75;
+    protected static final double RADIAN90;
+    protected static final double RADIAN105;
+    protected static final double RADIAN120;
+    protected static final double RADIAN135;
+    protected static final double RADIAN150;
+    protected static final double RADIAN180;
+    protected final long CRAWL_TIME_TO_BUCKET = 100; // milliseconds
     private final long CRAWL_TIME_TO_SUBMERSIBLE = 500; // milliseconds
     protected LinearOpMode autoOpMode;
     protected FtcBot robot;
     protected MecanumDrive drive;
 
-    protected Pose2d startPose, pose1, pose2, pose3, pose4, pose5, pose6,
+    public Pose2d startPose, pose1, pose2, pose3, pose4, pose5, pose6,
             pose7, pose8, pose9, pose10, pose11, pose12;
     protected Vector2d v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12;
     protected TrajectoryActionBuilder tab1, tab2, tab3, tab4, tab5, tab6,
@@ -66,12 +71,17 @@ public class OptionBase {
 
     static {
         RADIAN0 = Math.toRadians(0);
+        RADIAN15 = Math.toRadians(15);
+        RADIAN20 = Math.toRadians(20);
         RADIAN30 = Math.toRadians(30);
         RADIAN45 = Math.toRadians(45);
         RADIAN60 = Math.toRadians(60);
+        RADIAN75 = Math.toRadians(75);
         RADIAN90 = Math.toRadians(90);
+        RADIAN105 = Math.toRadians(105);
         RADIAN120 = Math.toRadians(120);
         RADIAN135 = Math.toRadians(135);
+        RADIAN150 = Math.toRadians(150);
         RADIAN180 = Math.toRadians(180);
     }
 
@@ -87,8 +97,6 @@ public class OptionBase {
     protected void initialize() {
         FtcLogger.enter();
 
-        // Starting position
-        startPose = new Pose2d(0, 0, 0);
         FtcLogger.exit();
     }
 
