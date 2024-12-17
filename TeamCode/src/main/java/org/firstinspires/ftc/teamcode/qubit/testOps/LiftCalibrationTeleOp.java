@@ -77,7 +77,8 @@ public class LiftCalibrationTeleOp extends OpMode {
         rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rightLiftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpLeftLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpRightLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
 

@@ -376,7 +376,8 @@ public class FtcDriveTrain extends FtcSubSystem {
                 rightRearPower /= crawlFactor;
             }
         } else if (useLiftPositionForSpeedAdjustment && parent != null && parent.lift != null) {
-            int liftPosition = parent.lift.getPosition();
+            int liftPosition = Math.max(parent.lift.getLeftPosition(), parent.lift.getRightPosition());
+            liftPosition = Range.clip(liftPosition, FtcLift.POSITION_MINIMUM, FtcLift.POSITION_HIGH_BASKET);
 
             // Scale reduces as lift rises
             double scaleFactor = (FtcLift.POSITION_HIGH_BASKET - liftPosition) *

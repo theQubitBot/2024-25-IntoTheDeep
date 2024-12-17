@@ -50,9 +50,10 @@ public class FtcLift extends FtcSubSystem {
     public static final int POSITION_HANG = 1000;
     public static final int POSITION_HIGH_RUNG = POSITION_HIGH_BASKET;
     public static final int POSITION_LOW_RUNG = POSITION_HANG;
-    public static final int POSITION_HIGH_CHAMBER = 1525;
-    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 1050;
-    public static final int POSITION_LOW_CHAMBER = 475;
+    public static final int POSITION_HIGH_CHAMBER = 1550;
+    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 850;
+    public static final int POSITION_LOW_CHAMBER = 450;
+    public static final int POSITION_SPECIMEN_INTAKE = 50;
     public static final int POSITION_FLOOR = 5;
     public static final int POSITION_MINIMUM = 0;
     public static final int POSITION_INVALID = Integer.MIN_VALUE;
@@ -62,7 +63,8 @@ public class FtcLift extends FtcSubSystem {
     public static final int TRAVEL_TIME_MAX_MS = 2000;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
-    public static int endAutoOpLiftPosition = POSITION_MINIMUM;
+    public static int endAutoOpLeftLiftPosition = POSITION_MINIMUM;
+    public static int endAutoOpRightLiftPosition = POSITION_MINIMUM;
     private Telemetry telemetry = null;
     private final FtcBot parent;
     private FtcMotor leftLiftMotor = null;
@@ -81,7 +83,7 @@ public class FtcLift extends FtcSubSystem {
         FtcLogger.enter();
         boolean atPosition = false;
         if (liftEnabled) {
-            atPosition = FtcUtils.areEqual(getPosition(), position, TARGET_POSITION_TOLERANCE);
+            atPosition = FtcUtils.areEqual(getLeftPosition(), position, TARGET_POSITION_TOLERANCE);
         }
 
         FtcLogger.exit();
@@ -109,19 +111,35 @@ public class FtcLift extends FtcSubSystem {
     }
 
     /**
-     * Get the current lift position.
+     * Get the current left lift position.
      *
-     * @return The current lift position.
+     * @return The current left lift position.
      */
-    public int getPosition() {
-        int leftPosition = POSITION_INVALID;
+    public int getLeftPosition() {
+        int position = POSITION_INVALID;
         FtcLogger.enter();
         if (liftEnabled) {
-            leftPosition = leftLiftMotor.getCurrentPosition();
+            position = leftLiftMotor.getCurrentPosition();
         }
 
         FtcLogger.exit();
-        return leftPosition;
+        return position;
+    }
+
+    /**
+     * Get the current right lift position.
+     *
+     * @return The right left lift position.
+     */
+    public int getRightPosition() {
+        int position = POSITION_INVALID;
+        FtcLogger.enter();
+        if (liftEnabled) {
+            position = rightLiftMotor.getCurrentPosition();
+        }
+
+        FtcLogger.exit();
+        return position;
     }
 
     /**
@@ -209,24 +227,22 @@ public class FtcLift extends FtcSubSystem {
             int rightTargetPosition = rightCurrentPosition;
 
             if (gamePad1.a || gamePad2.a) {
-                leftTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLeftLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpRightLiftPosition;
             } else if (gamePad1.b || gamePad2.b) {
-                leftTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLeftLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpRightLiftPosition;
             } else if (gamePad1.x || gamePad2.x) {
-                leftTargetPosition = FtcLift.POSITION_LOW_BASKET - endAutoOpLiftPosition;
-
-                // Right lift may be at chamber level, lower it.
-                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_SPECIMEN_INTAKE - endAutoOpLeftLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_SPECIMEN_INTAKE - endAutoOpRightLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
-                leftTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpLeftLiftPosition;
 
                 // Right lift may be at chamber level, lower it.
-                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpRightLiftPosition;
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
-                leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLeftLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpRightLiftPosition;
             }
 
             if (!liftNearTarget(leftCurrentPosition, leftTargetPosition) ||
@@ -234,11 +250,11 @@ public class FtcLift extends FtcSubSystem {
                 move(leftTargetPosition, rightTargetPosition, false);
             } else {
                 // If lift is at LOW position, set motor power to be zero
-                if (liftNearTarget(leftCurrentPosition, POSITION_MINIMUM - endAutoOpLiftPosition)) {
+                if (liftNearTarget(leftCurrentPosition, POSITION_MINIMUM - endAutoOpLeftLiftPosition)) {
                     leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
                 }
 
-                if (liftNearTarget(rightCurrentPosition, POSITION_MINIMUM - endAutoOpLiftPosition)) {
+                if (liftNearTarget(rightCurrentPosition, POSITION_MINIMUM - endAutoOpRightLiftPosition)) {
                     rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
                 }
             }
@@ -278,7 +294,7 @@ public class FtcLift extends FtcSubSystem {
         if (liftEnabled) {
             double liftPower;
             leftTargetPosition = Range.clip(leftTargetPosition,
-                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH_BASKET - endAutoOpLiftPosition);
+                    POSITION_MINIMUM - endAutoOpLeftLiftPosition, POSITION_HIGH_BASKET - endAutoOpLeftLiftPosition);
             int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
             if (!liftNearTarget(leftCurrentPosition, leftTargetPosition)) {
                 // Must set motor position before setting motor mode.
@@ -289,7 +305,7 @@ public class FtcLift extends FtcSubSystem {
             }
 
             rightTargetPosition = Range.clip(rightTargetPosition,
-                    POSITION_MINIMUM - endAutoOpLiftPosition, POSITION_HIGH_BASKET - endAutoOpLiftPosition);
+                    POSITION_MINIMUM - endAutoOpRightLiftPosition, POSITION_HIGH_BASKET - endAutoOpRightLiftPosition);
             int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
             if (!liftNearTarget(rightCurrentPosition, rightTargetPosition)) {
                 // Must set motor position before setting motor mode.
@@ -323,7 +339,8 @@ public class FtcLift extends FtcSubSystem {
                 leftLiftMotor.setTargetPosition(POSITION_FLOOR);
                 leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
-                endAutoOpLiftPosition = 0;
+                endAutoOpLeftLiftPosition = 0;
+                endAutoOpRightLiftPosition = 0;
             }
 
             if (rightLiftTouch.isPressed() &&
@@ -334,7 +351,8 @@ public class FtcLift extends FtcSubSystem {
                 rightLiftMotor.setTargetPosition(POSITION_FLOOR);
                 rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
-                endAutoOpLiftPosition = 0;
+                endAutoOpLeftLiftPosition = 0;
+                endAutoOpRightLiftPosition = 0;
             }
         }
 

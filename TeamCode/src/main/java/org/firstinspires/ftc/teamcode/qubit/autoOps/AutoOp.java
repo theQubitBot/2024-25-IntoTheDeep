@@ -107,7 +107,8 @@ public class AutoOp extends LinearOpMode {
 
         // Clear out any previous end heading of the robot.
         FtcImu.endAutoOpHeading = 0;
-        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpLeftLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpRightLiftPosition = FtcLift.POSITION_MINIMUM;
 
         // Initialize robot.
         robot = new FtcBot();
@@ -166,15 +167,16 @@ public class AutoOp extends LinearOpMode {
 
         do {
             // Save settings for use by TeleOp
-            FtcLift.endAutoOpLiftPosition = robot.lift.getPosition();
+            FtcLift.endAutoOpLeftLiftPosition = robot.lift.getLeftPosition();
+            FtcLift.endAutoOpRightLiftPosition = robot.lift.getRightPosition();
             if (robot.driveTrain.driveTrainEnum == DriveTrainEnum.MECANUM_WHEEL_DRIVE &&
                     robot.driveTrain.driveTypeEnum == DriveTypeEnum.FIELD_ORIENTED_DRIVE) {
                 robot.imu.read();
                 FtcImu.endAutoOpHeading = robot.imu.getHeading();
             }
 
-            telemetry.addData(FtcUtils.TAG, "endGyro=%.1f, endLift=%d",
-                    FtcImu.endAutoOpHeading, FtcLift.endAutoOpLiftPosition);
+            telemetry.addData(FtcUtils.TAG, "endGyro=%.1f, endLeftLift=%d, endRightLift=%d",
+                    FtcImu.endAutoOpHeading, FtcLift.endAutoOpLeftLiftPosition, FtcLift.endAutoOpRightLiftPosition);
             telemetry.addData(FtcUtils.TAG, "Auto Op took %.0f seconds.", autoOpExecutionDuration);
             telemetry.addData(FtcUtils.TAG, "Waiting for auto Op to end.");
             telemetry.update();

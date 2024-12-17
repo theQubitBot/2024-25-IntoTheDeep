@@ -26,7 +26,7 @@ public class MultiplierTunerTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        double xM=0.7, yM=1.44;
+        double xM = 0.7, yM = 1.44;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         Pose2d startPose = new Pose2d(0, 0, 0);

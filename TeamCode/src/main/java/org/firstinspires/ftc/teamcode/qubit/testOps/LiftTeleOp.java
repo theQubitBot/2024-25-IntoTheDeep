@@ -54,7 +54,8 @@ public class LiftTeleOp extends OpMode {
         lift = new FtcLift(null);
         lift.init(hardwareMap, telemetry);
         lift.telemetryEnabled = FtcUtils.DEBUG;
-        FtcLift.endAutoOpLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpLeftLiftPosition = FtcLift.POSITION_MINIMUM;
+        FtcLift.endAutoOpRightLiftPosition = FtcLift.POSITION_MINIMUM;
         FtcLogger.exit();
     }
 
