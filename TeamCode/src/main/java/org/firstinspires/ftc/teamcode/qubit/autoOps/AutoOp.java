@@ -37,8 +37,6 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
-import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.RobotPositionEnum;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
@@ -47,6 +45,9 @@ public class AutoOp extends LinearOpMode {
     private ElapsedTime runtime = null;
     FtcBot robot = null;
     MecanumDrive drive = null;
+    OptionBase optionBase;
+    OptionLeft optionLeft;
+    OptionRight optionRight;
 
     @Override
     public void runOpMode() {
@@ -87,11 +88,13 @@ public class AutoOp extends LinearOpMode {
 
         boolean executeTrajectories = true, executeRobotActions = true;
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-            new OptionLeft(this, robot, drive).init()
-                    .execute(executeTrajectories, executeRobotActions);
+            optionLeft = new OptionLeft(this, robot, drive);
+            optionBase = optionLeft;
+            optionLeft.init().execute(executeTrajectories, executeRobotActions);
         } else {
-            new OptionRight(this, robot, drive).init()
-                    .execute(executeTrajectories, executeRobotActions);
+            optionRight = new OptionRight(this, robot, drive);
+            optionBase = optionRight;
+            optionRight.init().execute(executeTrajectories, executeRobotActions);
         }
 
         FtcLogger.exit();
@@ -165,23 +168,14 @@ public class AutoOp extends LinearOpMode {
             autoOpExecutionDuration = runtime.seconds();
         }
 
-        do {
-            // Save settings for use by TeleOp
-            FtcLift.endAutoOpLeftLiftPosition = robot.lift.getLeftPosition();
-            FtcLift.endAutoOpRightLiftPosition = robot.lift.getRightPosition();
-            if (robot.driveTrain.driveTrainEnum == DriveTrainEnum.MECANUM_WHEEL_DRIVE &&
-                    robot.driveTrain.driveTypeEnum == DriveTypeEnum.FIELD_ORIENTED_DRIVE) {
-                robot.imu.read();
-                FtcImu.endAutoOpHeading = robot.imu.getHeading();
-            }
-
+        while (optionBase.saveAndTest()) {
             telemetry.addData(FtcUtils.TAG, "endGyro=%.1f, endLeftLift=%d, endRightLift=%d",
                     FtcImu.endAutoOpHeading, FtcLift.endAutoOpLeftLiftPosition, FtcLift.endAutoOpRightLiftPosition);
             telemetry.addData(FtcUtils.TAG, "Auto Op took %.0f seconds.", autoOpExecutionDuration);
             telemetry.addData(FtcUtils.TAG, "Waiting for auto Op to end.");
             telemetry.update();
             FtcUtils.sleep(FtcUtils.CYCLE_MS);
-        } while (opModeIsActive());
+        }
 
         robot.stop();
         FtcLogger.exit();

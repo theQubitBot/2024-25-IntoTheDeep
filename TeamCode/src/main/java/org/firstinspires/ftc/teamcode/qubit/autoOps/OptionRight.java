@@ -88,7 +88,7 @@ public class OptionRight extends OptionBase {
         FtcLogger.enter();
 
         // Deliver preloaded specimen
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (executeRobotActions) robot.intake.flipDown(false);
         if (PARAMS.deliverPreloaded) {
             if (executeRobotActions) robot.intake.flipDown(false);
@@ -100,7 +100,7 @@ public class OptionRight extends OptionBase {
         }
 
         // Park
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (PARAMS.park) {
             if (executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);

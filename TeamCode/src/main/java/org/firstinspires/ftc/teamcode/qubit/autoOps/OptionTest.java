@@ -76,10 +76,10 @@ public final class OptionTest extends OptionBase {
     public void execute(boolean executeTrajectories, boolean executeRobotActions) {
         FtcLogger.enter();
 
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (executeTrajectories) Actions.runBlocking(a1);
 
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (executeTrajectories) Actions.runBlocking(a2);
 
         FtcLogger.exit();

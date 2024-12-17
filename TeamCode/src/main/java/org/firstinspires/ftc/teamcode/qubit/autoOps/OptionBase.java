@@ -34,9 +34,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcDriveTrain;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcMotor;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
+import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTrainEnum;
+import org.firstinspires.ftc.teamcode.qubit.core.enumerations.DriveTypeEnum;
 import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
@@ -89,6 +93,19 @@ public class OptionBase {
         this.autoOpMode = autoOpMode;
         this.robot = robot;
         this.drive = drive;
+    }
+
+    public boolean saveAndTest() {
+        // Save settings for use by TeleOp
+        FtcLift.endAutoOpLeftLiftPosition = robot.lift.getLeftPosition();
+        FtcLift.endAutoOpRightLiftPosition = robot.lift.getRightPosition();
+        if (robot.driveTrain.driveTrainEnum == DriveTrainEnum.MECANUM_WHEEL_DRIVE &&
+                robot.driveTrain.driveTypeEnum == DriveTypeEnum.FIELD_ORIENTED_DRIVE) {
+            robot.imu.read();
+            FtcImu.endAutoOpHeading = robot.imu.getHeading();
+        }
+
+        return autoOpMode.opModeIsActive();
     }
 
     /**

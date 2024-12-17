@@ -147,7 +147,7 @@ public class OptionLeft extends OptionBase {
         FtcLogger.enter();
 
         // Deliver preloaded sample
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (executeRobotActions) robot.intake.flipDown(false);
         if (PARAMS.deliverPreloaded) {
             if (executeRobotActions) robot.intake.flipDown(false);
@@ -161,7 +161,7 @@ public class OptionLeft extends OptionBase {
         }
 
         // Deliver first yellow sample
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (PARAMS.deliverFirstYellow) {
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeRobotActions) robot.intake.spinIn(false);
@@ -183,7 +183,7 @@ public class OptionLeft extends OptionBase {
         }
 
         // Deliver second yellow sample
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (PARAMS.deliverSecondYellow) {
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeRobotActions) robot.intake.spinIn(false);
@@ -204,7 +204,7 @@ public class OptionLeft extends OptionBase {
         }
 
         // Deliver third yellow sample
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (PARAMS.deliverThirdYellow) {
             if (executeRobotActions) robot.intake.flipDown(false);
             if (executeRobotActions) robot.intake.spinIn(false);
@@ -225,7 +225,7 @@ public class OptionLeft extends OptionBase {
         }
 
         // Park
-        if (!autoOpMode.opModeIsActive()) return;
+        if (!saveAndTest()) return;
         if (PARAMS.park) {
             robot.intake.flipHorizontal(false);
             if (executeTrajectories) Actions.runBlocking(a8);
