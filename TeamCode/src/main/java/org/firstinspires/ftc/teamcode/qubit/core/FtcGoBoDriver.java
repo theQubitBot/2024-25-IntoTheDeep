@@ -6,7 +6,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-import org.firstinspires.ftc.teamcode.goBilda.GoBoDriver;
+import org.firstinspires.ftc.teamcode.pedroPathing.localization.GoBildaPinpointDriver;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,19 +14,19 @@ public class FtcGoBoDriver extends FtcSubSystem {
     private static final String TAG = "FtcGoBoDriver";
     public boolean telemetryEnabled = true;
     Telemetry telemetry = null;
-    private GoBoDriver goboDriver;
+    private GoBildaPinpointDriver goboDriver;
     private Deadline deadline;
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         FtcLogger.enter();
         this.telemetry = telemetry;
-        goboDriver = hardwareMap.get(GoBoDriver.class, "goboDriver");
+        goboDriver = hardwareMap.get(GoBildaPinpointDriver.class, "goboDriver");
         if (goboDriver != null) {
-            goboDriver.setEncoderResolution(GoBoDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-            goboDriver.setEncoderDirections(GoBoDriver.EncoderDirection.FORWARD,
-                    GoBoDriver.EncoderDirection.FORWARD);
+            goboDriver.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+            goboDriver.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                    GoBildaPinpointDriver.EncoderDirection.FORWARD);
             goboDriver.resetPosAndIMU();
-            goboDriver.bulkUpdate();
+            goboDriver.update();
             deadline = new Deadline(1, TimeUnit.MILLISECONDS);
         }
 
@@ -117,7 +117,7 @@ public class FtcGoBoDriver extends FtcSubSystem {
 
     public void refreshData() {
         if (deadline.hasExpired()) {
-            goboDriver.bulkUpdate();
+            goboDriver.update();
             deadline.reset();
         }
     }
