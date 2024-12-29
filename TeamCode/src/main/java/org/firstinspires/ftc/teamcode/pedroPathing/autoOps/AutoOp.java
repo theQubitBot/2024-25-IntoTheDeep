@@ -24,29 +24,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.qubit.autoOps;
+package org.firstinspires.ftc.teamcode.pedroPathing.autoOps;
 
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 import org.firstinspires.ftc.teamcode.qubit.core.enumerations.RobotPositionEnum;
-import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
-@Disabled
 @Autonomous(group = "Official", preselectTeleOp = "DriverTeleOp")
 public class AutoOp extends LinearOpMode {
     private ElapsedTime runtime = null;
     FtcBot robot = null;
-    MecanumDrive drive = null;
+    Follower follower;
     OptionBase optionBase;
     OptionLeft optionLeft;
     OptionRight optionRight;
@@ -88,15 +85,14 @@ public class AutoOp extends LinearOpMode {
         // Enable and reset servos
         robot.start();
 
-        boolean executeTrajectories = true, executeRobotActions = true;
         if (robot.config.robotPosition == RobotPositionEnum.LEFT) {
-            optionLeft = new OptionLeft(this, robot, drive);
+            optionLeft = new OptionLeft(this, robot, follower);
             optionBase = optionLeft;
-            optionLeft.init().execute(executeTrajectories, executeRobotActions);
+            optionLeft.init().execute();
         } else {
-            optionRight = new OptionRight(this, robot, drive);
+            optionRight = new OptionRight(this, robot, follower);
             optionBase = optionRight;
-            optionRight.init().execute(executeTrajectories, executeRobotActions);
+            optionRight.init().execute();
         }
 
         FtcLogger.exit();
@@ -129,10 +125,10 @@ public class AutoOp extends LinearOpMode {
             robot.disableTelemetry();
         }
 
-        // Initialize roadrunner for robot paths and trajectories
+        // Initialize Pedro for robot paths and trajectories
         // Must initialize this after robot.driveTrain initialization since driveTrain
         // sets the motors to run without encoders.
-        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        follower = new Follower(hardwareMap);
 
         FtcLogger.exit();
     }

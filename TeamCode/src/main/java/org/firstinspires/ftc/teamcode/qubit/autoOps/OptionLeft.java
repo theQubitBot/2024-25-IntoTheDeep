@@ -40,7 +40,7 @@ import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 /**
  * A class to implement autonomous objective
  */
-@Config
+//@Config
 public class OptionLeft extends OptionBase {
     public static class Params {
         public double v1x = -5, v1y = 13,

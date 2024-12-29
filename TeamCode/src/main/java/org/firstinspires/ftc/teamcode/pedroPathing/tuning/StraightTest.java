@@ -4,7 +4,9 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
@@ -25,14 +27,15 @@ import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+@Disabled
 @Config
-@Autonomous(name = "Straight line", group = "Autonomous Pathing Tuning")
-public class StraightLine extends OpMode {
+@TeleOp(group = "Autonomous Pathing Tuning")
+public class StraightTest extends OpMode {
     private Telemetry telemetryA;
 
     public static double DISTANCE = 36;
 
-    private boolean forward = true;
+    private boolean forward;
 
     private Follower follower;
 
@@ -53,6 +56,7 @@ public class StraightLine extends OpMode {
         backwards.setConstantHeadingInterpolation(0);
 
         follower.followPath(forwards, true);
+        forward = true;
 
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.addLine("This will run the robot in a straight line going " + DISTANCE
@@ -72,8 +76,10 @@ public class StraightLine extends OpMode {
         if (!follower.isBusy()) {
             if (gamepad1.a) {
                 follower.followPath(backwards, true);
+                forward = true;
             } else if (gamepad1.y) {
                 follower.followPath(forwards, true);
+                forward = false;
             }
         }
 

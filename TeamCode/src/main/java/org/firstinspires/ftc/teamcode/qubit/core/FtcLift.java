@@ -34,8 +34,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A class to manage the robot lift.
@@ -318,8 +320,13 @@ public class FtcLift extends FtcSubSystem {
             }
 
             if (waitTillCompletion) {
-                long waitTime = estimateTravelTime(leftCurrentPosition, leftTargetPosition);
-                FtcUtils.sleep(waitTime);
+                long timeout = estimateTravelTime(leftCurrentPosition, leftTargetPosition);
+                Deadline d = new Deadline(timeout, TimeUnit.MILLISECONDS);
+                d.reset();
+                while (!d.hasExpired() && !liftNearTarget(leftCurrentPosition, leftTargetPosition)) {
+                    FtcUtils.sleep(FtcUtils.CYCLE_MS);
+                    leftCurrentPosition = leftLiftMotor.getCurrentPosition();
+                }
             }
         }
     }

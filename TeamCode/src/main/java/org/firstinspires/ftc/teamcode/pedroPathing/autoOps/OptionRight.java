@@ -24,59 +24,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.qubit.autoOps;
+package org.firstinspires.ftc.teamcode.pedroPathing.autoOps;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
-import org.firstinspires.ftc.teamcode.roadRunner.MecanumDrive;
 
 /**
  * A class to implement autonomous objective
  */
-//@Config
+@Config
 public class OptionRight extends OptionBase {
     public static class Params {
-        public double v1x = 0, v1y = 27,
-                v4x = 36, v4y = 1;
-
-        public boolean deliverPreloaded = true,
-                park = true;
+        public boolean executeTrajectories = true, executeRobotActions = false;
+        public boolean deliverPreloaded = false,
+                park = false;
     }
 
-    public static OptionRight.Params PARAMS = new OptionRight.Params();
+    public static Params PARAMS = new Params();
 
-    public OptionRight(LinearOpMode autoOpMode, FtcBot robot, MecanumDrive drive) {
-        super(autoOpMode, robot, drive);
-
-        // Starting position
-        startPose = new Pose2d(0, 0, 0);
-
-        // preloaded specimen
-        v1 = new Vector2d(PARAMS.v1x, PARAMS.v1y);
-
-        // park
-        v4 = new Vector2d(PARAMS.v4x, PARAMS.v4y);
+    public OptionRight(LinearOpMode autoOpMode, FtcBot robot, Follower follower) {
+        super(autoOpMode, robot, follower);
+        follower.setStartingPose(startPose);
     }
 
     public OptionRight init() {
         super.initialize();
 
         // preloaded specimen
-        tab1 = drive.actionBuilder(startPose)
-                .strafeToConstantHeading(v1);
-        a1 = tab1.build();
 
         // park
-        tab4 = tab1.endTrajectory().fresh()
-                .strafeToConstantHeading(v4);
-        a4 = tab4.build();
 
         return this;
     }
@@ -84,28 +65,28 @@ public class OptionRight extends OptionBase {
     /**
      * Executes the autonomous workflow.
      */
-    public void execute(boolean executeTrajectories, boolean executeRobotActions) {
+    public void execute() {
         FtcLogger.enter();
 
         // Deliver preloaded specimen
         if (!saveAndTest()) return;
-        if (executeRobotActions) robot.intake.flipDown(false);
+        if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
         if (PARAMS.deliverPreloaded) {
-            if (executeRobotActions) robot.intake.flipDown(false);
-            if (executeRobotActions)
+            if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
+            if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER, FtcLift.POSITION_FLOOR, false);
-            if (executeTrajectories) Actions.runBlocking(a1);
-            if (executeRobotActions)
+            if (PARAMS.executeTrajectories) ;
+            if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, FtcLift.POSITION_FLOOR, false);
         }
 
         // Park
         if (!saveAndTest()) return;
         if (PARAMS.park) {
-            if (executeRobotActions)
+            if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
-            if (executeTrajectories) Actions.runBlocking(a4);
-            if (executeRobotActions) robot.lift.resetLiftIfTouchPressed();
+            if (PARAMS.executeTrajectories) ;
+            if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
         }
 
         FtcLogger.exit();
