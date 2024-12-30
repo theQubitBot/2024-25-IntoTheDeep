@@ -166,7 +166,7 @@ public class AutoOp extends LinearOpMode {
             autoOpExecutionDuration = runtime.seconds();
         }
 
-        while (optionBase.saveAndTest()) {
+        while (optionBase != null && optionBase.saveAndTest()) {
             telemetry.addData(FtcUtils.TAG, "endGyro=%.1f, endLeftLift=%d, endRightLift=%d",
                     FtcImu.endAutoOpHeading, FtcLift.endAutoOpLeftLiftPosition, FtcLift.endAutoOpRightLiftPosition);
             telemetry.addData(FtcUtils.TAG, "Auto Op took %.0f seconds.", autoOpExecutionDuration);
