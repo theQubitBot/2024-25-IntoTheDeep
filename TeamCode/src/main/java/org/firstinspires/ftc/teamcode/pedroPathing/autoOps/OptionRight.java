@@ -30,6 +30,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierCurve;
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierLine;
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain;
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
@@ -39,10 +44,18 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
  */
 @Config
 public class OptionRight extends OptionBase {
+    // Preloaded Specimen
+    Pose scorePose = new Pose(-3.6, 29.3, RADIAN0);
+
+    // Park
+    public Pose parkControlPose1 = new Pose(0, 11.6, RADIAN0);
+    public Pose parkPose = new Pose(34, 6.1, RADIAN0);
+    PathChain scorePreloadPath, parkPath;
+
     public static class Params {
-        public boolean executeTrajectories = true, executeRobotActions = false;
-        public boolean deliverPreloaded = false,
-                park = false;
+        public boolean executeTrajectories = true, executeRobotActions = true;
+        public boolean deliverPreloaded = true,
+                park = true;
     }
 
     public static Params PARAMS = new Params();
@@ -56,8 +69,18 @@ public class OptionRight extends OptionBase {
         super.initialize();
 
         // preloaded specimen
+        scorePreloadPath = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(startPose), new Point(scorePose)))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
 
         // park
+        parkPath = follower.pathBuilder()
+                .addPath(new BezierCurve(new Point(scorePose),
+                        new Point(parkControlPose1),
+                        new Point(parkPose)))
+                .setConstantHeadingInterpolation(scorePose.getHeading())
+                .build();
 
         return this;
     }
@@ -75,9 +98,10 @@ public class OptionRight extends OptionBase {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER, FtcLift.POSITION_FLOOR, false);
-            if (PARAMS.executeTrajectories) ;
+            if (PARAMS.executeTrajectories) runBlocking(scorePreloadPath, true, 2500);
+            ;
             if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, FtcLift.POSITION_FLOOR, false);
+                robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, FtcLift.POSITION_FLOOR, true);
         }
 
         // Park
@@ -85,7 +109,7 @@ public class OptionRight extends OptionBase {
         if (PARAMS.park) {
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
-            if (PARAMS.executeTrajectories) ;
+            if (PARAMS.executeTrajectories) runBlocking(parkPath, true, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
         }
 
