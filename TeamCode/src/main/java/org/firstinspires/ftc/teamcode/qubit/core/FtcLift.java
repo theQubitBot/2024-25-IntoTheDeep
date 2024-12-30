@@ -49,13 +49,12 @@ public class FtcLift extends FtcSubSystem {
     public static final int TARGET_POSITION_TOLERANCE = 5;
     public static final int POSITION_HIGH_BASKET = 2025;
     public static final int POSITION_LOW_BASKET = 650;
-    public static final int POSITION_HANG = 1000;
+    public static final int POSITION_HANG = 1024;
     public static final int POSITION_HIGH_RUNG = POSITION_HIGH_BASKET;
     public static final int POSITION_LOW_RUNG = POSITION_HANG;
-    public static final int POSITION_HIGH_CHAMBER = 1550;
-    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 850;
+    public static final int POSITION_HIGH_CHAMBER = 1460;
+    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 1000;
     public static final int POSITION_LOW_CHAMBER = 450;
-    public static final int POSITION_SPECIMEN_INTAKE = 50;
     public static final int POSITION_FLOOR = 5;
     public static final int POSITION_MINIMUM = 0;
     public static final int POSITION_INVALID = Integer.MIN_VALUE;
@@ -236,8 +235,8 @@ public class FtcLift extends FtcSubSystem {
                 leftTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpLeftLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpRightLiftPosition;
             } else if (gamePad1.x || gamePad2.x) {
-                leftTargetPosition = FtcLift.POSITION_SPECIMEN_INTAKE - endAutoOpLeftLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_SPECIMEN_INTAKE - endAutoOpRightLiftPosition;
+                leftTargetPosition = FtcLift.POSITION_LOW_BASKET - endAutoOpLeftLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpRightLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpLeftLiftPosition;
 
@@ -252,7 +251,7 @@ public class FtcLift extends FtcSubSystem {
             if (!liftNearTarget(leftCurrentPosition, leftTargetPosition) ||
                     !liftNearTarget(rightCurrentPosition, rightTargetPosition)) {
                 move(leftTargetPosition, rightTargetPosition, false);
-            } else {
+            } else if (!hangSequenceInitiated) {
                 // If lift is at LOW position, set motor power to be zero
                 if (liftNearTarget(leftCurrentPosition, POSITION_MINIMUM - endAutoOpLeftLiftPosition)) {
                     leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
@@ -334,38 +333,40 @@ public class FtcLift extends FtcSubSystem {
     public void resetLiftIfTouchPressed() {
         FtcLogger.enter();
 
-        if (enableLiftResetOnTouch) {
-            // Must get current position before evaluating lift encoder reset.
-            int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
-            int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
+        if (liftEnabled) {
+            if (enableLiftResetOnTouch) {
+                // Must get current position before evaluating lift encoder reset.
+                int leftCurrentPosition = leftLiftMotor.getCurrentPosition();
+                int rightCurrentPosition = rightLiftMotor.getCurrentPosition();
 
-            // Reset lift encoder if lift is not at low position (belt is slipping)
-            if (leftLiftTouch.isPressed() &&
-                    // If hang operation has been initiated, then don't set zero lift power
-                    !hangSequenceInitiated &&
-                    (!liftNearTarget(leftCurrentPosition, POSITION_FLOOR) &&
-                            !liftNearTarget(leftCurrentPosition, POSITION_MINIMUM))) {
-                leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                leftLiftMotor.setTargetPosition(POSITION_FLOOR);
-                leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
-                endAutoOpLeftLiftPosition = 0;
-                endAutoOpRightLiftPosition = 0;
-            }
+                // Reset lift encoder if lift is not at low position (belt is slipping)
+                if (leftLiftTouch.isPressed() &&
+                        // If hang operation has been initiated, then don't set zero lift power
+                        !hangSequenceInitiated &&
+                        (!liftNearTarget(leftCurrentPosition, POSITION_FLOOR) &&
+                                !liftNearTarget(leftCurrentPosition, POSITION_MINIMUM))) {
+                    leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                    leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    leftLiftMotor.setTargetPosition(POSITION_FLOOR);
+                    leftLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                    leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                    endAutoOpLeftLiftPosition = 0;
+                    endAutoOpRightLiftPosition = 0;
+                }
 
-            if (rightLiftTouch.isPressed() &&
-                    // If hang operation has been initiated, then don't set zero lift power
-                    !hangSequenceInitiated &&
-                    (!liftNearTarget(rightCurrentPosition, POSITION_FLOOR) &&
-                            !liftNearTarget(rightCurrentPosition, POSITION_MINIMUM))) {
-                rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                rightLiftMotor.setTargetPosition(POSITION_FLOOR);
-                rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
-                endAutoOpLeftLiftPosition = 0;
-                endAutoOpRightLiftPosition = 0;
+                if (rightLiftTouch.isPressed() &&
+                        // If hang operation has been initiated, then don't set zero lift power
+                        !hangSequenceInitiated &&
+                        (!liftNearTarget(rightCurrentPosition, POSITION_FLOOR) &&
+                                !liftNearTarget(rightCurrentPosition, POSITION_MINIMUM))) {
+                    rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+                    rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    rightLiftMotor.setTargetPosition(POSITION_FLOOR);
+                    rightLiftMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                    rightLiftMotor.setPower(FtcMotor.ZERO_POWER);
+                    endAutoOpLeftLiftPosition = 0;
+                    endAutoOpRightLiftPosition = 0;
+                }
             }
         }
 
