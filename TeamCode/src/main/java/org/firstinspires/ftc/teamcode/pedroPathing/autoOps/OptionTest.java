@@ -30,7 +30,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
-import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierLine;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
@@ -42,19 +41,23 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
  */
 public final class OptionTest extends OptionBase {
     Pose endPose = new Pose(24, 0, RADIAN0);
-    PathChain scorePreloadPath;
+    PathChain pathChain;
+    Runnable liftL2H;
 
-    public OptionTest(LinearOpMode autoOpMode, FtcBot robot, Follower drive) {
-        super(autoOpMode, robot, drive);
+    public OptionTest(LinearOpMode autoOpMode, FtcBot robot, Follower follower) {
+        super(autoOpMode, robot, follower);
+        follower.setStartingPose(startPose);
     }
 
     public OptionTest init() {
         super.initialize();
-        scorePreloadPath = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(endPose)))
+
+        liftL2H = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, false);
+
+        pathChain = follower.pathBuilder()
+                .addBezierLine(new Point(startPose), new Point(endPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
-                .addTemporalCallback(100,
-                        () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, false))
+                .addTemporalCallback(100, liftL2H)
                 .build();
         return this;
     }
@@ -64,7 +67,7 @@ public final class OptionTest extends OptionBase {
      */
     public void execute() {
         FtcLogger.enter();
-        runBlocking(scorePreloadPath, true, 3000);
+        runFollower(pathChain, true, 3000);
         FtcLogger.exit();
     }
 }

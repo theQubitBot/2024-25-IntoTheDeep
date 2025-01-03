@@ -32,7 +32,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
-import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Path;
+import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathCallback;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcImu;
@@ -89,31 +89,13 @@ public class OptionBase {
     }
 
     /**
-     * This method executes the path.
-     */
-    public void runBlocking(Path path, boolean holdEnd, long timeout) {
-        ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        follower.followPath(path, holdEnd);
-        if (timeout < 0) timeout = Long.MAX_VALUE;
-        Deadline d = new Deadline(timeout, TimeUnit.MILLISECONDS);
-        d.reset();
-        do {
-            follower.update();
-        } while (autoOpMode.opModeIsActive() && !d.hasExpired() && follower.isBusy());
-        if (follower.isBusy()) follower.breakFollowing();
-        autoOpMode.telemetry.addData(FtcUtils.TAG, "Path execution: %.0f ms", runtime.milliseconds());
-        autoOpMode.telemetry.update();
-    }
-
-    /**
      * This method executes the path chain.
      */
-    public void runBlocking(PathChain pathChain, boolean holdEnd, long timeout) {
+    public void runFollower(PathChain pathChain, boolean holdEnd, long timeout) {
         ElapsedTime runtime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         follower.followPath(pathChain, holdEnd);
         if (timeout < 0) timeout = Long.MAX_VALUE;
         Deadline d = new Deadline(timeout, TimeUnit.MILLISECONDS);
-        d.reset();
         do {
             follower.update();
         } while (autoOpMode.opModeIsActive() && !d.hasExpired() && follower.isBusy());
@@ -136,6 +118,15 @@ public class OptionBase {
             }
 
             return false;
+        }
+    }
+
+    public void runCallbacks(PathChain pathChain, ElapsedTime pathChainElapsedTime) {
+        for (PathCallback callback : pathChain.getCallbacks()) {
+            if (!callback.hasBeenRun() && callback.getType() == PathCallback.TIME &&
+                    pathChainElapsedTime.milliseconds() >= callback.getStartCondition()) {
+                callback.run();
+            }
         }
     }
 

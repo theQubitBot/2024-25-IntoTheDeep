@@ -98,7 +98,7 @@ public class OptionRight extends OptionBase {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER, FtcLift.POSITION_FLOOR, false);
-            if (PARAMS.executeTrajectories) runBlocking(scorePreloadPath, true, 2500);
+            if (PARAMS.executeTrajectories) runFollower(scorePreloadPath, true, 2500);
             ;
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, FtcLift.POSITION_FLOOR, true);
@@ -109,7 +109,7 @@ public class OptionRight extends OptionBase {
         if (PARAMS.park) {
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
-            if (PARAMS.executeTrajectories) runBlocking(parkPath, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
         }
 

@@ -36,7 +36,7 @@ public class PathCallback extends SingleRunAction {
         super(runnable);
         this.startCondition = startCondition;
         this.type = type;
-        if (this.type != TIME || this.type != PARAMETRIC) {
+        if (this.type != TIME && this.type != PARAMETRIC) {
             this.type = PARAMETRIC;
         }
         if (this.type == TIME && this.startCondition < 0) {

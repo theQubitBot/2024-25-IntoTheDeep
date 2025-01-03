@@ -156,7 +156,7 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
         if (PARAMS.deliverPreloaded) {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
-            if (PARAMS.executeTrajectories) runBlocking(scorePreloadPath, true, 2500);
+            if (PARAMS.executeTrajectories) runFollower(scorePreloadPath, true, 2500);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
@@ -170,13 +170,13 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliverFirstYellow) {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
-            if (PARAMS.executeTrajectories) runBlocking(pickup1, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup1, false, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
             if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
             if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
             if (PARAMS.executeRobotActions) robot.intake.spinOut();
-            if (PARAMS.executeTrajectories) runBlocking(score1, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score1, true, 3000);
             if (PARAMS.executeRobotActions) robot.intake.spinStop();
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
@@ -192,13 +192,13 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliverSecondYellow) {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
-            if (PARAMS.executeTrajectories) runBlocking(pickup2, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup2, false, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
             if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
             if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
             if (PARAMS.executeRobotActions) robot.intake.spinOut();
-            if (PARAMS.executeTrajectories) runBlocking(score2, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score2, true, 3000);
             if (PARAMS.executeRobotActions) robot.intake.spinStop();
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
@@ -213,13 +213,13 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliverThirdYellow) {
             if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
-            if (PARAMS.executeTrajectories) runBlocking(pickup3, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup3, false, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
             if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
             if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
             if (PARAMS.executeRobotActions) robot.intake.spinOut();
-            if (PARAMS.executeTrajectories) runBlocking(score3, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score3, true, 3000);
             if (PARAMS.executeRobotActions) robot.intake.spinStop();
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
@@ -233,7 +233,7 @@ public class OptionLeft extends OptionBase {
         if (!saveAndTest()) return;
         if (PARAMS.park) {
             robot.intake.flipHorizontal(false);
-            if (PARAMS.executeTrajectories) runBlocking(parkPath, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 3000);
             if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
             if (PARAMS.executeRobotActions) robot.flag.raise(false);
             if (PARAMS.executeRobotActions) {

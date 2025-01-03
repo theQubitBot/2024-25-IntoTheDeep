@@ -231,7 +231,7 @@ public class OptionLeft2 extends OptionBase {
         if (!saveAndTest()) return;
         if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
         if (PARAMS.deliverPreloaded) {
-            if (PARAMS.executeTrajectories) runBlocking(scorePreloadPath, true, 2500);
+            if (PARAMS.executeTrajectories) runFollower(scorePreloadPath, true, 2500);
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
             if (PARAMS.executeRobotActions)
@@ -241,8 +241,8 @@ public class OptionLeft2 extends OptionBase {
         // Deliver first yellow sample
         if (!saveAndTest()) return;
         if (PARAMS.deliver1) {
-            if (PARAMS.executeTrajectories) runBlocking(pickup1, false, 3000);
-            if (PARAMS.executeTrajectories) runBlocking(score1, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup1, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score1, true, 3000);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
@@ -254,8 +254,8 @@ public class OptionLeft2 extends OptionBase {
         // Deliver second yellow sample
         if (!saveAndTest()) return;
         if (PARAMS.deliver2) {
-            if (PARAMS.executeTrajectories) runBlocking(pickup2, false, 3000);
-            if (PARAMS.executeTrajectories) runBlocking(score2, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup2, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score2, true, 3000);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
@@ -267,8 +267,8 @@ public class OptionLeft2 extends OptionBase {
         // Deliver third yellow sample
         if (!saveAndTest()) return;
         if (PARAMS.deliver3) {
-            if (PARAMS.executeTrajectories) runBlocking(pickup3, false, 3000);
-            if (PARAMS.executeTrajectories) runBlocking(score3, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(pickup3, false, 3000);
+            if (PARAMS.executeTrajectories) runFollower(score3, true, 3000);
             if (PARAMS.executeRobotActions)
                 robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
@@ -280,7 +280,7 @@ public class OptionLeft2 extends OptionBase {
         // Park
         if (!saveAndTest()) return;
         if (PARAMS.park) {
-            if (PARAMS.executeTrajectories) runBlocking(parkPath, true, 3000);
+            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 3000);
             if (PARAMS.executeRobotActions) robot.flag.raise(false);
             if (PARAMS.executeRobotActions) {
                 robot.lift.stop();
