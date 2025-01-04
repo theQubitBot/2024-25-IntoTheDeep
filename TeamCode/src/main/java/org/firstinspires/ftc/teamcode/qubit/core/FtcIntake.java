@@ -58,7 +58,7 @@ public class FtcIntake extends FtcSubSystem {
     public static final double FLIP_HANG_RIGHT_POSITION = 0.5405;
     public static final double FLIP_DELIVER_LEFT_POSITION = 0.5700;
     public static final double FLIP_DELIVER_RIGHT_POSITION = 0.5655;
-    public static final int FLIP_TRAVEL_TIME = 800; // milliseconds
+    public static final int FLIP_TRAVEL_TIME = 1000; // milliseconds
     public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
     private final boolean intakeEnabled = true;
     public boolean telemetryEnabled = true;

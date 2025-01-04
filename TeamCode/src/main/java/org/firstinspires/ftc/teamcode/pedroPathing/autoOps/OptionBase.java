@@ -66,6 +66,10 @@ public class OptionBase {
     protected Follower follower;
     protected final Pose startPose = new Pose(0, 0, 0);
 
+    protected Runnable lift2High, lift2HighBlocking, lift2Low, resetLift;
+    protected Runnable intakeSpinIn, intakeSpinOut, intakeSpinStop;
+    protected Runnable intakeFlipDown, intakeFlipDelivery, intakeFlipHorizontal;
+
     static {
         RADIAN0 = Math.toRadians(0);
         RADIAN15 = Math.toRadians(15);
@@ -86,6 +90,19 @@ public class OptionBase {
         this.autoOpMode = autoOpMode;
         this.robot = robot;
         this.follower = follower;
+
+        lift2High = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, false);
+        lift2HighBlocking = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+        lift2Low = () -> robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
+        resetLift = () -> robot.lift.resetLiftIfTouchPressed();
+
+        intakeSpinIn = () -> robot.intake.spinIn(false);
+        intakeSpinOut = () -> robot.intake.spinOut();
+        intakeSpinStop = () -> robot.intake.spinStop();
+
+        intakeFlipDown = () -> robot.intake.flipDown(false);
+        intakeFlipDelivery = () -> robot.intake.flipDelivery(false);
+        intakeFlipHorizontal = () -> robot.intake.flipHorizontal(false);
     }
 
     /**

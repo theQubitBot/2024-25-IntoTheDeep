@@ -33,7 +33,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
-import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 
 /**
@@ -42,7 +41,6 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 public final class OptionTest extends OptionBase {
     Pose endPose = new Pose(24, 0, RADIAN0);
     PathChain pathChain;
-    Runnable liftL2H;
 
     public OptionTest(LinearOpMode autoOpMode, FtcBot robot, Follower follower) {
         super(autoOpMode, robot, follower);
@@ -52,12 +50,10 @@ public final class OptionTest extends OptionBase {
     public OptionTest init() {
         super.initialize();
 
-        liftL2H = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, false);
-
         pathChain = follower.pathBuilder()
                 .addBezierLine(new Point(startPose), new Point(endPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
-                .addTemporalCallback(100, liftL2H)
+                .addTemporalCallback(100, lift2High)
                 .build();
         return this;
     }

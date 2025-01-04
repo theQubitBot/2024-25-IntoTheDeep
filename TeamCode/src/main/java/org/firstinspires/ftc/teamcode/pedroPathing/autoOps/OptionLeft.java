@@ -31,11 +31,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.pedroPathing.localization.Pose;
-import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierCurve;
-import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.BezierLine;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.PathChain;
 import org.firstinspires.ftc.teamcode.pedroPathing.pathGeneration.Point;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcBot;
+import org.firstinspires.ftc.teamcode.qubit.core.FtcIntake;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLift;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 
@@ -63,8 +62,8 @@ public class OptionLeft extends OptionBase {
     public Pose pickup3Pose = new Pose(20.1, 29.0, RADIAN135);
 
     // Park
-    public Pose parkControlPose = new Pose(30, 42, -RADIAN15);
-    public Pose parkPose = new Pose(58, 23, -RADIAN45);
+    public Pose parkControlPose = new Pose(32, 44, -RADIAN15);
+    public Pose parkPose = new Pose(55.5, 27.5, -RADIAN45);
 
     PathChain scorePreloadPath, parkPath,
             pickup1, pickup2, pickup3, score1, score2, score3;
@@ -72,8 +71,8 @@ public class OptionLeft extends OptionBase {
     public static class Params {
         public boolean executeTrajectories = true, executeRobotActions = true;
         public boolean deliverPreloaded = true,
-                deliverFirstYellow = true, deliverSecondYellow = true, deliverThirdYellow = true,
-                park = false;
+                deliver1 = true, deliver2 = true, deliver3 = true,
+                park = true;
     }
 
     public static Params PARAMS = new Params();
@@ -88,58 +87,159 @@ public class OptionLeft extends OptionBase {
 
         // preloaded sample
         scorePreloadPath = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(scorePose)))
+                .addBezierLine(new Point(startPose), new Point(scorePose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDown.run();
+                })
+                .addTemporalCallback(10, () -> {
+                    if (PARAMS.executeRobotActions) intakeSpinStop.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME, () -> {
+                    if (PARAMS.executeRobotActions) lift2High.run();
+                })
                 .build();
 
         // first yellow
         pickup1 = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(scorePose),
+                .addBezierCurve(new Point(scorePose),
                         new Point(pickup1ControlPose1),
                         new Point(pickup1ControlPose2),
                         new Point(pickup1ControlPose3),
                         new Point(pickup1ControlPose4),
                         new Point(pickup1ControlPose5),
-                        new Point(pickup1Pose)))
+                        new Point(pickup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
+                .addTemporalCallback(100, () -> {
+                    if (PARAMS.executeRobotActions) lift2Low.run();
+                })
+                .addTemporalCallback(150, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDown.run();
+                })
+                .addTemporalCallback(200, () -> {
+                    if (PARAMS.executeRobotActions) intakeSpinIn.run();
+                })
+                .addTemporalCallback(FtcLift.TRAVEL_TIME_2_HIGH_BASKET + 100, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
                 .build();
 
         score1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(pickup1Pose), new Point(scorePose)))
+                .addBezierLine(new Point(pickup1Pose), new Point(scorePose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDelivery.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
+                    if (PARAMS.executeRobotActions) lift2High.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 200, () -> {
+                    // In case sample is stuck, evict it.
+                    if (PARAMS.executeRobotActions) intakeSpinOut.run();
+                })
                 .build();
 
         // second yellow
         pickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(scorePose), new Point(pickup2Pose)))
+                .addBezierLine(new Point(scorePose), new Point(pickup2Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) lift2Low.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDown.run();
+                })
+                .addTemporalCallback(100, () -> {
+                    if (PARAMS.executeRobotActions) intakeSpinIn.run();
+                })
+                .addTemporalCallback(FtcLift.TRAVEL_TIME_2_HIGH_BASKET, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
                 .build();
 
         score2 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(pickup2Pose), new Point(scorePose)))
+                .addBezierLine(new Point(pickup2Pose), new Point(scorePose))
                 .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDelivery.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
+                    if (PARAMS.executeRobotActions) lift2High.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 200, () -> {
+                    // In case sample is stuck, evict it.
+                    if (PARAMS.executeRobotActions) intakeSpinOut.run();
+                })
                 .build();
 
         // third yellow
         pickup3 = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(scorePose),
+                .addBezierCurve(new Point(scorePose),
                         new Point(pickup3ControlPose1),
                         new Point(pickup3ControlPose2),
-                        new Point(pickup3Pose)))
+                        new Point(pickup3Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) lift2Low.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDown.run();
+                })
+                .addTemporalCallback(100, () -> {
+                    if (PARAMS.executeRobotActions) intakeSpinIn.run();
+                })
+                .addTemporalCallback(FtcLift.TRAVEL_TIME_2_HIGH_BASKET, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
                 .build();
 
         score3 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(pickup3Pose), new Point(scorePose)))
+                .addBezierLine(new Point(pickup3Pose), new Point(scorePose))
                 .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipDelivery.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
+                })
+                .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
+                    if (PARAMS.executeRobotActions) lift2High.run();
+                })
                 .build();
 
         // park
         parkPath = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(scorePose),
+                .addBezierCurve(new Point(scorePose),
                         new Point(parkControlPose),
-                        new Point(parkPose)))
+                        new Point(parkPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading())
+                .addTemporalCallback(1, () -> {
+                    if (PARAMS.executeRobotActions) lift2Low.run();
+                })
+                .addTemporalCallback(50, () -> {
+                    if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
+                })
+                .addTemporalCallback(100, () -> {
+                    if (PARAMS.executeRobotActions) intakeSpinStop.run();
+                })
+                .addTemporalCallback(FtcLift.TRAVEL_TIME_2_HIGH_BASKET, () -> {
+                    if (PARAMS.executeRobotActions) resetLift.run();
+                })
                 .build();
 
         return this;
@@ -153,92 +253,50 @@ public class OptionLeft extends OptionBase {
 
         // Deliver preloaded sample
         if (!saveAndTest()) return;
-        if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
+        if (PARAMS.executeRobotActions) intakeFlipDown.run();
         if (PARAMS.deliverPreloaded) {
-            if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
             if (PARAMS.executeTrajectories) runFollower(scorePreloadPath, true, 2500);
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver first yellow sample
         if (!saveAndTest()) return;
-        if (PARAMS.deliverFirstYellow) {
-            if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
-            if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
+        if (PARAMS.deliver1) {
             if (PARAMS.executeTrajectories) runFollower(pickup1, false, 3000);
-            if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
-            if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
-            if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
-            // In case sample is stuck, evict it.
-            if (PARAMS.executeRobotActions) robot.intake.spinOut();
             if (PARAMS.executeTrajectories) runFollower(score1, true, 3000);
-            if (PARAMS.executeRobotActions) robot.intake.spinStop();
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
-
+            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver second yellow sample
         if (!saveAndTest()) return;
-        if (PARAMS.deliverSecondYellow) {
-            if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
-            if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
+        if (PARAMS.deliver2) {
             if (PARAMS.executeTrajectories) runFollower(pickup2, false, 3000);
-            if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
-            if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
-            if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
-            // In case sample is stuck, evict it.
-            if (PARAMS.executeRobotActions) robot.intake.spinOut();
             if (PARAMS.executeTrajectories) runFollower(score2, true, 3000);
-            if (PARAMS.executeRobotActions) robot.intake.spinStop();
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         }
 
         // Deliver third yellow sample
         if (!saveAndTest()) return;
-        if (PARAMS.deliverThirdYellow) {
-            if (PARAMS.executeRobotActions) robot.intake.flipDown(false);
-            if (PARAMS.executeRobotActions) robot.intake.spinIn(false);
+        if (PARAMS.deliver3) {
             if (PARAMS.executeTrajectories) runFollower(pickup3, false, 3000);
-            if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
-            if (PARAMS.executeRobotActions) robot.intake.flipDelivery(true);
-            if (PARAMS.executeRobotActions) robot.intake.flipHorizontal(false);
-            // In case sample is stuck, evict it.
-            if (PARAMS.executeRobotActions) robot.intake.spinOut();
             if (PARAMS.executeTrajectories) runFollower(score3, true, 3000);
-            if (PARAMS.executeRobotActions) robot.intake.spinStop();
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
-            if (PARAMS.executeRobotActions) robot.arm.moveForward(false);
-            if (PARAMS.executeRobotActions)
-                robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
+            if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
         }
 
         // Park
         if (!saveAndTest()) return;
         if (PARAMS.park) {
-            robot.intake.flipHorizontal(false);
-            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 3000);
-            if (PARAMS.executeRobotActions) robot.lift.resetLiftIfTouchPressed();
+            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 2500);
             if (PARAMS.executeRobotActions) robot.flag.raise(false);
-            if (PARAMS.executeRobotActions) {
-                robot.lift.stop();
-            }
+            if (PARAMS.executeRobotActions) robot.lift.stop();
         }
 
         FtcLogger.exit();

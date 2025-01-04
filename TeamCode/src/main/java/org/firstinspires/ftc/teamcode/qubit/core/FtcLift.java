@@ -62,6 +62,12 @@ public class FtcLift extends FtcSubSystem {
     public static final double UP_POWER = FtcMotor.MAX_POWER;
     public static final double DOWN_POWER = -UP_POWER;
     public static final int TRAVEL_TIME_MAX_MS = 2000;
+    public static final int TRAVEL_TIME_2_HIGH_BASKET = POSITION_HIGH_BASKET / 2;
+    public static final int TRAVEL_TIME_2_LOW_BASKET = POSITION_LOW_BASKET / 2;
+    public static final int TRAVEL_TIME_2_HIGH_CHAMBER = POSITION_HIGH_CHAMBER / 2;
+    public static final int TRAVEL_TIME_2_LOW_CHAMBER = POSITION_LOW_CHAMBER / 2;
+    public static final int TRAVEL_TIME_2_HIGH_RUNG = POSITION_HIGH_RUNG / 2;
+    public static final int TRAVEL_TIME_2_LOW_RUNG = POSITION_LOW_RUNG / 2;
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     public static int endAutoOpLeftLiftPosition = POSITION_MINIMUM;
