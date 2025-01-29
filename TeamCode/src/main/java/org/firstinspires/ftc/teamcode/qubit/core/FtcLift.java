@@ -81,7 +81,7 @@ public class FtcLift extends FtcSubSystem {
     private TouchSensor leftLiftTouch = null;
     private TouchSensor rightLiftTouch = null;
     private final boolean enableLiftResetOnTouch = true;
-    private boolean hangSequenceInitiated = false;
+    private boolean enableZeroPowerAtLowPosition = true;
 
     public FtcLift(FtcBot robot) {
         parent = robot;
@@ -214,6 +214,10 @@ public class FtcLift extends FtcSubSystem {
      */
     public void operate(Gamepad gamePad1, Gamepad gamePad2, ElapsedTime runtime) {
         if (liftEnabled) {
+            if (FtcUtils.lastNSeconds(runtime, 10)) {
+                enableZeroPowerAtLowPosition = false;
+            }
+
             if (FtcUtils.gameOver(runtime)) {
                 if (botIsHanging()) {
                     lowerBotSlowly();
@@ -242,14 +246,12 @@ public class FtcLift extends FtcSubSystem {
                 rightTargetPosition = FtcLift.POSITION_HIGH_CHAMBER - endAutoOpRightLiftPosition;
             } else if (gamePad1.x || gamePad2.x) {
                 leftTargetPosition = FtcLift.POSITION_LOW_BASKET - endAutoOpLeftLiftPosition;
-                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpRightLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_LOW_BASKET - endAutoOpRightLiftPosition;
             } else if (gamePad1.y || gamePad2.y) {
                 leftTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpLeftLiftPosition;
-
-                // Right lift may be at chamber level, lower it.
-                rightTargetPosition = FtcLift.POSITION_FLOOR - endAutoOpRightLiftPosition;
+                rightTargetPosition = FtcLift.POSITION_HIGH_BASKET - endAutoOpRightLiftPosition;
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
-                hangSequenceInitiated = true;
+                enableZeroPowerAtLowPosition = false;
                 leftTargetPosition = FtcLift.POSITION_HANG - endAutoOpLeftLiftPosition;
                 rightTargetPosition = FtcLift.POSITION_HANG - endAutoOpRightLiftPosition;
             }
@@ -257,7 +259,7 @@ public class FtcLift extends FtcSubSystem {
             if (!liftNearTarget(leftCurrentPosition, leftTargetPosition) ||
                     !liftNearTarget(rightCurrentPosition, rightTargetPosition)) {
                 move(leftTargetPosition, rightTargetPosition, false);
-            } else if (!hangSequenceInitiated) {
+            } else if (enableZeroPowerAtLowPosition) {
                 // If lift is at LOW position, set motor power to be zero
                 if (liftNearTarget(leftCurrentPosition, POSITION_MINIMUM - endAutoOpLeftLiftPosition)) {
                     leftLiftMotor.setPower(FtcMotor.ZERO_POWER);
@@ -348,7 +350,7 @@ public class FtcLift extends FtcSubSystem {
                 // Reset lift encoder if lift is not at low position (belt is slipping)
                 if (leftLiftTouch.isPressed() &&
                         // If hang operation has been initiated, then don't set zero lift power
-                        !hangSequenceInitiated &&
+                        enableZeroPowerAtLowPosition &&
                         (!liftNearTarget(leftCurrentPosition, POSITION_FLOOR) &&
                                 !liftNearTarget(leftCurrentPosition, POSITION_MINIMUM))) {
                     leftLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -362,7 +364,7 @@ public class FtcLift extends FtcSubSystem {
 
                 if (rightLiftTouch.isPressed() &&
                         // If hang operation has been initiated, then don't set zero lift power
-                        !hangSequenceInitiated &&
+                        enableZeroPowerAtLowPosition &&
                         (!liftNearTarget(rightCurrentPosition, POSITION_FLOOR) &&
                                 !liftNearTarget(rightCurrentPosition, POSITION_MINIMUM))) {
                     rightLiftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);

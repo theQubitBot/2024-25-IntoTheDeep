@@ -45,11 +45,11 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 @Config
 public class OptionRight extends OptionBase {
     // Preloaded Specimen
-    Pose scorePose = new Pose(-3.6, 29.3, RADIAN0);
+    Pose scorePose = new Pose(-3.6, 30.5, RADIAN0);
 
     // Park
-    public Pose parkControlPose1 = new Pose(0, 11.6, RADIAN0);
-    public Pose parkPose = new Pose(34, 6.1, RADIAN0);
+    public Pose parkControlPose1 = new Pose(-3.6, 11, RADIAN0);
+    public Pose parkPose = new Pose(34, 6, RADIAN0);
     PathChain scorePreloadPath, parkPath;
 
     public static class Params {
