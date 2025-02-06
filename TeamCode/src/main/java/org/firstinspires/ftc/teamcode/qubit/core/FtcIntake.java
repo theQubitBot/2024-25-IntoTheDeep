@@ -51,15 +51,19 @@ public class FtcIntake extends FtcSubSystem {
     public static final String RIGHT_FLIP_SERVO_NAME = "rightFlipServo";
     public static final double FLIP_DOWN_LEFT_POSITION = 0.4925;
     public static final double FLIP_DOWN_RIGHT_POSITION = 0.4955;
-
     public static final double FLIP_HORIZONTAL_LEFT_POSITION = 0.5345;
     public static final double FLIP_HORIZONTAL_RIGHT_POSITION = 0.5320;
-    public static final double FLIP_HANG_LEFT_POSITION = 0.5365;
-    public static final double FLIP_HANG_RIGHT_POSITION = 0.5405;
     public static final double FLIP_DELIVER_LEFT_POSITION = 0.5700;
     public static final double FLIP_DELIVER_RIGHT_POSITION = 0.5655;
     public static final int FLIP_TRAVEL_TIME = 1000; // milliseconds
     public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
+    public static final String LEFT_SPECIMEN_SERVO_NAME = "leftSpecimenServo";
+    public static final String RIGHT_SPECIMEN_SERVO_NAME = "rightSpecimenServo";
+    public static final double LEFT_SPECIMEN_GRAB_POSITION = 0.4460;
+    public static final double LEFT_SPECIMEN_RELEASE_POSITION = 0.50;
+    public static final double RIGHT_SPECIMEN_GRAB_POSITION = 0.8600;
+    public static final double RIGHT_SPECIMEN_RELEASE_POSITION = 0.50;
+
     private final boolean intakeEnabled = true;
     public boolean telemetryEnabled = true;
     private Telemetry telemetry = null;
@@ -68,6 +72,8 @@ public class FtcIntake extends FtcSubSystem {
     private FtcServo rightSpinServo = null;
     private FtcServo leftFlipServo = null;
     private FtcServo rightFlipServo = null;
+    private FtcServo leftSpecimenServo = null;
+    private FtcServo rightSpecimenServo = null;
 
     public FtcIntake(FtcBot robot) {
         parent = robot;
@@ -93,6 +99,11 @@ public class FtcIntake extends FtcSubSystem {
             rightFlipServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_FLIP_SERVO_NAME));
             rightFlipServo.setDirection(Servo.Direction.REVERSE);
 
+            leftSpecimenServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_SPECIMEN_SERVO_NAME));
+            leftSpecimenServo.setDirection(Servo.Direction.FORWARD);
+            rightSpecimenServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_SPECIMEN_SERVO_NAME));
+            rightSpecimenServo.setDirection(Servo.Direction.FORWARD);
+
             showTelemetry();
             telemetry.addData(TAG, "initialized");
         } else {
@@ -115,12 +126,15 @@ public class FtcIntake extends FtcSubSystem {
         if (intakeEnabled) {
             if (!FtcUtils.DEBUG && FtcUtils.gameOver(runtime)) {
                 spinStop();
+                specimenRelease();
             } else if (FtcUtils.hangInitiated(gamePad1, gamePad2, runtime)) {
                 flipHorizontal(false);
                 spinStop();
+                specimenRelease();
             } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
                 spinIn(false);
                 flipDown(false);
+                specimenGrab();
             } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
                 if (
                     // Both drivers force manual override
@@ -140,6 +154,8 @@ public class FtcIntake extends FtcSubSystem {
                     spinIn(false);
                     flipDelivery(false);
                 }
+
+                specimenRelease();
             } else if (gamePad2.right_stick_y <= -0.5 ||
                     // GamePad1 manual override
                     gamePad1.share && gamePad1.right_stick_y <= -0.5) {
@@ -297,6 +313,26 @@ public class FtcIntake extends FtcSubSystem {
                         leftSpinServo.getPosition(), rightSpinServo.getPosition(),
                         leftFlipServo.getPosition(), rightFlipServo.getPosition()));
             }
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void specimenGrab() {
+        FtcLogger.enter();
+        if (intakeEnabled && leftSpecimenServo != null && rightSpecimenServo != null) {
+            leftSpecimenServo.setPosition(LEFT_SPECIMEN_GRAB_POSITION);
+            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_GRAB_POSITION);
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void specimenRelease() {
+        FtcLogger.enter();
+        if (intakeEnabled && leftSpecimenServo != null && rightSpecimenServo != null) {
+            leftSpecimenServo.setPosition(LEFT_SPECIMEN_RELEASE_POSITION);
+            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_RELEASE_POSITION);
         }
 
         FtcLogger.exit();
