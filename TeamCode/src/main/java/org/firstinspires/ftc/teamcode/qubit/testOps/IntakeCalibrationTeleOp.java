@@ -47,11 +47,12 @@ public class IntakeCalibrationTeleOp extends OpMode {
 
     FtcServo leftSpinServo = null;
     FtcServo rightSpinServo = null;
+    FtcServo verticalSpinServo = null;
     FtcServo leftFlipServo = null;
     FtcServo rightFlipServo = null;
     double leftFlipPosition, rightFlipPosition;
 
-    double leftSpinPower, rightSpinPower;
+    double leftSpinPower, rightSpinPower, verticalSpinPower;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -67,7 +68,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
             leftSpinServo.getController().pwmEnable();
         }
 
-        leftSpinServo.setDirection(Servo.Direction.FORWARD);
+        leftSpinServo.setDirection(Servo.Direction.REVERSE);
         leftSpinPower = FtcIntake.SPIN_STOP_POWER;
         leftSpinServo.setPosition(leftSpinPower);
 
@@ -79,6 +80,15 @@ public class IntakeCalibrationTeleOp extends OpMode {
         rightSpinServo.setDirection(Servo.Direction.FORWARD);
         rightSpinPower = FtcIntake.SPIN_STOP_POWER;
         rightSpinServo.setPosition(rightSpinPower);
+
+        verticalSpinServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.VERTICAL_SPIN_SERVO_NAME));
+        if (verticalSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+            verticalSpinServo.getController().pwmEnable();
+        }
+
+        verticalSpinServo.setDirection(Servo.Direction.FORWARD);
+        verticalSpinPower = FtcIntake.SPIN_STOP_POWER;
+        verticalSpinServo.setPosition(verticalSpinPower);
 
         leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, FtcIntake.LEFT_FLIP_SERVO_NAME));
         if (leftFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
@@ -155,7 +165,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
             servo = rightFlipServo;
         }
 
-        if (gamepad1.left_stick_y > 0.5 || gamepad1.left_stick_y < -0.5) {
+        if (gamepad1.left_stick_y >= 0.5 || gamepad1.left_stick_y <= -0.5) {
             leftSpinPower = Math.abs(gamepad1.left_stick_y);
             position = leftSpinPower;
             servo = leftSpinServo;
@@ -164,13 +174,22 @@ public class IntakeCalibrationTeleOp extends OpMode {
             leftSpinServo.setPosition(leftSpinPower);
         }
 
-        if (gamepad1.right_stick_y >= 0.5 || gamepad1.right_stick_y <= -.05) {
+        if (gamepad1.right_stick_y >= 0.5 || gamepad1.right_stick_y <= -0.5) {
             rightSpinPower = Math.abs(gamepad1.right_stick_y);
             position = rightSpinPower;
             servo = rightSpinServo;
         } else {
             rightSpinPower = FtcServo.MID_POSITION;
             rightSpinServo.setPosition(rightSpinPower);
+        }
+
+        if (gamepad1.dpad_up) {
+            verticalSpinPower = FtcIntake.VERTICAL_SPIN_IN_POWER;
+            position = verticalSpinPower;
+            servo = verticalSpinServo;
+        } else {
+            verticalSpinPower = FtcServo.MID_POSITION;
+            verticalSpinServo.setPosition(verticalSpinPower);
         }
 
         if (servo != null) {
@@ -180,6 +199,7 @@ public class IntakeCalibrationTeleOp extends OpMode {
 
         telemetry.addData("Right spin", "right stick Y");
         telemetry.addData("Left spin", "left stick Y");
+        telemetry.addData("Vertical spin", "dPad up");
         telemetry.addData("Right flip", "right trigger/bumper");
         telemetry.addData("Left flip", "left trigger/bumper");
         telemetry.addLine();

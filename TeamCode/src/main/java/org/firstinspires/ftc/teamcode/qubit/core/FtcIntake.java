@@ -43,7 +43,9 @@ public class FtcIntake extends FtcSubSystem {
     private static final String TAG = "FtcIntake";
     public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
-    public static final double SPIN_IN_POWER = 0.9000;
+    public static final String VERTICAL_SPIN_SERVO_NAME = "verticalSpinServo";
+    public static final double HORIZONTAL_SPIN_IN_POWER = 0.7000;
+    public static final double VERTICAL_SPIN_IN_POWER = 0.9000;
     public static final double SPIN_OUT_POWER = 0.3000;
     public static final double SPIN_HOLD_POWER = 0.5400;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
@@ -59,9 +61,9 @@ public class FtcIntake extends FtcSubSystem {
     public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
     public static final String LEFT_SPECIMEN_SERVO_NAME = "leftSpecimenServo";
     public static final String RIGHT_SPECIMEN_SERVO_NAME = "rightSpecimenServo";
-    public static final double LEFT_SPECIMEN_GRAB_POSITION = 0.4460;
+    public static final double LEFT_SPECIMEN_INTAKE_POSITION = 0.4460;
     public static final double LEFT_SPECIMEN_RELEASE_POSITION = 0.50;
-    public static final double RIGHT_SPECIMEN_GRAB_POSITION = 0.8600;
+    public static final double RIGHT_SPECIMEN_INTAKE_POSITION = 0.8600;
     public static final double RIGHT_SPECIMEN_RELEASE_POSITION = 0.50;
 
     private final boolean intakeEnabled = true;
@@ -70,6 +72,7 @@ public class FtcIntake extends FtcSubSystem {
     private final FtcBot parent;
     private FtcServo leftSpinServo = null;
     private FtcServo rightSpinServo = null;
+    private FtcServo verticalSpinServo = null;
     private FtcServo leftFlipServo = null;
     private FtcServo rightFlipServo = null;
     private FtcServo leftSpecimenServo = null;
@@ -90,9 +93,11 @@ public class FtcIntake extends FtcSubSystem {
         this.telemetry = telemetry;
         if (intakeEnabled) {
             leftSpinServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_SPIN_SERVO_NAME));
-            leftSpinServo.setDirection(Servo.Direction.FORWARD);
+            leftSpinServo.setDirection(Servo.Direction.REVERSE);
             rightSpinServo = new FtcServo(hardwareMap.get(Servo.class, RIGHT_SPIN_SERVO_NAME));
             rightSpinServo.setDirection(Servo.Direction.FORWARD);
+            verticalSpinServo = new FtcServo(hardwareMap.get(Servo.class, VERTICAL_SPIN_SERVO_NAME));
+            verticalSpinServo.setDirection(Servo.Direction.FORWARD);
 
             leftFlipServo = new FtcServo(hardwareMap.get(Servo.class, LEFT_FLIP_SERVO_NAME));
             leftFlipServo.setDirection(Servo.Direction.FORWARD);
@@ -134,7 +139,7 @@ public class FtcIntake extends FtcSubSystem {
             } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
                 spinIn(false);
                 flipDown(false);
-                specimenGrab();
+                specimenIntake();
             } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
                 if (
                     // Both drivers force manual override
@@ -253,6 +258,7 @@ public class FtcIntake extends FtcSubSystem {
         if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_HOLD_POWER);
             rightSpinServo.setPosition(SPIN_HOLD_POWER);
+            verticalSpinServo.setPosition(SPIN_HOLD_POWER);
         }
 
         FtcLogger.exit();
@@ -264,8 +270,9 @@ public class FtcIntake extends FtcSubSystem {
     public void spinIn(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (intakeEnabled) {
-            leftSpinServo.setPosition(SPIN_IN_POWER);
-            rightSpinServo.setPosition(SPIN_IN_POWER);
+            leftSpinServo.setPosition(HORIZONTAL_SPIN_IN_POWER);
+            rightSpinServo.setPosition(HORIZONTAL_SPIN_IN_POWER);
+            verticalSpinServo.setPosition(VERTICAL_SPIN_IN_POWER);
         }
 
         if (waitTillCompletion) {
@@ -283,6 +290,7 @@ public class FtcIntake extends FtcSubSystem {
         if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_OUT_POWER);
             rightSpinServo.setPosition(SPIN_OUT_POWER);
+            verticalSpinServo.setPosition(SPIN_OUT_POWER);
         }
 
         FtcLogger.exit();
@@ -296,6 +304,7 @@ public class FtcIntake extends FtcSubSystem {
         if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_STOP_POWER);
             rightSpinServo.setPosition(SPIN_STOP_POWER);
+            verticalSpinServo.setPosition(SPIN_STOP_POWER);
         }
 
         FtcLogger.exit();
@@ -307,10 +316,11 @@ public class FtcIntake extends FtcSubSystem {
     public void showTelemetry() {
         FtcLogger.enter();
         if (intakeEnabled && telemetryEnabled) {
-            if (leftSpinServo != null && rightSpinServo != null && leftFlipServo != null && rightFlipServo != null) {
+            if (leftSpinServo != null && rightSpinServo != null && verticalSpinServo != null &&
+                    leftFlipServo != null && rightFlipServo != null) {
                 telemetry.addData(TAG, String.format(Locale.US,
-                        "spin: %5.4f, %5.4f, flip: %5.4f, %5.4f",
-                        leftSpinServo.getPosition(), rightSpinServo.getPosition(),
+                        "spin: %5.4f, %5.4f, %5.4f, flip: %5.4f, %5.4f",
+                        leftSpinServo.getPosition(), rightSpinServo.getPosition(), verticalSpinServo.getPosition(),
                         leftFlipServo.getPosition(), rightFlipServo.getPosition()));
             }
         }
@@ -318,11 +328,11 @@ public class FtcIntake extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    public void specimenGrab() {
+    public void specimenIntake() {
         FtcLogger.enter();
         if (intakeEnabled && leftSpecimenServo != null && rightSpecimenServo != null) {
-            leftSpecimenServo.setPosition(LEFT_SPECIMEN_GRAB_POSITION);
-            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_GRAB_POSITION);
+            leftSpecimenServo.setPosition(LEFT_SPECIMEN_INTAKE_POSITION);
+            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_INTAKE_POSITION);
         }
 
         FtcLogger.exit();
@@ -352,6 +362,11 @@ public class FtcIntake extends FtcSubSystem {
             if (rightSpinServo != null &&
                     rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
                 rightSpinServo.getController().pwmEnable();
+            }
+
+            if (verticalSpinServo != null &&
+                    verticalSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.ENABLED) {
+                verticalSpinServo.getController().pwmEnable();
             }
 
             if (leftFlipServo != null &&
@@ -385,6 +400,11 @@ public class FtcIntake extends FtcSubSystem {
             if (rightSpinServo != null &&
                     rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
                 rightSpinServo.getController().pwmDisable();
+            }
+
+            if (verticalSpinServo != null &&
+                    verticalSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                verticalSpinServo.getController().pwmDisable();
             }
 
             if (leftFlipServo != null &&

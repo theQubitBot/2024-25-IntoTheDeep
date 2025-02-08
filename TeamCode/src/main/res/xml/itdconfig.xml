@@ -10,7 +10,7 @@
             <Servo name="leftFlipServo" port="2" />
             <Servo name="rightSpinServo" port="3" />
             <Servo name="rightFlipServo" port="4" />
-            <Servo name="centerSpinServo" port="5" />
+            <Servo name="verticalSpinServo" port="5" />
             <RevTouchSensor name="rightLiftTouch" port="1" />
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
