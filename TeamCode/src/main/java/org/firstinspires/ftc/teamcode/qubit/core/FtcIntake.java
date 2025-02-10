@@ -44,9 +44,9 @@ public class FtcIntake extends FtcSubSystem {
     public static final String LEFT_SPIN_SERVO_NAME = "leftSpinServo";
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
     public static final String VERTICAL_SPIN_SERVO_NAME = "verticalSpinServo";
-    public static final double HORIZONTAL_SPIN_IN_POWER = 0.7000;
-    public static final double VERTICAL_SPIN_IN_POWER = 0.9000;
-    public static final double SPIN_OUT_POWER = 0.3000;
+    public static final double HORIZONTAL_SPIN_IN_POWER = 0.6500;
+    public static final double VERTICAL_SPIN_IN_POWER = 0.7000;
+    public static final double SPIN_OUT_POWER = 0.2000;
     public static final double SPIN_HOLD_POWER = 0.5400;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
     public static final String LEFT_FLIP_SERVO_NAME = "leftFlipServo";
