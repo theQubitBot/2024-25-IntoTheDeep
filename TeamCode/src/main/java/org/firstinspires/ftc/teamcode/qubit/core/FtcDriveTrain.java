@@ -103,12 +103,30 @@ public class FtcDriveTrain extends FtcSubSystem {
     // This data is used for heading correction for an unbalanced robot.
     private double lastTheta = 0, lastHeading = 0;
     private final boolean useMotorEncoders = false;
-    private final boolean enableUnbalancedRobotCorrection = false;
+    private final boolean enableUnbalancedRobotHeadingCorrection = true;
     private final boolean enableMecanumPowerBoost = true;
     private final boolean useLiftPositionForSpeedAdjustment = true;
 
     public FtcDriveTrain(FtcBot robot) {
         parent = robot;
+    }
+
+    /**
+     * Evaluates if unbalanced robot heading should be automatically corrected
+     * by the software.
+     *
+     * @return True if feature is enabled, false otherwise
+     */
+    private boolean AutomaticallyCorrectUnbalancedRobotHeading(Gamepad gamepad1, Gamepad gamepad2) {
+        // Correction is off if list is higher than lower basket, on otherwise.
+        boolean enableCorrectionForLowLiftPosition = parent == null || parent.lift == null ||
+                parent.lift.getLeftPosition() < FtcLift.POSITION_LOW_BASKET;
+
+        // Grant wants correction to be off when samples are being intook.
+        boolean enableCorrectionForIntake = !(gamepad1.right_trigger >= 0.5) && !(gamepad2.right_trigger >= 0.5);
+
+        return enableUnbalancedRobotHeadingCorrection && enableCorrectionForLowLiftPosition &&
+                enableCorrectionForIntake;
     }
 
     /**
@@ -288,7 +306,7 @@ public class FtcDriveTrain extends FtcSubSystem {
         double turnMagnitude = Math.abs(turn);
         if (turnMagnitude <= JITTER) {
             turn = FtcMotor.ZERO_POWER;
-            if (enableUnbalancedRobotCorrection) {
+            if (AutomaticallyCorrectUnbalancedRobotHeading(gamePad1, gamePad2)) {
                 // Correction for left/right pull for an unbalanced robot.
                 // Apply correction only if driver is not explicitly turning the robot.
                 // Tangent comparison will maintain orientation when driver changes power
@@ -311,7 +329,7 @@ public class FtcDriveTrain extends FtcSubSystem {
             int turnDirection = (int) Math.signum(turn);
             turn = MINIMUM_TURN_POWER + (turnMagnitude * (MAXIMUM_TURN_POWER - MINIMUM_TURN_POWER));
             turn *= turnDirection;
-            if (enableUnbalancedRobotCorrection) {
+            if (AutomaticallyCorrectUnbalancedRobotHeading(gamePad1, gamePad2)) {
                 // Driver is changing robot orientation explicitly.
                 // Store new heading
                 parent.imu.readOnce();
