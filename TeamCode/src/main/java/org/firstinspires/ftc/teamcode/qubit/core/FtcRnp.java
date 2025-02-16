@@ -105,7 +105,8 @@ public class FtcRnp extends FtcSubSystem {
             extend(false);
         } else if (gamePad1.dpad_down || gamePad2.dpad_down) {
             retract(false);
-        } else if (FtcUtils.lastNSeconds(runtime, 10)) {
+        } else if (FtcUtils.lastNSeconds(runtime, 0)) {
+            // Retract when buzzer sounds.
             retract(false);
         } else {
             stop(false);

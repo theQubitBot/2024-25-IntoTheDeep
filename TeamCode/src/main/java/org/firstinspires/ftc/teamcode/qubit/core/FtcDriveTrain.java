@@ -103,7 +103,7 @@ public class FtcDriveTrain extends FtcSubSystem {
     // This data is used for heading correction for an unbalanced robot.
     private double lastTheta = 0, lastHeading = 0;
     private final boolean useMotorEncoders = false;
-    private final boolean enableUnbalancedRobotHeadingCorrection = true;
+    private final boolean enableUnbalancedRobotHeadingCorrection = false;
     private final boolean enableMecanumPowerBoost = true;
     private final boolean useLiftPositionForSpeedAdjustment = true;
 

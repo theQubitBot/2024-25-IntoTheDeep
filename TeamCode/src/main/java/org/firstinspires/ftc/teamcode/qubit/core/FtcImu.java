@@ -250,7 +250,7 @@ public class FtcImu extends FtcSubSystem {
     /**
      * Read the IMU and store information for later use.
      * Invoked by async updater directly.
-     * This may be invoked from other classes.
+     * This may be invoked from other sub-systems.
      */
     public void readAsync() {
         if (useBhi260apImu && bhi260apImu != null && bhi260apImu.imuIsGood()) {
@@ -266,9 +266,8 @@ public class FtcImu extends FtcSubSystem {
             }
         } else {
             // All IMUs are bad or not enabled
-            // Fallback to the next IMU?!!
             if (telemetryEnabled) {
-                telemetry.addData(TAG, "All IMUs are dead.");
+                telemetry.addData(TAG, "All IMUs are disabled or dead.");
             }
         }
     }
