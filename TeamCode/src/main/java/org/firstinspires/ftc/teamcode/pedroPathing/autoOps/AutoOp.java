@@ -117,6 +117,12 @@ public class AutoOp extends LinearOpMode {
         robot.blinkinLed.set(RevBlinkinLedDriver.BlinkinPattern.BLACK);
         robot.intake.spinStop();
         robot.rnp.stop(false);
+        robot.intake.rightSpecimenRelease();
+        if (robot.config.robotPosition == RobotPositionEnum.RIGHT) {
+            robot.intake.leftSpecimenGrab(false);
+        } else {
+            robot.intake.leftSpecimenRelease();
+        }
 
         if (FtcUtils.DEBUG) {
             robot.enableTelemetry();

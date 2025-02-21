@@ -170,7 +170,7 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipDelivery(true);
             if (executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
-            if (executeRobotActions) robot.intake.spinOut();
+            if (executeRobotActions) robot.intake.spinOut(false);
             if (executeTrajectories) Actions.runBlocking(a3);
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions)
@@ -192,7 +192,7 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipDelivery(true);
             if (executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
-            if (executeRobotActions) robot.intake.spinOut();
+            if (executeRobotActions) robot.intake.spinOut(false);
             if (executeTrajectories) Actions.runBlocking(a5);
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions)
@@ -213,7 +213,7 @@ public class OptionLeft extends OptionBase {
             if (executeRobotActions) robot.intake.flipDelivery(true);
             if (executeRobotActions) robot.intake.flipHorizontal(false);
             // In case sample is stuck, evict it.
-            if (executeRobotActions) robot.intake.spinOut();
+            if (executeRobotActions) robot.intake.spinOut(false);
             if (executeTrajectories) Actions.runBlocking(a7);
             if (executeRobotActions) robot.intake.spinStop();
             if (executeRobotActions)

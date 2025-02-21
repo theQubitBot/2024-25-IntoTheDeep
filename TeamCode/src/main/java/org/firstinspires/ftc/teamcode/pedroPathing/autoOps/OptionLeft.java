@@ -46,24 +46,18 @@ public class OptionLeft extends OptionBase {
     Pose scorePose = new Pose(-4, 13.5, RADIAN0);
 
     // First yellow Sample
-    public Pose pickup1ControlPose1 = new Pose(-3.8, 21.0, RADIAN0);
-    public Pose pickup1ControlPose2 = new Pose(-0.1, 26.9, -RADIAN30);
-    public Pose pickup1ControlPose3 = new Pose(4.4, 31.8, -RADIAN30);
-    public Pose pickup1ControlPose4 = new Pose(7.3, 35.3, -RADIAN30);
-    public Pose pickup1ControlPose5 = new Pose(11.1, 39.5, -RADIAN30);
-    public Pose pickup1Pose = new Pose(16, 36, -RADIAN30);
+    public Pose pickup1Pose = new Pose(15, 20, RADIAN45);
 
     // Second yellow Sample
-    public Pose pickup2Pose = new Pose(11.8, 31.6, RADIAN45);
+    public Pose pickup2Pose = new Pose(7, 28, RADIAN45);
 
     // Third yellow Sample
-    public Pose pickup3ControlPose1 = new Pose(4.2, 16.6, RADIAN45);
-    public Pose pickup3ControlPose2 = new Pose(14.6, 19.8, RADIAN90);
-    public Pose pickup3Pose = new Pose(20.1, 29.0, RADIAN135);
+
+    public Pose pickup3Pose = new Pose(9, 23.5, RADIAN90);
 
     // Park
-    public Pose parkControlPose = new Pose(32, 44, -RADIAN15);
-    public Pose parkPose = new Pose(55.5, 27.5, -RADIAN45);
+    public Pose parkControlPose = new Pose(26, 47.3, -RADIAN15);
+    public Pose parkPose = new Pose(60, 26, -RADIAN45);
 
     PathChain scorePreloadPath, parkPath,
             pickup1, pickup2, pickup3, score1, score2, score3;
@@ -96,19 +90,13 @@ public class OptionLeft extends OptionBase {
                     if (PARAMS.executeRobotActions) intakeSpinStop.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME, () -> {
-                    if (PARAMS.executeRobotActions) lift2High.run();
+                    if (PARAMS.executeRobotActions) lift2HighBasket.run();
                 })
                 .build();
 
         // first yellow
         pickup1 = follower.pathBuilder()
-                .addBezierCurve(new Point(scorePose),
-                        new Point(pickup1ControlPose1),
-                        new Point(pickup1ControlPose2),
-                        new Point(pickup1ControlPose3),
-                        new Point(pickup1ControlPose4),
-                        new Point(pickup1ControlPose5),
-                        new Point(pickup1Pose))
+                .addBezierLine(new Point(scorePose), new Point(pickup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
                 .addTemporalCallback(100, () -> {
                     if (PARAMS.executeRobotActions) lift2Low.run();
@@ -137,7 +125,7 @@ public class OptionLeft extends OptionBase {
                     if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
-                    if (PARAMS.executeRobotActions) lift2High.run();
+                    if (PARAMS.executeRobotActions) lift2HighBasket.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 200, () -> {
                     // In case sample is stuck, evict it.
@@ -176,7 +164,7 @@ public class OptionLeft extends OptionBase {
                     if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
-                    if (PARAMS.executeRobotActions) lift2High.run();
+                    if (PARAMS.executeRobotActions) lift2HighBasket.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 200, () -> {
                     // In case sample is stuck, evict it.
@@ -186,9 +174,7 @@ public class OptionLeft extends OptionBase {
 
         // third yellow
         pickup3 = follower.pathBuilder()
-                .addBezierCurve(new Point(scorePose),
-                        new Point(pickup3ControlPose1),
-                        new Point(pickup3ControlPose2),
+                .addBezierLine(new Point(scorePose),
                         new Point(pickup3Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
                 .addTemporalCallback(1, () -> {
@@ -218,7 +204,7 @@ public class OptionLeft extends OptionBase {
                     if (PARAMS.executeRobotActions) intakeFlipHorizontal.run();
                 })
                 .addTemporalCallback(FtcIntake.FLIP_TRAVEL_TIME + 100, () -> {
-                    if (PARAMS.executeRobotActions) lift2High.run();
+                    if (PARAMS.executeRobotActions) lift2HighBasket.run();
                 })
                 .build();
 
@@ -256,7 +242,7 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.executeRobotActions) intakeFlipDown.run();
         if (PARAMS.deliverPreloaded) {
             if (PARAMS.executeTrajectories) runFollower(scorePreloadPath, true, 2500);
-            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
+            if (PARAMS.executeRobotActions) lift2HighBasketBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
         }
@@ -266,7 +252,7 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliver1) {
             if (PARAMS.executeTrajectories) runFollower(pickup1, false, 3000);
             if (PARAMS.executeTrajectories) runFollower(score1, true, 3000);
-            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
+            if (PARAMS.executeRobotActions) lift2HighBasketBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
         }
@@ -276,7 +262,7 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliver2) {
             if (PARAMS.executeTrajectories) runFollower(pickup2, false, 3000);
             if (PARAMS.executeTrajectories) runFollower(score2, true, 3000);
-            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
+            if (PARAMS.executeRobotActions) lift2HighBasketBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
         }
@@ -286,7 +272,7 @@ public class OptionLeft extends OptionBase {
         if (PARAMS.deliver3) {
             if (PARAMS.executeTrajectories) runFollower(pickup3, false, 3000);
             if (PARAMS.executeTrajectories) runFollower(score3, true, 3000);
-            if (PARAMS.executeRobotActions) lift2HighBlocking.run();
+            if (PARAMS.executeRobotActions) lift2HighBasketBlocking.run();
             if (PARAMS.executeRobotActions) robot.arm.moveBackward(true);
             if (PARAMS.executeRobotActions) robot.arm.moveForward(true);
         }
@@ -294,7 +280,7 @@ public class OptionLeft extends OptionBase {
         // Park
         if (!saveAndTest()) return;
         if (PARAMS.park) {
-            if (PARAMS.executeTrajectories) runFollower(parkPath, true, 2500);
+            if (PARAMS.executeTrajectories) runFollower(parkPath, false, 2500);
             if (PARAMS.executeRobotActions) robot.flag.raise(false);
             if (PARAMS.executeRobotActions) robot.lift.stop();
         }

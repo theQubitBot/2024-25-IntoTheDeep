@@ -53,7 +53,7 @@ public final class OptionTest extends OptionBase {
         pathChain = follower.pathBuilder()
                 .addBezierLine(new Point(startPose), new Point(endPose))
                 .setConstantHeadingInterpolation(startPose.getHeading())
-                .addTemporalCallback(100, lift2High)
+                .addTemporalCallback(100, lift2HighBasket)
                 .build();
         return this;
     }

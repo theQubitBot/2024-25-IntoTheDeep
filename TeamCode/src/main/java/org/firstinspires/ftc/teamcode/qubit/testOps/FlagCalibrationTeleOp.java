@@ -39,7 +39,7 @@ import org.firstinspires.ftc.teamcode.qubit.core.FtcLogger;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcServo;
 import org.firstinspires.ftc.teamcode.qubit.core.FtcUtils;
 
-@Disabled
+//@Disabled
 @TeleOp(group = "TestOp")
 public class FlagCalibrationTeleOp extends OpMode {
     // Declare OpMode members

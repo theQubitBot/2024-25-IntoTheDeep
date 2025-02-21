@@ -66,9 +66,12 @@ public class OptionBase {
     protected Follower follower;
     protected final Pose startPose = new Pose(0, 0, 0);
 
-    protected Runnable lift2High, lift2HighBlocking, lift2Low, resetLift;
+    protected Runnable lift2HighBasket, lift2HighBasketBlocking,
+            lift2HighChamber, lift2HighChamberBlocking, lift2HighChamberDeliveryBlocking,
+            lift2Low, resetLift;
     protected Runnable intakeSpinIn, intakeSpinOut, intakeSpinStop;
     protected Runnable intakeFlipDown, intakeFlipDelivery, intakeFlipHorizontal;
+    protected Runnable grabLeftSpecimen, releaseLeftSpecimen, grabRightSpecimen, releaseRightSpecimen;
 
     static {
         RADIAN0 = Math.toRadians(0);
@@ -83,7 +86,7 @@ public class OptionBase {
         RADIAN120 = Math.toRadians(120);
         RADIAN135 = Math.toRadians(135);
         RADIAN150 = Math.toRadians(150);
-        RADIAN180 = Math.toRadians(180);
+        RADIAN180 = Math.toRadians(179.99);
     }
 
     public OptionBase(LinearOpMode autoOpMode, FtcBot robot, Follower follower) {
@@ -91,18 +94,26 @@ public class OptionBase {
         this.robot = robot;
         this.follower = follower;
 
-        lift2High = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, false);
-        lift2HighBlocking = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_FLOOR, true);
+        lift2HighBasket = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_HIGH_BASKET, false);
+        lift2HighBasketBlocking = () -> robot.lift.move(FtcLift.POSITION_HIGH_BASKET, FtcLift.POSITION_HIGH_BASKET, true);
+        lift2HighChamber = () -> robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER, FtcLift.POSITION_HIGH_CHAMBER, false);
+        lift2HighChamberBlocking = () -> robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER, FtcLift.POSITION_HIGH_CHAMBER, true);
+        lift2HighChamberDeliveryBlocking = () -> robot.lift.move(FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, FtcLift.POSITION_HIGH_CHAMBER_DELIVERY, true);
         lift2Low = () -> robot.lift.move(FtcLift.POSITION_FLOOR, FtcLift.POSITION_FLOOR, false);
         resetLift = () -> robot.lift.resetLiftIfTouchPressed();
 
         intakeSpinIn = () -> robot.intake.spinIn(false);
-        intakeSpinOut = () -> robot.intake.spinOut();
+        intakeSpinOut = () -> robot.intake.spinOut(false);
         intakeSpinStop = () -> robot.intake.spinStop();
 
         intakeFlipDown = () -> robot.intake.flipDown(false);
         intakeFlipDelivery = () -> robot.intake.flipDelivery(false);
         intakeFlipHorizontal = () -> robot.intake.flipHorizontal(false);
+
+        grabLeftSpecimen = () -> robot.intake.leftSpecimenGrab(true);
+        releaseLeftSpecimen = () -> robot.intake.leftSpecimenRelease();
+        grabRightSpecimen = () -> robot.intake.rightSpecimenGrab(true);
+        releaseRightSpecimen = () -> robot.intake.rightSpecimenRelease();
     }
 
     /**

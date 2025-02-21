@@ -52,8 +52,8 @@ public class FtcLift extends FtcSubSystem {
     public static final int POSITION_HANG = 1024;
     public static final int POSITION_HIGH_RUNG = POSITION_HIGH_BASKET;
     public static final int POSITION_LOW_RUNG = POSITION_HANG;
-    public static final int POSITION_HIGH_CHAMBER = 1460;
-    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 1000;
+    public static final int POSITION_HIGH_CHAMBER = 1400;
+    public static final int POSITION_HIGH_CHAMBER_DELIVERY = 400;
     public static final int POSITION_LOW_CHAMBER = 450;
     public static final int POSITION_FLOOR = 5;
     public static final int POSITION_MINIMUM = 0;
@@ -68,6 +68,7 @@ public class FtcLift extends FtcSubSystem {
     public static final int TRAVEL_TIME_2_LOW_CHAMBER = POSITION_LOW_CHAMBER / 2;
     public static final int TRAVEL_TIME_2_HIGH_RUNG = POSITION_HIGH_RUNG / 2;
     public static final int TRAVEL_TIME_2_LOW_RUNG = POSITION_LOW_RUNG / 2;
+    public static final int LIFT_STOP_SWAYING_TIME = 800; // milliseconds
     private final boolean liftEnabled = true;
     public boolean telemetryEnabled = true;
     public static int endAutoOpLeftLiftPosition = POSITION_MINIMUM;

@@ -45,7 +45,7 @@ public class FtcIntake extends FtcSubSystem {
     public static final String RIGHT_SPIN_SERVO_NAME = "rightSpinServo";
     public static final String VERTICAL_SPIN_SERVO_NAME = "verticalSpinServo";
     public static final double HORIZONTAL_SPIN_IN_POWER = 0.6500;
-    public static final double VERTICAL_SPIN_IN_POWER = 0.7000;
+    public static final double VERTICAL_SPIN_IN_POWER = 0.6300;
     public static final double SPIN_OUT_POWER = 0.2000;
     public static final double SPIN_HOLD_POWER = 0.5400;
     public static final double SPIN_STOP_POWER = FtcServo.MID_POSITION;
@@ -58,12 +58,14 @@ public class FtcIntake extends FtcSubSystem {
     public static final double FLIP_DELIVER_LEFT_POSITION = 0.5700;
     public static final double FLIP_DELIVER_RIGHT_POSITION = 0.5655;
     public static final int FLIP_TRAVEL_TIME = 1000; // milliseconds
-    public static final int SPIN_TRAVEL_TIME = 50; // milliseconds
+    public static final int SAMPLE_INTAKE_TIME = 500; // milliseconds
+    public static final int SAMPLE_OUTTAKE_TIME = 1000; // milliseconds
+    public static final int SPECIMEN_INTAKE_TIME = 1000; // milliseconds
     public static final String LEFT_SPECIMEN_SERVO_NAME = "leftSpecimenServo";
     public static final String RIGHT_SPECIMEN_SERVO_NAME = "rightSpecimenServo";
-    public static final double LEFT_SPECIMEN_INTAKE_POSITION = 0.4460;
+    public static final double LEFT_SPECIMEN_GRAB_POSITION = 0.4495;
     public static final double LEFT_SPECIMEN_RELEASE_POSITION = 0.50;
-    public static final double RIGHT_SPECIMEN_INTAKE_POSITION = 0.8600;
+    public static final double RIGHT_SPECIMEN_GRAB_POSITION = 0.5540;
     public static final double RIGHT_SPECIMEN_RELEASE_POSITION = 0.50;
 
     private final boolean intakeEnabled = true;
@@ -139,7 +141,7 @@ public class FtcIntake extends FtcSubSystem {
             } else if (gamePad1.right_trigger >= 0.5 || gamePad2.right_trigger >= 0.5) {
                 spinIn(false);
                 flipDown(false);
-                specimenIntake();
+                specimenGrab(false);
             } else if (gamePad1.right_bumper || gamePad2.right_bumper) {
                 if (
                     // Both drivers force manual override
@@ -165,7 +167,7 @@ public class FtcIntake extends FtcSubSystem {
                     // GamePad1 manual override
                     gamePad1.share && gamePad1.right_stick_y <= -0.5) {
                 flipDown(false);
-                spinOut();
+                spinOut(false);
             } else if (FtcUtils.lastNSeconds(runtime, 10)) {
                 spinStop();
                 flipHorizontal(false);
@@ -276,7 +278,7 @@ public class FtcIntake extends FtcSubSystem {
         }
 
         if (waitTillCompletion) {
-            FtcUtils.sleep(SPIN_TRAVEL_TIME);
+            FtcUtils.sleep(SAMPLE_INTAKE_TIME);
         }
 
         FtcLogger.exit();
@@ -285,12 +287,15 @@ public class FtcIntake extends FtcSubSystem {
     /**
      * Spin outwards to outtake the sample.
      */
-    public void spinOut() {
+    public void spinOut(boolean waitTillCompletion) {
         FtcLogger.enter();
         if (intakeEnabled) {
             leftSpinServo.setPosition(SPIN_OUT_POWER);
             rightSpinServo.setPosition(SPIN_OUT_POWER);
             verticalSpinServo.setPosition(SPIN_OUT_POWER);
+            if (waitTillCompletion) {
+                FtcUtils.sleep(SAMPLE_OUTTAKE_TIME);
+            }
         }
 
         FtcLogger.exit();
@@ -328,11 +333,62 @@ public class FtcIntake extends FtcSubSystem {
         FtcLogger.exit();
     }
 
-    public void specimenIntake() {
+    public void leftSpecimenGrab(boolean waitTillCompletion) {
         FtcLogger.enter();
-        if (intakeEnabled && leftSpecimenServo != null && rightSpecimenServo != null) {
-            leftSpecimenServo.setPosition(LEFT_SPECIMEN_INTAKE_POSITION);
-            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_INTAKE_POSITION);
+        if (intakeEnabled && leftSpecimenServo != null) {
+            leftSpecimenServo.setPosition(LEFT_SPECIMEN_GRAB_POSITION);
+            if (waitTillCompletion) {
+                FtcUtils.sleep(SPECIMEN_INTAKE_TIME);
+            }
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void leftSpecimenRelease() {
+        FtcLogger.enter();
+        if (intakeEnabled && leftSpecimenServo != null) {
+            leftSpecimenServo.setPosition(LEFT_SPECIMEN_RELEASE_POSITION);
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void rightSpecimenGrab(boolean waitTillCompletion) {
+        FtcLogger.enter();
+        if (intakeEnabled && rightSpecimenServo != null ) {
+            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_GRAB_POSITION);
+            if (waitTillCompletion) {
+                FtcUtils.sleep(SPECIMEN_INTAKE_TIME);
+            }
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void rightSpecimenRelease() {
+        FtcLogger.enter();
+        if (intakeEnabled && rightSpecimenServo != null) {
+            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_RELEASE_POSITION);
+        }
+
+        FtcLogger.exit();
+    }
+
+    public void specimenGrab(boolean waitTillCompletion) {
+        FtcLogger.enter();
+        if (intakeEnabled) {
+            if (leftSpecimenServo != null) {
+                leftSpecimenServo.setPosition(LEFT_SPECIMEN_GRAB_POSITION);
+            }
+
+            if (rightSpecimenServo != null) {
+                rightSpecimenServo.setPosition(RIGHT_SPECIMEN_GRAB_POSITION);
+            }
+
+            if (waitTillCompletion) {
+                FtcUtils.sleep(SPECIMEN_INTAKE_TIME);
+            }
         }
 
         FtcLogger.exit();
@@ -340,9 +396,14 @@ public class FtcIntake extends FtcSubSystem {
 
     public void specimenRelease() {
         FtcLogger.enter();
-        if (intakeEnabled && leftSpecimenServo != null && rightSpecimenServo != null) {
-            leftSpecimenServo.setPosition(LEFT_SPECIMEN_RELEASE_POSITION);
-            rightSpecimenServo.setPosition(RIGHT_SPECIMEN_RELEASE_POSITION);
+        if (intakeEnabled) {
+            if (leftSpecimenServo != null) {
+                leftSpecimenServo.setPosition(LEFT_SPECIMEN_RELEASE_POSITION);
+            }
+
+            if (rightSpecimenServo != null) {
+                rightSpecimenServo.setPosition(RIGHT_SPECIMEN_RELEASE_POSITION);
+            }
         }
 
         FtcLogger.exit();
@@ -394,26 +455,31 @@ public class FtcIntake extends FtcSubSystem {
         if (intakeEnabled) {
             if (leftSpinServo != null &&
                     leftSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                leftSpinServo.setPosition(SPIN_STOP_POWER);
                 leftSpinServo.getController().pwmDisable();
             }
 
             if (rightSpinServo != null &&
                     rightSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                rightSpinServo.setPosition(SPIN_STOP_POWER);
                 rightSpinServo.getController().pwmDisable();
             }
 
             if (verticalSpinServo != null &&
                     verticalSpinServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                verticalSpinServo.setPosition(SPIN_STOP_POWER);
                 verticalSpinServo.getController().pwmDisable();
             }
 
             if (leftFlipServo != null &&
                     leftFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                leftFlipServo.setPosition(SPIN_STOP_POWER);
                 leftFlipServo.getController().pwmDisable();
             }
 
             if (rightFlipServo != null &&
                     rightFlipServo.getController().getPwmStatus() != ServoController.PwmStatus.DISABLED) {
+                rightFlipServo.setPosition(SPIN_STOP_POWER);
                 rightFlipServo.getController().pwmDisable();
             }
         }
